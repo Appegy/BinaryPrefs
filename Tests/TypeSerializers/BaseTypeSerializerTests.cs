@@ -10,12 +10,12 @@ namespace Appegy.BinaryStorage.TypeSerializers
     {
         private readonly string _storagePath = Path.Combine(Application.temporaryCachePath, "test.bin");
         private readonly byte[] _buffer = new byte[4096];
-        private readonly TType _value;
+        private readonly TType _defaultValue;
         private readonly TBinaryType _serializer;
 
-        public BaseTypeSerializerTests(TType value)
+        public BaseTypeSerializerTests(TType defaultValue)
         {
-            _value = value;
+            _defaultValue = defaultValue;
             _serializer = new TBinaryType();
         }
 
@@ -29,53 +29,50 @@ namespace Appegy.BinaryStorage.TypeSerializers
         }
 
         [Test]
-        public void DoSizeCheckForTypeSerializer()
+        public void General_Checks_For_Type_Serializer()
         {
             // Arrange
-            var size = _serializer.SizeOf(_value);
+            var size = _serializer.SizeOf(_defaultValue);
             using var writeStream = new MemoryStream(_buffer);
             using var readStream = new MemoryStream(_buffer);
             using var writer = new BinaryWriter(writeStream);
             using var reader = new BinaryReader(readStream);
 
             // Act
-            _serializer.WriteTo(writer, _value);
+            _serializer.WriteTo(writer, _defaultValue);
             var readValue = _serializer.ReadFrom(reader);
 
             // Assert
-            writeStream.Position.Should().Be(size);
-            readStream.Position.Should().Be(size);
-            _serializer.Equals(_value, _value).Should().Be(true);
-            _serializer.Equals(_value, readValue).Should().Be(true);
-            readValue.Should().Be(_value);
+            writeStream.Position.Should().Be(size, "Write stream position should match the size of the serialized value");
+            readStream.Position.Should().Be(size, "Read stream position should match the size of the serialized value");
+            readValue.Should().Be(_defaultValue, "The deserialized value should be equal to the default value");
+            _serializer.Equals(_defaultValue, _defaultValue).Should().Be(true, "The default value should be equal to itself using serializer's Equals");
+            _serializer.Equals(_defaultValue, readValue).Should().Be(true, "The default value should be equal to the deserialized value using serializer's Equals");
         }
 
         [Test]
-        public void DoGeneralStorageSectionCheck()
+        public void General_Checks_For_Type_Storage()
         {
             // Arrange
-            using var storage = GetBuilderAt(_storagePath)
+            using var storage = BinaryPrefs
+                .Construct(_storagePath)
                 .AddTypeSerializer(_serializer)
                 .Build();
 
             // Act
-            storage.Supports<TType>().Should().Be(true);
-            storage.Set("key", _value);
+            var added = storage.Set("key", _defaultValue);
 
             // Assert
-            storage.TypeOf("key").Should().Be(typeof(TType));
-            storage.Has("key").Should().Be(true);
-            storage.Get<TType>("key").Should().Be(_value);
+            added.Should().Be(true, "The value should have been added to storage");
 
-            storage.Remove("key").Should().Be(true);
-            storage.Has("key").Should().Be(false);
-            storage.Get<TType>("key").Should().Be(default(TType));
-        }
+            storage.Supports<TType>().Should().Be(true, "Storage must support the type {0}", typeof(TType).Name);
+            storage.Has("key").Should().Be(true, "Storage must contain the added key");
+            storage.TypeOf("key").Should().Be(typeof(TType), "The key type must be {0}", typeof(TType).Name);
+            storage.Get<TType>("key").Should().Be(_defaultValue, "The value must be equal to the just added value");
 
-        private BinaryPrefs.Builder GetBuilderAt(string storagePath)
-        {
-            var builder = BinaryPrefs.Construct(storagePath);
-            return builder;
+            storage.Remove("key").Should().Be(true, "The key should be successfully removed from the storage.");
+            storage.Has("key").Should().Be(false, "Storage must not contain the removed key");
+            storage.Get<TType>("key").Should().Be(default(TType), "The value retrieved after removal must be default(TType)");
         }
     }
 }

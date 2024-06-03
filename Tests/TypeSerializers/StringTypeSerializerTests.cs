@@ -34,7 +34,7 @@ namespace Appegy.BinaryStorage.TypeSerializers
             //"Null\0Character", // string with null character
         };
 
-        public StringTypeSerializerTests(string value) : base(value)
+        public StringTypeSerializerTests(string defaultValue) : base(defaultValue)
         {
         }
     }

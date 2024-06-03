@@ -32,7 +32,7 @@ namespace Appegy.BinaryStorage.TypeSerializers
             new Vector2(float.Epsilon, float.Epsilon) // smallest positive float
         };
 
-        public Vector2TypeSerializerTests(Vector2 value) : base(value)
+        public Vector2TypeSerializerTests(Vector2 defaultValue) : base(defaultValue)
         {
         }
     }
