@@ -12,6 +12,8 @@ namespace Appegy.BinaryStorage
         private readonly IReadOnlyList<TypedBinarySection> _supportedTypes;
         private readonly Dictionary<string, Record> _data = new();
 
+        public bool AutoSave { get; set; }
+        public bool IsDirty { get; private set; }
         public bool IsDisposed { get; private set; }
 
         internal BinaryPrefs(string storageFilePath, IReadOnlyList<TypedBinarySection> supportedTypes)
@@ -114,6 +116,7 @@ namespace Appegy.BinaryStorage
         {
             ThrowIfDisposed();
             BinaryPrefsIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
+            IsDirty = false;
         }
 
         private void LoadDataFromDisk()
@@ -199,6 +202,11 @@ namespace Appegy.BinaryStorage
 
         private void MarkChanged()
         {
+            if (!AutoSave)
+            {
+                IsDirty = true;
+                return;
+            }
             SaveDataFromDisk();
         }
 
