@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Appegy.UniLogger.Example
+namespace Appegy.BinaryStorage.Example
 {
     public class GameManager : MonoBehaviour
     {
