@@ -6,6 +6,13 @@
       "source": "local",
       "dependencies": {}
     },
+    "com.boundfoxstudios.fluentassertions": {
+      "version": "6.8.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://package.openupm.com"
+    },
     "com.dbrizov.naughtyattributes": {
       "version": "https://github.com/dbrizov/NaughtyAttributes.git#upm",
       "depth": 0,
@@ -86,6 +93,13 @@
       "source": "git",
       "dependencies": {},
       "hash": "ef9dc42a669bb37089065c8f5f18167d14e139a0"
+    },
+    "net.tnrd.nsubstitute": {
+      "version": "5.1.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://package.openupm.com"
     },
     "com.unity.modules.androidjni": {
       "version": "1.0.0",
