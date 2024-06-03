@@ -1,8 +1,5 @@
 ﻿using System.IO;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-
-[assembly: InternalsVisibleTo("Appegy.BinaryStorage.Tests")]
 
 namespace Appegy.BinaryStorage
 {
