@@ -1,0 +1,14 @@
+{
+    "name": "Appegy.BinaryStorage",
+    "rootNamespace": "Appegy.BinaryStorage",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
