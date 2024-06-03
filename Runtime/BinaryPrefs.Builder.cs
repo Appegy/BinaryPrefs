@@ -68,6 +68,7 @@ namespace Appegy.BinaryStorage
                     .AddTypeSerializer(StringSerializer.Shared)
                     .AddTypeSerializer(DateTimeSerializer.Shared)
                     .AddTypeSerializer(TimeSpanSerializer.Shared)
+                    .AddTypeSerializer(QuaternionSerializer.Shared)
                     .AddTypeSerializer(Vector2Serializer.Shared)
                     .AddTypeSerializer(Vector3Serializer.Shared)
                     .AddTypeSerializer(Vector4Serializer.Shared)

@@ -3,6 +3,30 @@ using UnityEngine;
 
 namespace Appegy.BinaryStorage
 {
+    internal class QuaternionSerializer : EquatableTypeSerializer<Quaternion>
+    {
+        public static QuaternionSerializer Shared { get; } = new();
+        public override string TypeName => "vector2f";
+        public override int SizeOf(Quaternion _) => sizeof(float) * 4;
+
+        public override void WriteTo(BinaryWriter writer, Quaternion value)
+        {
+            writer.Write(value.x);
+            writer.Write(value.y);
+            writer.Write(value.z);
+            writer.Write(value.w);
+        }
+
+        public override Quaternion ReadFrom(BinaryReader reader)
+        {
+            var x = reader.ReadSingle();
+            var y = reader.ReadSingle();
+            var z = reader.ReadSingle();
+            var w = reader.ReadSingle();
+            return new Quaternion(x, y, z, w);
+        }
+    }
+
     internal class Vector2Serializer : EquatableTypeSerializer<Vector2>
     {
         public static Vector2Serializer Shared { get; } = new();
