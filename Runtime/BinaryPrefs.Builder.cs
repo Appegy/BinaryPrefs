@@ -14,6 +14,7 @@ namespace Appegy.BinaryStorage
         {
             return Construct(filePath)
                 .AddPrimitiveTypes()
+                .EnableAutoSaveOnChange()
                 .Build();
         }
 
@@ -36,10 +37,17 @@ namespace Appegy.BinaryStorage
         {
             private readonly string _filePath;
             private readonly List<TypedBinarySection> _serializers = new();
+            private bool _autoSave;
 
             public Builder(string filePath)
             {
                 _filePath = filePath;
+            }
+
+            public Builder EnableAutoSaveOnChange()
+            {
+                _autoSave = true;
+                return this;
             }
 
             public Builder AddPrimitiveTypes()
@@ -82,6 +90,7 @@ namespace Appegy.BinaryStorage
                 try
                 {
                     var storage = new BinaryPrefs(_filePath, _serializers);
+                    storage.AutoSave = _autoSave;
                     storage.LoadDataFromDisk();
                     return storage;
                 }
