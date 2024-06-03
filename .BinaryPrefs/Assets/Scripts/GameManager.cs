@@ -5,21 +5,27 @@ namespace Appegy.BinaryStorage.Example
 {
     public class GameManager : MonoBehaviour
     {
+        private BinaryPrefs _prefs;
+
         private void Awake()
         {
             Debug.Log("Game started");
+            _prefs = BinaryPrefs.Get(Path.Combine(Application.persistentDataPath, "PlayerPrefs.bin"));
+        }
 
-            using (var storage = BinaryPrefs.Get(Path.Combine(Application.persistentDataPath, "prefs.bin")))
+        private void OnGUI()
+        {
+            var value = _prefs.Get<int>("int_val", 0);
+            if (GUILayout.Button($"INT={value}"))
             {
-                storage.Set("key_s", "str");
-                storage.Set("key_i", 10);
-
-                Debug.Log(storage.Has("key_s"));
-                Debug.Log(storage.Has("key_i"));
-
-                Debug.Log(storage.Get<string>("key_s"));
-                Debug.Log(storage.Get<int>("key_i"));
+                _prefs.Set("int_val", value + 1);
             }
+        }
+
+        private void OnDestroy()
+        {
+            _prefs?.Dispose();
+            _prefs = null;
         }
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -9,44 +8,53 @@ namespace Appegy.BinaryStorage
     public partial class BinaryPrefs : IDisposable
     {
         private readonly string _storageFilePath;
-        private readonly List<object> _serializers;
-        private readonly bool _multiThreadSupport;
-        private readonly IDictionary<string, ValueRecord> _data;
+        private readonly bool _autoSave;
+        private readonly IReadOnlyList<TypedBinarySection> _supportedTypes;
+        private readonly Dictionary<string, Record> _data = new();
 
-        public bool Disposed { get; private set; }
+        public bool IsDisposed { get; private set; }
 
-        private BinaryPrefs(string storageFilePath, List<object> serializers, bool multiThreadSupport)
+        internal BinaryPrefs(string storageFilePath, IReadOnlyList<TypedBinarySection> supportedTypes)
         {
             _storageFilePath = storageFilePath;
-            _serializers = serializers;
-            _data = multiThreadSupport
-                ? new ConcurrentDictionary<string, ValueRecord>()
-                : new Dictionary<string, ValueRecord>();
+            _supportedTypes = supportedTypes;
         }
 
-        public bool Has(string key)
+        #region Public API
+
+        public virtual bool Has(string key)
         {
+            ThrowIfDisposed();
             return _data.ContainsKey(key);
         }
 
         [CanBeNull]
-        public Type GetTypeFor(string key)
+        public virtual Type TypeOf(string key)
         {
+            ThrowIfDisposed();
             return _data.TryGetValue(key, out var record) ? record.Type : null;
         }
 
-        public T Get<T>(string key, T defaultValue = default)
+        public virtual bool Supports<T>()
         {
-            var record = GetRecord(key) ?? AddRecord(key, defaultValue);
-            if (record is not ValueRecord<T> typedRecord)
+            ThrowIfDisposed();
+            return _supportedTypes.Any(c => c is TypedBinarySection<T>);
+        }
+
+        public virtual T Get<T>(string key, T initValue = default)
+        {
+            ThrowIfDisposed();
+            var record = GetRecord(key) ?? AddRecord(key, initValue);
+            if (record is not Record<T> typedRecord)
             {
                 throw new UnexpectedTypeException(key, "get", record.Type, typeof(T));
             }
-            return typedRecord.GetValue();
+            return typedRecord.Value;
         }
 
-        public bool Set<T>(string key, T value, bool overrideTypeIfExists = false)
+        public virtual bool Set<T>(string key, T value, bool overrideTypeIfExists = false)
         {
+            ThrowIfDisposed();
             var record = GetRecord(key);
             if (record == null)
             {
@@ -54,7 +62,7 @@ namespace Appegy.BinaryStorage
                 return true;
             }
 
-            if (record is ValueRecord<T> typedRecord)
+            if (record is Record<T> typedRecord)
             {
                 return ChangeRecord(typedRecord, value);
             }
@@ -64,79 +72,142 @@ namespace Appegy.BinaryStorage
                 throw new UnexpectedTypeException(key, "set", record.Type, typeof(T));
             }
 
+            // TODO multiple change scope
             RemoveRecord(key);
             AddRecord(key, value);
             return true;
         }
 
-        public bool Remove(string key)
+        public virtual bool Remove(string key)
         {
+            ThrowIfDisposed();
             return RemoveRecord(key);
         }
 
-        [CanBeNull]
-        private ValueRecord GetRecord(string key)
+        public virtual int Remove(Func<string, bool> predicate)
         {
-            // TODO: thread-safe get data
-            return _data.TryGetValue(key, out var record) ? record : null;
+            ThrowIfDisposed();
+            // TODO create buffer for deleting keys
+            var keys = _data.Keys.Where(predicate).ToList();
+            // TODO multiple change scope
+            foreach (var key in keys)
+            {
+                RemoveRecord(key);
+            }
+            return keys.Count;
         }
 
-        private ValueRecord AddRecord<T>(string key, T value)
+        public virtual int RemoveAll()
         {
-            var serializer = GetSerializerFor<T>();
-            if (serializer == null)
+            ThrowIfDisposed();
+            var count = _data.Count;
+            RemoveAllRecords();
+            return count;
+        }
+
+        public virtual void Save()
+        {
+            SaveDataFromDisk();
+        }
+
+        internal void SaveDataFromDisk()
+        {
+            ThrowIfDisposed();
+            BinaryPrefsIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
+        }
+
+        private void LoadDataFromDisk()
+        {
+            ThrowIfDisposed();
+            BinaryPrefsIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data);
+        }
+
+        public virtual void Dispose()
+        {
+            if (IsDisposed) return;
+            _data.Clear();
+            _supportedTypes.ForEach(static c => c.Count = 0);
+            IsDisposed = true;
+            UnlockFilePathInEditor(_storageFilePath);
+        }
+
+        #endregion
+
+        #region Immutable methods
+
+        [CanBeNull]
+        private Record GetRecord(string key)
+        {
+            return _data.GetValueOrDefault(key);
+        }
+
+        #endregion
+
+        #region Mutable methods
+
+        private Record AddRecord<T>(string key, T value)
+        {
+            var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
+            if (typeIndex == -1)
             {
                 throw new UnregisteredTypeException(typeof(T));
             }
-            var record = new ValueRecord<T>(serializer, value);
-            // TODO: thread-safe add and save data
+
+            var section = (TypedBinarySection<T>)_supportedTypes[typeIndex];
+            var record = new Record<T>(value, typeIndex);
+            section.Count++;
             _data.Add(key, record);
+            MarkChanged();
             return record;
         }
 
-        private bool ChangeRecord<T>(ValueRecord<T> record, T value)
+        private bool ChangeRecord<T>(Record<T> record, T value)
         {
-            // TODO: thread-safe change and save data
-            return record.SetValue(value);
+            var serializer = ((TypedBinarySection<T>)_supportedTypes[record.TypeIndex]).Serializer;
+            var result = serializer.Equals(record.Value, value);
+            if (!result)
+            {
+                record.Value = value;
+                MarkChanged();
+            }
+            return !result;
         }
 
         private bool RemoveRecord(string key)
         {
-            // TODO: thread-safe remove and save data
-            return _data.Remove(key);
+            if (!_data.TryGetValue(key, out var value))
+            {
+                return false;
+            }
+            _supportedTypes[value.TypeIndex].Count--;
+            _data.Remove(key);
+            MarkChanged();
+            return true;
         }
 
-        private TypeSerializer<T> GetSerializerFor<T>()
+        private void RemoveAllRecords()
         {
-            var serializer = _serializers.SingleOrDefault(c => c is TypeSerializer<T>) as TypeSerializer<T>;
-            return serializer;
+            _data.Clear();
+            foreach (var section in _supportedTypes)
+            {
+                section.Count = 0;
+            }
+            MarkChanged();
         }
 
-        internal void SaveDataOnDisk()
-        {
-            ThrowIfDisposed();
-        }
+        #endregion
 
-        internal void LoadDataFromDisk()
+        private void MarkChanged()
         {
-            ThrowIfDisposed();
+            SaveDataFromDisk();
         }
 
         private void ThrowIfDisposed()
         {
-            if (Disposed)
+            if (IsDisposed)
             {
                 throw new StorageDisposedException(_storageFilePath);
             }
-        }
-
-        public void Dispose()
-        {
-            if (Disposed) return;
-            _serializers.Clear();
-            _data.Clear();
-            Disposed = true;
-            UnlockFilePathInEditor(_storageFilePath);
         }
     }
 }

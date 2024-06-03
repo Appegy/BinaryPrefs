@@ -35,18 +35,11 @@ namespace Appegy.BinaryStorage
         public class Builder
         {
             private readonly string _filePath;
-            private readonly List<object> _serializers = new();
-            private bool _multiThreadSupport;
+            private readonly List<TypedBinarySection> _serializers = new();
 
             public Builder(string filePath)
             {
                 _filePath = filePath;
-            }
-
-            public Builder EnableMultiThreadSupport()
-            {
-                _multiThreadSupport = true;
-                return this;
             }
 
             public Builder AddPrimitiveTypes()
@@ -69,24 +62,34 @@ namespace Appegy.BinaryStorage
                     .AddTypeSerializer(TimeSpanSerializer.Shared)
                     .AddTypeSerializer(Vector2Serializer.Shared)
                     .AddTypeSerializer(Vector3Serializer.Shared)
-                    .AddTypeSerializer(Vector4Serializer.Shared);
+                    .AddTypeSerializer(Vector4Serializer.Shared)
+                    .AddTypeSerializer(Vector2IntSerializer.Shared)
+                    .AddTypeSerializer(Vector3IntSerializer.Shared);
             }
 
             public Builder AddTypeSerializer<T>(TypeSerializer<T> typeSerializer)
             {
-                if (_serializers.Any(c => c is TypeSerializer<T>))
+                if (_serializers.Any(c => c is TypedBinarySection<T>))
                 {
                     throw new DuplicateTypeSerializerException(typeof(T), typeSerializer.TypeName, _filePath);
                 }
-                _serializers.Add(typeSerializer);
+                _serializers.Add(new TypedBinarySection<T>(typeSerializer));
                 return this;
             }
 
             public BinaryPrefs Build()
             {
-                var storage = new BinaryPrefs(_filePath, _serializers, _multiThreadSupport);
-                storage.LoadDataFromDisk();
-                return storage;
+                try
+                {
+                    var storage = new BinaryPrefs(_filePath, _serializers);
+                    storage.LoadDataFromDisk();
+                    return storage;
+                }
+                catch
+                {
+                    UnlockFilePathInEditor(_filePath);
+                    throw;
+                }
             }
         }
     }
