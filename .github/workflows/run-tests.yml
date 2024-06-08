@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run ynit tests
+      - name: Run unit tests
         uses: game-ci/unity-test-runner@v4
         id: tests
         env:
