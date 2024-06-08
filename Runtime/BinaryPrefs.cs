@@ -224,7 +224,7 @@ namespace Appegy.BinaryStorage
         {
             if (_changeScopeCounter == 0)
             {
-                Debug.LogError($"{nameof(BinaryPrefs)}: Unexpected behaviour - MultipleChangeScope is already zero");
+                Debug.LogError($"{nameof(BinaryPrefs)}: Unexpected behaviour - MultipleChangeScope counter is already zero");
                 return;
             }
             _changeScopeCounter--;
