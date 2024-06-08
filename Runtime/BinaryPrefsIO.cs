@@ -8,7 +8,7 @@ namespace Appegy.BinaryStorage
 {
     internal static class BinaryPrefsIO
     {
-        internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<TypedBinarySection> sections, IReadOnlyDictionary<string, Record> data)
+        internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IReadOnlyDictionary<string, Record> data)
         {
             // make sure there is no temp file from previous (most likely failed) save try
             var storageFilePathTmp = storageFilePath + ".tmp";
@@ -80,7 +80,7 @@ namespace Appegy.BinaryStorage
             File.Move(storageFilePathTmp, storageFilePath);
         }
 
-        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<TypedBinarySection> sections, IDictionary<string, Record> data)
+        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data)
         {
             data.Clear();
             foreach (var section in sections)
@@ -102,7 +102,7 @@ namespace Appegy.BinaryStorage
 
             // #03 <---> Read used serializers amount
             var serializersCount = reader.ReadInt32();
-            var orderedSectionsFromFile = new TypedBinarySection[serializersCount];
+            var orderedSectionsFromFile = new BinarySection[serializersCount];
             var sectionsNames = new string[serializersCount];
 
             for (var i = 0; i < serializersCount; i++)

@@ -36,7 +36,7 @@ namespace Appegy.BinaryStorage
         public class Builder
         {
             private readonly string _filePath;
-            private readonly List<TypedBinarySection> _serializers = new();
+            private readonly List<BinarySection> _serializers = new();
             private bool _autoSave;
 
             public Builder(string filePath)
