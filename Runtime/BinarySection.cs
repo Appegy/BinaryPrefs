@@ -2,7 +2,7 @@
 
 namespace Appegy.BinaryStorage
 {
-    internal abstract class TypedBinarySection
+    internal abstract class BinarySection
     {
         public int Count { get; set; }
         public abstract string TypeName { get; }
@@ -10,7 +10,7 @@ namespace Appegy.BinaryStorage
         public abstract void WriteTo(BinaryWriter binaryWriter, Record record);
     }
 
-    internal class TypedBinarySection<T> : TypedBinarySection
+    internal class TypedBinarySection<T> : BinarySection
     {
         private readonly TypeSerializer<T> _serializer;
 

@@ -22,7 +22,7 @@ namespace Appegy.BinaryStorage
 
         public override void WriteTo(BinaryWriter writer, char value)
         {
-            var size = sizeof(char);
+            const int size = sizeof(char);
             var buffer = ArrayPool<byte>.Shared.Rent(size);
             BitConverter.TryWriteBytes(buffer, value);
             writer.Write(buffer, 0, size);
@@ -31,7 +31,7 @@ namespace Appegy.BinaryStorage
 
         public override char ReadFrom(BinaryReader reader)
         {
-            var size = sizeof(char);
+            const int size = sizeof(char);
             var buffer = ArrayPool<byte>.Shared.Rent(size);
             var read = reader.BaseStream.Read(buffer, 0, size);
             if (read != size)

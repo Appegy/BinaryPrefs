@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Appegy.BinaryStorage
 {
@@ -9,14 +11,15 @@ namespace Appegy.BinaryStorage
     {
         private readonly string _storageFilePath;
         private readonly bool _autoSave;
-        private readonly IReadOnlyList<TypedBinarySection> _supportedTypes;
+        private readonly IReadOnlyList<BinarySection> _supportedTypes;
         private readonly Dictionary<string, Record> _data = new();
+        private int _changeScopeCounter;
 
         public bool AutoSave { get; set; }
         public bool IsDirty { get; private set; }
         public bool IsDisposed { get; private set; }
 
-        internal BinaryPrefs(string storageFilePath, IReadOnlyList<TypedBinarySection> supportedTypes)
+        internal BinaryPrefs(string storageFilePath, IReadOnlyList<BinarySection> supportedTypes)
         {
             _storageFilePath = storageFilePath;
             _supportedTypes = supportedTypes;
@@ -74,9 +77,12 @@ namespace Appegy.BinaryStorage
                 throw new UnexpectedTypeException(key, "set", record.Type, typeof(T));
             }
 
-            // TODO multiple change scope
-            RemoveRecord(key);
-            AddRecord(key, value);
+            using (MultipleChangeScope())
+            {
+                RemoveRecord(key);
+                AddRecord(key, value);
+            }
+
             return true;
         }
 
@@ -89,14 +95,18 @@ namespace Appegy.BinaryStorage
         public virtual int Remove(Func<string, bool> predicate)
         {
             ThrowIfDisposed();
-            // TODO create buffer for deleting keys
-            var keys = _data.Keys.Where(predicate).ToList();
-            // TODO multiple change scope
-            foreach (var key in keys)
+            var keys = ListPool<string>.Get();
+            keys.AddRange(_data.Keys.Where(predicate));
+            using (MultipleChangeScope())
             {
-                RemoveRecord(key);
+                foreach (var key in keys)
+                {
+                    RemoveRecord(key);
+                }
             }
-            return keys.Count;
+            var removed = keys.Count;
+            ListPool<string>.Release(keys);
+            return removed;
         }
 
         public virtual int RemoveAll()
@@ -112,7 +122,14 @@ namespace Appegy.BinaryStorage
             SaveDataFromDisk();
         }
 
-        internal void SaveDataFromDisk()
+        public IDisposable MultipleChangeScope()
+        {
+            ThrowIfDisposed();
+            _changeScopeCounter++;
+            return new DisposableScope(DecreaseCounter);
+        }
+
+        private void SaveDataFromDisk()
         {
             ThrowIfDisposed();
             BinaryPrefsIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
@@ -127,7 +144,10 @@ namespace Appegy.BinaryStorage
 
         public virtual void Dispose()
         {
-            if (IsDisposed) return;
+            if (IsDisposed)
+            {
+                return;
+            }
             _data.Clear();
             _supportedTypes.ForEach(static c => c.Count = 0);
             IsDisposed = true;
@@ -199,6 +219,24 @@ namespace Appegy.BinaryStorage
         }
 
         #endregion
+
+        private void DecreaseCounter()
+        {
+            if (_changeScopeCounter == 0)
+            {
+                Debug.LogError($"{nameof(BinaryPrefs)}: Unexpected behaviour - MultipleChangeScope is already zero");
+                return;
+            }
+            _changeScopeCounter--;
+            if (IsDisposed)
+            {
+                return;
+            }
+            if (_changeScopeCounter == 0 && IsDirty && AutoSave)
+            {
+                SaveDataFromDisk();
+            }
+        }
 
         private void MarkChanged()
         {
