@@ -240,7 +240,7 @@ namespace Appegy.BinaryStorage
 
         private void MarkChanged()
         {
-            if (!AutoSave)
+            if (!AutoSave || _changeScopeCounter > 0)
             {
                 IsDirty = true;
                 return;
