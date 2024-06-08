@@ -27,12 +27,15 @@ namespace Appegy.BinaryStorage
                        .AddTypeSerializer(StringSerializer.Shared)
                        .AddTypeSerializer(BooleanSerializer.Shared)
                        .AddTypeSerializer(Int64Serializer.Shared)
+                       .EnableAutoSaveOnChange()
                        .Build())
             {
-                storage.Set("key_s", "value");
-                storage.Set("key_b", true);
-                storage.Set("key_l", 60L);
-                storage.Save();
+                using (storage.MultipleChangeScope())
+                {
+                    storage.Set("key_s", "value");
+                    storage.Set("key_b", true);
+                    storage.Set("key_l", 60L);
+                }
             }
 
             // Act
@@ -66,9 +69,12 @@ namespace Appegy.BinaryStorage
                        .EnableAutoSaveOnChange()
                        .Build())
             {
-                storage.Set("key_s", "value");
-                storage.Set("key_b", true);
-                storage.Set("key_l", 60L);
+                using (storage.MultipleChangeScope())
+                {
+                    storage.Set("key_s", "value");
+                    storage.Set("key_b", true);
+                    storage.Set("key_l", 60L);
+                }
             }
 
             // Act
@@ -84,6 +90,45 @@ namespace Appegy.BinaryStorage
                 storage.Has("key_b").Should().BeTrue();
                 storage.Has("key_l").Should().BeTrue();
             }
+        }
+
+        [Test]
+        public void WhenStorageSupportsTwoEnumsWithSameName_AndNamespacesAreDifferent_ThenDataIsNotCorrupting()
+        {
+            // Arrange
+            using (var storage = BinaryPrefs
+                       .Construct(_storagePath)
+                       .EnableAutoSaveOnChange()
+                       .SupportEnum<ScreenOrientation>()
+                       .SupportEnum<UnityEngine.ScreenOrientation>(true)
+                       .Build())
+            {
+                using (storage.MultipleChangeScope())
+                {
+                    storage.Set("key_1", UnityEngine.ScreenOrientation.LandscapeLeft);
+                    storage.Set("key_2", ScreenOrientation.LandscapeLeft);
+                    storage.Set("key_3", ScreenOrientation.LandscapeRight);
+                }
+            }
+
+            // Act
+            // Assert
+            using (var storage = BinaryPrefs
+                       .Construct(_storagePath)
+                       .SupportEnum<ScreenOrientation>()
+                       .SupportEnum<UnityEngine.ScreenOrientation>(true)
+                       .Build())
+            {
+                storage.Get<UnityEngine.ScreenOrientation>("key_1").Should().Be(UnityEngine.ScreenOrientation.LandscapeLeft);
+                storage.Get<ScreenOrientation>("key_2").Should().Be(ScreenOrientation.LandscapeLeft);
+                storage.Get<ScreenOrientation>("key_3").Should().Be(ScreenOrientation.LandscapeRight);
+            }
+        }
+
+        public enum ScreenOrientation : byte
+        {
+            LandscapeLeft,
+            LandscapeRight,
         }
     }
 }

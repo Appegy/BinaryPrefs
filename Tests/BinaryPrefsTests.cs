@@ -80,10 +80,13 @@ namespace Appegy.BinaryStorage
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
-            storage.Set("prefix1.key1", 11);
-            storage.Set("prefix1.key2", 12);
-            storage.Set("prefix2.key1", 21);
-            storage.Set("prefix2.key2", 22);
+            using (storage.MultipleChangeScope())
+            {
+                storage.Set("prefix1.key1", 11);
+                storage.Set("prefix1.key2", 12);
+                storage.Set("prefix2.key1", 21);
+                storage.Set("prefix2.key2", 22);
+            }
 
             // Act
             storage.Remove(key => key.StartsWith("prefix1"));
