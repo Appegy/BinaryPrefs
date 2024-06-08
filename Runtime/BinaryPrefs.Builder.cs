@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -83,6 +84,43 @@ namespace Appegy.BinaryStorage
                     throw new DuplicateTypeSerializerException(typeof(T), typeSerializer.TypeName, _filePath);
                 }
                 _serializers.Add(new TypedBinarySection<T>(typeSerializer));
+                return this;
+            }
+
+            public Builder SupportEnum<T>(bool useFullName = false)
+                where T : unmanaged, Enum
+            {
+                var enumType = typeof(T);
+                var underlyingType = Enum.GetUnderlyingType(enumType);
+                switch (underlyingType)
+                {
+                    case not null when underlyingType == typeof(byte):
+                        AddTypeSerializer(new EnumSerializer<T, byte>(ByteSerializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(sbyte):
+                        AddTypeSerializer(new EnumSerializer<T, sbyte>(SByteSerializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(short):
+                        AddTypeSerializer(new EnumSerializer<T, short>(Int16Serializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(ushort):
+                        AddTypeSerializer(new EnumSerializer<T, ushort>(UInt16Serializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(int):
+                        AddTypeSerializer(new EnumSerializer<T, int>(Int32Serializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(uint):
+                        AddTypeSerializer(new EnumSerializer<T, uint>(UInt32Serializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(long):
+                        AddTypeSerializer(new EnumSerializer<T, long>(Int64Serializer.Shared, useFullName));
+                        break;
+                    case not null when underlyingType == typeof(ulong):
+                        AddTypeSerializer(new EnumSerializer<T, ulong>(UInt64Serializer.Shared, useFullName));
+                        break;
+                    default:
+                        throw new UnexpectedUnderlyingEnumTypeException(enumType, underlyingType);
+                }
                 return this;
             }
 

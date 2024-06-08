@@ -5,18 +5,26 @@ using UnityEngine;
 
 namespace Appegy.BinaryStorage.TypeSerializers
 {
-    public class BaseTypeSerializerTests<TType, TBinaryType>
-        where TBinaryType : TypeSerializer<TType>, new()
+    public class BaseTypeSerializerTests<TType, TTypeSerializer> : TypeSerializerTests<TType, TTypeSerializer>
+        where TTypeSerializer : TypeSerializer<TType>, new()
+    {
+        protected BaseTypeSerializerTests(TType defaultValue) : base(defaultValue, new TTypeSerializer())
+        {
+        }
+    }
+
+    public class TypeSerializerTests<TType, TTypeSerializer>
+        where TTypeSerializer : TypeSerializer<TType>
     {
         private readonly string _storagePath = Path.Combine(Application.temporaryCachePath, "test.bin");
         private readonly byte[] _buffer = new byte[4096];
         private readonly TType _defaultValue;
-        private readonly TBinaryType _serializer;
+        private readonly TTypeSerializer _serializer;
 
-        public BaseTypeSerializerTests(TType defaultValue)
+        public TypeSerializerTests(TType defaultValue, TTypeSerializer serializer)
         {
             _defaultValue = defaultValue;
-            _serializer = new TBinaryType();
+            _serializer = serializer;
         }
 
         [SetUp, TearDown]
