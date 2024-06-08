@@ -4,8 +4,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 {
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumByteTypeSerializerTests : TypeSerializerTests<ByteEnum, EnumSerializer<ByteEnum, byte>>
+    public class EnumByteTypeSerializerTests : TypeSerializerTests<EnumByteTypeSerializerTests.ByteEnum, EnumSerializer<EnumByteTypeSerializerTests.ByteEnum, byte>>
     {
+        public enum ByteEnum : byte
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumByteTypeSerializerTests(ByteEnum defaultValue)
             : base(defaultValue, new EnumSerializer<ByteEnum, byte>(ByteSerializer.Shared, false))
         {
@@ -21,8 +28,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumSByteTypeSerializerTests : TypeSerializerTests<SByteEnum, EnumSerializer<SByteEnum, sbyte>>
+    public class EnumSByteTypeSerializerTests : TypeSerializerTests<EnumSByteTypeSerializerTests.SByteEnum, EnumSerializer<EnumSByteTypeSerializerTests.SByteEnum, sbyte>>
     {
+        public enum SByteEnum : sbyte
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumSByteTypeSerializerTests(SByteEnum defaultValue)
             : base(defaultValue, new EnumSerializer<SByteEnum, sbyte>(SByteSerializer.Shared, false))
         {
@@ -38,8 +52,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumShortTypeSerializerTests : TypeSerializerTests<ShortEnum, EnumSerializer<ShortEnum, short>>
+    public class EnumShortTypeSerializerTests : TypeSerializerTests<EnumShortTypeSerializerTests.ShortEnum, EnumSerializer<EnumShortTypeSerializerTests.ShortEnum, short>>
     {
+        public enum ShortEnum : short
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumShortTypeSerializerTests(ShortEnum defaultValue)
             : base(defaultValue, new EnumSerializer<ShortEnum, short>(Int16Serializer.Shared, false))
         {
@@ -55,8 +76,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumUShortTypeSerializerTests : TypeSerializerTests<UShortEnum, EnumSerializer<UShortEnum, ushort>>
+    public class EnumUShortTypeSerializerTests : TypeSerializerTests<EnumUShortTypeSerializerTests.UShortEnum, EnumSerializer<EnumUShortTypeSerializerTests.UShortEnum, ushort>>
     {
+        public enum UShortEnum : ushort
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumUShortTypeSerializerTests(UShortEnum defaultValue)
             : base(defaultValue, new EnumSerializer<UShortEnum, ushort>(UInt16Serializer.Shared, false))
         {
@@ -72,8 +100,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumIntTypeSerializerTests : TypeSerializerTests<IntEnum, EnumSerializer<IntEnum, int>>
+    public class EnumIntTypeSerializerTests : TypeSerializerTests<EnumIntTypeSerializerTests.IntEnum, EnumSerializer<EnumIntTypeSerializerTests.IntEnum, int>>
     {
+        public enum IntEnum : int
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumIntTypeSerializerTests(IntEnum defaultValue)
             : base(defaultValue, new EnumSerializer<IntEnum, int>(Int32Serializer.Shared, false))
         {
@@ -89,8 +124,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumUIntTypeSerializerTests : TypeSerializerTests<UIntEnum, EnumSerializer<UIntEnum, uint>>
+    public class EnumUIntTypeSerializerTests : TypeSerializerTests<EnumUIntTypeSerializerTests.UIntEnum, EnumSerializer<EnumUIntTypeSerializerTests.UIntEnum, uint>>
     {
+        public enum UIntEnum : uint
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumUIntTypeSerializerTests(UIntEnum defaultValue)
             : base(defaultValue, new EnumSerializer<UIntEnum, uint>(UInt32Serializer.Shared, false))
         {
@@ -106,8 +148,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumLongTypeSerializerTests : TypeSerializerTests<LongEnum, EnumSerializer<LongEnum, long>>
+    public class EnumLongTypeSerializerTests : TypeSerializerTests<EnumLongTypeSerializerTests.LongEnum, EnumSerializer<EnumLongTypeSerializerTests.LongEnum, long>>
     {
+        public enum LongEnum : long
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumLongTypeSerializerTests(LongEnum defaultValue)
             : base(defaultValue, new EnumSerializer<LongEnum, long>(Int64Serializer.Shared, false))
         {
@@ -123,8 +172,15 @@ namespace Appegy.BinaryStorage.TypeSerializers
 
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]
-    public class EnumULongTypeSerializerTests : TypeSerializerTests<ULongEnum, EnumSerializer<ULongEnum, ulong>>
+    public class EnumULongTypeSerializerTests : TypeSerializerTests<EnumULongTypeSerializerTests.ULongEnum, EnumSerializer<EnumULongTypeSerializerTests.ULongEnum, ulong>>
     {
+        public enum ULongEnum : ulong
+        {
+            Value1,
+            Value2,
+            Value3,
+        }
+
         public EnumULongTypeSerializerTests(ULongEnum defaultValue)
             : base(defaultValue, new EnumSerializer<ULongEnum, ulong>(UInt64Serializer.Shared, false))
         {
@@ -137,64 +193,4 @@ namespace Appegy.BinaryStorage.TypeSerializers
             ULongEnum.Value3
         };
     }
-
-    #region Enums
-
-    public enum ByteEnum : byte
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum SByteEnum : sbyte
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum ShortEnum : short
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum UShortEnum : ushort
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum IntEnum : int
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum UIntEnum : uint
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum LongEnum : long
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    public enum ULongEnum : ulong
-    {
-        Value1,
-        Value2,
-        Value3,
-    }
-
-    #endregion
 }
