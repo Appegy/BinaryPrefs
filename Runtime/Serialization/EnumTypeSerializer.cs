@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Appegy.BinaryStorage
 {
-    public class EnumSerializer<TEnum, TNumber> : TypeSerializer<TEnum>
+    public class EnumTypeSerializer<TEnum, TNumber> : TypeSerializer<TEnum>
         where TEnum : unmanaged
         where TNumber : unmanaged, IEquatable<TNumber>
     {
@@ -17,7 +17,7 @@ namespace Appegy.BinaryStorage
             return ToNumber(value1).Equals(ToNumber(value2));
         }
 
-        public EnumSerializer(TypeSerializer<TNumber> numberType, bool useFullName)
+        public EnumTypeSerializer(TypeSerializer<TNumber> numberType, bool useFullName)
         {
             _numberType = numberType;
             TypeName = useFullName ? typeof(TEnum).FullName : typeof(TEnum).Name;

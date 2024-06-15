@@ -10,7 +10,16 @@ namespace Appegy.BinaryStorage.Example
         private void Awake()
         {
             Debug.Log("Game started");
-            _prefs = BinaryPrefs.Get(Path.Combine(Application.persistentDataPath, "PlayerPrefs.bin"));
+            _prefs = BinaryPrefs
+                .Construct(Path.Combine(Application.persistentDataPath, "PlayerPrefs.bin"))
+                .AddPrimitiveTypes()
+                .SupportListsOf<int>()
+                .SupportListsOf<string>()
+                .EnableAutoSaveOnChange()
+                .Build();
+
+            _prefs.GetListOf<int>("ints");
+            _prefs.Remove("ints");
 
             using (_prefs.MultipleChangeScope())
             {

@@ -49,10 +49,15 @@ namespace Appegy.BinaryStorage
         public virtual T Get<T>(string key, T initValue = default)
         {
             ThrowIfDisposed();
+            var type = typeof(T);
+            if (type.IsCollection())
+            {
+                throw new IncorrectUsageOfCollectionException(nameof(Get), type);
+            }
             var record = GetRecord(key) ?? AddRecord(key, initValue);
             if (record is not Record<T> typedRecord)
             {
-                throw new UnexpectedTypeException(key, "get", record.Type, typeof(T));
+                throw new UnexpectedTypeException(key, nameof(Get), record.Type, type);
             }
             return typedRecord.Value;
         }
@@ -60,6 +65,11 @@ namespace Appegy.BinaryStorage
         public virtual bool Set<T>(string key, T value, bool overrideTypeIfExists = false)
         {
             ThrowIfDisposed();
+            var type = typeof(T);
+            if (type.IsCollection())
+            {
+                throw new IncorrectUsageOfCollectionException(nameof(Get), type);
+            }
             var record = GetRecord(key);
             if (record == null)
             {
@@ -74,7 +84,7 @@ namespace Appegy.BinaryStorage
 
             if (!overrideTypeIfExists)
             {
-                throw new UnexpectedTypeException(key, "set", record.Type, typeof(T));
+                throw new UnexpectedTypeException(key, nameof(Set), record.Type, type);
             }
 
             using (MultipleChangeScope())
@@ -84,6 +94,18 @@ namespace Appegy.BinaryStorage
             }
 
             return true;
+        }
+
+        public IList<T> GetListOf<T>(string key)
+        {
+            ThrowIfDisposed();
+            var record = GetRecord(key) ?? AddRecord(key, new ReactiveList<T>());
+            if (record is not Record<ReactiveList<T>> typedRecord)
+            {
+                throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(IList<T>));
+            }
+            typedRecord.Value.Key = key;
+            return typedRecord.Value;
         }
 
         public virtual bool Remove(string key)
@@ -180,6 +202,10 @@ namespace Appegy.BinaryStorage
             var record = new Record<T>(value, typeIndex);
             section.Count++;
             _data.Add(key, record);
+            if (value is IReactiveCollection rc)
+            {
+                rc.OnChanged += MarkChanged;
+            }
             MarkChanged();
             return record;
         }
@@ -202,6 +228,11 @@ namespace Appegy.BinaryStorage
             {
                 return false;
             }
+            if (value.Object is IReactiveCollection rc)
+            {
+                rc.OnChanged -= MarkChanged;
+                rc.Clear();
+            }
             _supportedTypes[value.TypeIndex].Count--;
             _data.Remove(key);
             MarkChanged();
@@ -210,12 +241,20 @@ namespace Appegy.BinaryStorage
 
         private void RemoveAllRecords()
         {
-            _data.Clear();
-            foreach (var section in _supportedTypes)
+            using (MultipleChangeScope())
             {
-                section.Count = 0;
+                foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
+                {
+                    rc.OnChanged -= MarkChanged;
+                    rc.Clear();
+                }
+                _data.Clear();
+                foreach (var section in _supportedTypes)
+                {
+                    section.Count = 0;
+                }
+                MarkChanged();
             }
-            MarkChanged();
         }
 
         #endregion

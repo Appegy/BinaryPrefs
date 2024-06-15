@@ -95,33 +95,43 @@ namespace Appegy.BinaryStorage
                 switch (underlyingType)
                 {
                     case not null when underlyingType == typeof(byte):
-                        AddTypeSerializer(new EnumSerializer<T, byte>(ByteSerializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, byte>(ByteSerializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(sbyte):
-                        AddTypeSerializer(new EnumSerializer<T, sbyte>(SByteSerializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, sbyte>(SByteSerializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(short):
-                        AddTypeSerializer(new EnumSerializer<T, short>(Int16Serializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, short>(Int16Serializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(ushort):
-                        AddTypeSerializer(new EnumSerializer<T, ushort>(UInt16Serializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, ushort>(UInt16Serializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(int):
-                        AddTypeSerializer(new EnumSerializer<T, int>(Int32Serializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, int>(Int32Serializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(uint):
-                        AddTypeSerializer(new EnumSerializer<T, uint>(UInt32Serializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, uint>(UInt32Serializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(long):
-                        AddTypeSerializer(new EnumSerializer<T, long>(Int64Serializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, long>(Int64Serializer.Shared, useFullName));
                         break;
                     case not null when underlyingType == typeof(ulong):
-                        AddTypeSerializer(new EnumSerializer<T, ulong>(UInt64Serializer.Shared, useFullName));
+                        AddTypeSerializer(new EnumTypeSerializer<T, ulong>(UInt64Serializer.Shared, useFullName));
                         break;
                     default:
                         throw new UnexpectedUnderlyingEnumTypeException(enumType, underlyingType);
                 }
                 return this;
+            }
+
+            public Builder SupportListsOf<T>()
+            {
+                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> typeSerializer)
+                {
+                    throw new CantSupportListOfException(typeof(T));
+                }
+
+                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveList<T>>(typeSerializer.Serializer));
             }
 
             public BinaryPrefs Build()
