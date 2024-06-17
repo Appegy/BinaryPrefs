@@ -1,6 +1,5 @@
 using System;
 using FluentAssertions;
-using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -135,6 +134,8 @@ namespace Appegy.BinaryStorage
             action.Should().Throw<StorageDisposedException>();
         }
 
+        #region Reactive Lists
+
         [Test]
         public void WhenReactiveListAddedDuringBuilding_ThenStorageSupportsIt()
         {
@@ -213,5 +214,90 @@ namespace Appegy.BinaryStorage
                 list[1].Should().Be(2);
             }
         }
+
+        #endregion
+
+        #region Reactive Sets
+
+        [Test]
+        public void WhenReactiveSetAddedDuringBuilding_ThenStorageSupportsIt()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            // Assert
+            storage.SupportsListsOf<int>().Should().Be(true);
+        }
+
+        [Test]
+        public void WhenReactiveSetChanged_ThenValuesInStorageCorrect()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportSetsOf<int>()
+                .Build();
+
+            // Act
+            var list = storage.GetSetOf<int>("numbers");
+            list.Add(1);
+            list.Add(2);
+
+            // Assert
+            storage.GetSetOf<int>("numbers").Should().BeSameAs(list);
+            storage.GetSetOf<int>("numbers").Should().Equal(list);
+        }
+
+        [Test]
+        public void WhenReactiveSetRemoved_AndNewRecordCreated_ThenNoException()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportSetsOf<int>()
+                .Build();
+
+            // Act
+            storage.GetSetOf<int>("numbers");
+            storage.Remove("numbers");
+
+            // Assert
+            storage.Has("numbers").Should().Be(false);
+        }
+
+        [Test]
+        public void WhenReactiveSetChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
+        {
+            // Arrange
+            using (var storage = BinaryPrefs.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .SupportSetsOf<int>()
+                       .EnableAutoSaveOnChange()
+                       .Build())
+            {
+                // Act
+                var list = storage.GetSetOf<int>("numbers");
+                list.Add(1);
+                list.Add(2);
+            }
+
+            using (var storage = BinaryPrefs.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .SupportSetsOf<int>()
+                       .Build())
+            {
+                // Assert
+                storage.Has("numbers");
+                var list = storage.GetSetOf<int>("numbers");
+                list.Count.Should().Be(2);
+                list.Should().Contain(1);
+                list.Should().Contain(2);
+            }
+        }
+
+        #endregion
     }
 }
