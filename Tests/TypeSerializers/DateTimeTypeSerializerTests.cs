@@ -11,10 +11,10 @@ namespace Appegy.BinaryStorage.TypeSerializers
         {
             DateTime.MinValue, // 0001-01-01 00:00:00
             DateTime.MaxValue, // 9999-12-31 23:59:59
-            DateTime.Now,
-            DateTime.UtcNow,
-            DateTime.UnixEpoch,
-            DateTime.Today,
+            new DateTime(638542591551251841L, DateTimeKind.Local),
+            new DateTime(638542519494481194L, DateTimeKind.Utc),
+            new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2024, 6, 17, 0, 0, 0, DateTimeKind.Local),
             new DateTime(2023, 6, 1, 12, 0, 0), // 2023-06-01 12:00:00
             new DateTime(1995, 7, 26, 8, 0, 0), // 1995-07-26 08:00:00
             new DateTime(2030, 1, 15, 17, 30, 0), // 2030-01-15 17:30:00

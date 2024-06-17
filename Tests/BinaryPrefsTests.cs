@@ -88,7 +88,7 @@ namespace Appegy.BinaryStorage
         }
 
         [Test]
-        public void WhenStorageDisposed_AndCalledHasMethod_ThenExceptionOccured()
+        public void WhenStorageDisposed_AndHasCalled_ThenExceptionOccured()
         {
             // Arrange
             var storage = BinaryPrefs.Construct(StoragePath)
@@ -100,6 +100,38 @@ namespace Appegy.BinaryStorage
 
             // Assert
             Action action = () => storage.Has("key");
+            action.Should().Throw<StorageDisposedException>();
+        }
+
+        [Test]
+        public void WhenStorageDisposed_AndTypeOfCalled_ThenExceptionOccured()
+        {
+            // Arrange
+            var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act
+            storage.Dispose();
+
+            // Assert
+            Action action = () => storage.TypeOf("key");
+            action.Should().Throw<StorageDisposedException>();
+        }
+
+        [Test]
+        public void WhenStorageDisposed_AndSupportsCalled_ThenExceptionOccured()
+        {
+            // Arrange
+            var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act
+            storage.Dispose();
+
+            // Assert
+            Action action = () => storage.Supports<int>();
             action.Should().Throw<StorageDisposedException>();
         }
 
@@ -126,13 +158,30 @@ namespace Appegy.BinaryStorage
                 .Build();
 
             // Act
-            var list = storage.GetListOf<int>("ints");
+            var list = storage.GetListOf<int>("numbers");
             list.Add(1);
             list.Add(2);
 
             // Assert
-            storage.GetListOf<int>("ints").Should().BeSameAs(list);
-            storage.GetListOf<int>("ints").Should().Equal(list);
+            storage.GetListOf<int>("numbers").Should().BeSameAs(list);
+            storage.GetListOf<int>("numbers").Should().Equal(list);
+        }
+
+        [Test]
+        public void WhenReactiveListRemoved_AndNewRecordCreated_ThenNoException()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            // Act
+            storage.GetListOf<int>("numbers");
+            storage.Remove("numbers");
+
+            // Assert
+            storage.Has("numbers").Should().Be(false);
         }
 
         [Test]
@@ -146,7 +195,7 @@ namespace Appegy.BinaryStorage
                        .Build())
             {
                 // Act
-                var list = storage.GetListOf<int>("ints");
+                var list = storage.GetListOf<int>("numbers");
                 list.Add(1);
                 list.Add(2);
             }
@@ -157,8 +206,8 @@ namespace Appegy.BinaryStorage
                        .Build())
             {
                 // Assert
-                storage.Has("ints");
-                var list = storage.GetListOf<int>("ints");
+                storage.Has("numbers");
+                var list = storage.GetListOf<int>("numbers");
                 list.Count.Should().Be(2);
                 list[0].Should().Be(1);
                 list[1].Should().Be(2);
