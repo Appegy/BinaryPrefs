@@ -43,21 +43,18 @@ namespace Appegy.BinaryStorage
         public virtual bool Supports<T>()
         {
             ThrowIfDisposed();
+            ThrowIfCollection<T>();
             return _supportedTypes.Any(c => c is TypedBinarySection<T>);
         }
 
         public virtual T Get<T>(string key, T initValue = default)
         {
             ThrowIfDisposed();
-            var type = typeof(T);
-            if (type.IsCollection())
-            {
-                throw new IncorrectUsageOfCollectionException(nameof(Get), type);
-            }
+            ThrowIfCollection<T>();
             var record = GetRecord(key) ?? AddRecord(key, initValue);
             if (record is not Record<T> typedRecord)
             {
-                throw new UnexpectedTypeException(key, nameof(Get), record.Type, type);
+                throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T));
             }
             return typedRecord.Value;
         }
@@ -65,11 +62,8 @@ namespace Appegy.BinaryStorage
         public virtual bool Set<T>(string key, T value, bool overrideTypeIfExists = false)
         {
             ThrowIfDisposed();
-            var type = typeof(T);
-            if (type.IsCollection())
-            {
-                throw new IncorrectUsageOfCollectionException(nameof(Get), type);
-            }
+            ThrowIfCollection<T>();
+
             var record = GetRecord(key);
             if (record == null)
             {
@@ -84,7 +78,7 @@ namespace Appegy.BinaryStorage
 
             if (!overrideTypeIfExists)
             {
-                throw new UnexpectedTypeException(key, nameof(Set), record.Type, type);
+                throw new UnexpectedTypeException(key, nameof(Set), record.Type, typeof(T));
             }
 
             using (MultipleChangeScope())
@@ -94,6 +88,12 @@ namespace Appegy.BinaryStorage
             }
 
             return true;
+        }
+
+        public virtual bool SupportsListsOf<T>()
+        {
+            ThrowIfDisposed();
+            return _supportedTypes.Any(c => c is TypedBinarySection<ReactiveList<T>>);
         }
 
         public IList<T> GetListOf<T>(string key)
@@ -162,6 +162,10 @@ namespace Appegy.BinaryStorage
         {
             ThrowIfDisposed();
             BinaryPrefsIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data);
+            foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
+            {
+                rc.OnChanged += MarkChanged;
+            }
         }
 
         public virtual void Dispose()
@@ -231,7 +235,7 @@ namespace Appegy.BinaryStorage
             if (value.Object is IReactiveCollection rc)
             {
                 rc.OnChanged -= MarkChanged;
-                rc.Clear();
+                rc.Dispose();
             }
             _supportedTypes[value.TypeIndex].Count--;
             _data.Remove(key);
@@ -246,7 +250,7 @@ namespace Appegy.BinaryStorage
                 foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
                 {
                     rc.OnChanged -= MarkChanged;
-                    rc.Clear();
+                    rc.Dispose();
                 }
                 _data.Clear();
                 foreach (var section in _supportedTypes)
@@ -292,6 +296,15 @@ namespace Appegy.BinaryStorage
             if (IsDisposed)
             {
                 throw new StorageDisposedException(_storageFilePath);
+            }
+        }
+
+        private void ThrowIfCollection<T>()
+        {
+            var type = typeof(T);
+            if (type.IsCollection())
+            {
+                throw new IncorrectUsageOfCollectionException(nameof(Get), type);
             }
         }
     }

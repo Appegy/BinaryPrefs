@@ -6,7 +6,7 @@ namespace Appegy.BinaryStorage
 {
     public class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
     {
-        private readonly List<T> _list = new List<T>();
+        private readonly List<T> _list = new();
 
         public string Key { get; internal set; }
         public bool IsDisposed { get; private set; }

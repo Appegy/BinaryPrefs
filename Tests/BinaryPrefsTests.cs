@@ -1,29 +1,18 @@
 using System;
-using System.IO;
 using FluentAssertions;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Appegy.BinaryStorage
 {
-    public class BinaryStorageTests
+    public class BinaryStorageTests : BaseStorageTests
     {
-        private readonly string _storagePath = Path.Combine(Application.temporaryCachePath, "test.bin");
-
-        [SetUp, TearDown]
-        public void CleanStorageBetweenTests()
-        {
-            if (File.Exists(_storagePath))
-            {
-                File.Delete(_storagePath);
-            }
-        }
-
         [Test]
         public void WhenStorageCreated_AndPrimitiveTypesAdded_ThenAllStandardTypesSupported()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(_storagePath)
+            using var storage = BinaryPrefs.Construct(StoragePath)
                 .AddPrimitiveTypes()
                 .Build();
 
@@ -56,7 +45,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageHasFewKeys_AndResetAllCalled_ThenAllDataHasBeenErased()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(_storagePath)
+            using var storage = BinaryPrefs.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .Build();
@@ -76,7 +65,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageHasFewKeys_AndResetAllWithPredicateCalled_ThenRemoveOnlyPredictedKeys()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(_storagePath)
+            using var storage = BinaryPrefs.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -96,6 +85,84 @@ namespace Appegy.BinaryStorage
             storage.Has("prefix1.key2").Should().Be(false);
             storage.Has("prefix2.key1").Should().Be(true);
             storage.Has("prefix2.key2").Should().Be(true);
+        }
+
+        [Test]
+        public void WhenStorageDisposed_AndCalledHasMethod_ThenExceptionOccured()
+        {
+            // Arrange
+            var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act
+            storage.Dispose();
+
+            // Assert
+            Action action = () => storage.Has("key");
+            action.Should().Throw<StorageDisposedException>();
+        }
+
+        [Test]
+        public void WhenReactiveListAddedDuringBuilding_ThenStorageSupportsIt()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            // Assert
+            storage.SupportsListsOf<int>().Should().Be(true);
+        }
+
+        [Test]
+        public void WhenReactiveListChanged_ThenValuesInStorageCorrect()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            // Act
+            var list = storage.GetListOf<int>("ints");
+            list.Add(1);
+            list.Add(2);
+
+            // Assert
+            storage.GetListOf<int>("ints").Should().BeSameAs(list);
+            storage.GetListOf<int>("ints").Should().Equal(list);
+        }
+
+        [Test]
+        public void WhenReactiveListChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
+        {
+            // Arrange
+            using (var storage = BinaryPrefs.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .SupportListsOf<int>()
+                       .EnableAutoSaveOnChange()
+                       .Build())
+            {
+                // Act
+                var list = storage.GetListOf<int>("ints");
+                list.Add(1);
+                list.Add(2);
+            }
+
+            using (var storage = BinaryPrefs.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .SupportListsOf<int>()
+                       .Build())
+            {
+                // Assert
+                storage.Has("ints");
+                var list = storage.GetListOf<int>("ints");
+                list.Count.Should().Be(2);
+                list[0].Should().Be(1);
+                list[1].Should().Be(2);
+            }
         }
     }
 }
