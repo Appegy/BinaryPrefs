@@ -126,22 +126,34 @@ namespace Appegy.BinaryStorage
 
             public Builder SupportListsOf<T>()
             {
-                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> typeSerializer)
+                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> section)
                 {
                     throw new CantSupportListOfException(typeof(T));
                 }
 
-                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveList<T>>(typeSerializer.Serializer));
+                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveList<T>>(section.Serializer));
             }
 
             public Builder SupportSetsOf<T>()
             {
-                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> typeSerializer)
+                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> section)
                 {
                     throw new CantSupportListOfException(typeof(T));
                 }
 
-                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveSet<T>>(typeSerializer.Serializer));
+                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveSet<T>>(section.Serializer));
+            }
+
+            public Builder SupportDictionariesOf<TKey, TValue>()
+            {
+                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<TKey>) is not TypedBinarySection<TKey> keySection ||
+                    _serializers.FirstOrDefault(c => c is TypedBinarySection<TValue>) is not TypedBinarySection<TValue> valueSection)
+                {
+                    throw new CantSupportListOfException(typeof(KeyValuePair<TKey, TValue>));
+                }
+
+                var kvSerializer = new KeyValueTypeSerializer<TKey, TValue>(keySection.Serializer, valueSection.Serializer);
+                return AddTypeSerializer(new CollectionTypeSerializer<KeyValuePair<TKey, TValue>, ReactiveDictionary<TKey, TValue>>(kvSerializer));
             }
 
             public BinaryPrefs Build()

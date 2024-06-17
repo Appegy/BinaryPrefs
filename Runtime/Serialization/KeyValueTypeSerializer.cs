@@ -10,10 +10,10 @@ namespace Appegy.BinaryStorage
 
         public override string TypeName { get; }
 
-        public KeyValueTypeSerializer(TypeSerializer<TKey> t1, TypeSerializer<TValue> t2)
+        public KeyValueTypeSerializer(TypeSerializer<TKey> keySerializer, TypeSerializer<TValue> valueSerializer)
         {
-            _keySerializer = t1;
-            _valueSerializer = t2;
+            _keySerializer = keySerializer;
+            _valueSerializer = valueSerializer;
             TypeName = $"{typeof(TKey).Name}:{typeof(TValue).Name}";
         }
 
