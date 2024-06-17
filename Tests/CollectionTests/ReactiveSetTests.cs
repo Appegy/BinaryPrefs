@@ -5,13 +5,13 @@ using NUnit.Framework;
 namespace Appegy.BinaryStorage.CollectionTests
 {
     [TestFixture]
-    public class ReactiveHashSetTests
+    public class ReactiveSetTests
     {
         [Test]
         public void WhenItemIsAdded_AndSetIsNotDisposed_ThenItemShouldBeInSet()
         {
             // Arrange
-            var set = new ReactiveHashSet<int>();
+            var set = new ReactiveSet<int>();
 
             // Act
             set.Add(1);
@@ -24,7 +24,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemoved_AndItemExistsInSet_ThenItemShouldNotBeInSet()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.Remove(2);
@@ -37,7 +37,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenClearIsCalled_AndSetHasItems_ThenSetShouldBeEmpty()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.Clear();
@@ -50,7 +50,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsAdded_AndSetIsDisposed_ThenShouldThrowException()
         {
             // Arrange
-            var set = new ReactiveHashSet<int>();
+            var set = new ReactiveSet<int>();
             set.Dispose();
 
             // Act
@@ -64,7 +64,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemoved_AndSetIsDisposed_ThenShouldThrowException()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
             set.Dispose();
 
             // Act
@@ -78,7 +78,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenClearIsCalled_AndSetIsDisposed_ThenShouldThrowException()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
             set.Dispose();
 
             // Act
@@ -92,7 +92,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenExceptWithIsCalled_AndSetIsNotDisposed_ThenShouldRemoveItems()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.ExceptWith(new[] { 2, 3, 4 });
@@ -106,7 +106,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenIntersectWithIsCalled_AndSetIsNotDisposed_ThenShouldRetainOnlyCommonItems()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.IntersectWith(new[] { 2, 3, 4 });
@@ -120,7 +120,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenSymmetricExceptWithIsCalled_AndSetIsNotDisposed_ThenShouldRetainUniqueItems()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.SymmetricExceptWith(new[] { 2, 3, 4 });
@@ -134,7 +134,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenUnionWithIsCalled_AndSetIsNotDisposed_ThenShouldIncludeAllUniqueItems()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.UnionWith(new[] { 2, 3, 4 });
@@ -147,7 +147,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenSetIsDisposed_ThenIsDisposedShouldBeTrue()
         {
             // Arrange
-            var set = new ReactiveHashSet<int>();
+            var set = new ReactiveSet<int>();
 
             // Act
             set.Dispose();
@@ -160,7 +160,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenSetIsDisposed_ThenSetShouldBeEmpty()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
 
             // Act
             set.Dispose();
@@ -173,7 +173,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndSetIsModified_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var set = new ReactiveHashSet<int>();
+            var set = new ReactiveSet<int>();
             var wasTriggered = false;
             set.OnChanged += () => wasTriggered = true;
 
@@ -188,7 +188,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndSetIsCleared_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
             var wasTriggered = false;
             set.OnChanged += () => wasTriggered = true;
 
@@ -203,7 +203,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndSetIsDisposed_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var set = new ReactiveHashSet<int> { 1, 2, 3 };
+            var set = new ReactiveSet<int> { 1, 2, 3 };
             var wasTriggered = false;
             set.OnChanged += () => wasTriggered = true;
 

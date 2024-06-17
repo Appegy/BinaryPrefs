@@ -141,7 +141,7 @@ namespace Appegy.BinaryStorage
                     throw new CantSupportListOfException(typeof(T));
                 }
 
-                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveHashSet<T>>(typeSerializer.Serializer));
+                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveSet<T>>(typeSerializer.Serializer));
             }
 
             public BinaryPrefs Build()

@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 namespace Appegy.BinaryStorage
 {
-    internal class ReactiveHashSet<T> : IReactiveCollection, ISet<T>, IReadOnlyCollection<T>
+    public class ReactiveSet<T> : IReactiveCollection, ISet<T>, IReadOnlyCollection<T>
     {
         private readonly HashSet<T> _set = new();
 
