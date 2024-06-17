@@ -7,6 +7,7 @@ namespace Appegy.BinaryStorage
     public class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
     {
         private readonly List<T> _list = new();
+
         public bool IsDisposed { get; private set; }
 
         public event Action OnChanged;
@@ -26,6 +27,16 @@ namespace Appegy.BinaryStorage
 
         #region Mutable functionallity
 
+        public void Dispose()
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+            Clear();
+            IsDisposed = true;
+        }
+
         public T this[int index]
         {
             get
@@ -39,16 +50,6 @@ namespace Appegy.BinaryStorage
                 _list[index] = value;
                 SetDirty();
             }
-        }
-
-        public void Dispose()
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
-            Clear();
-            IsDisposed = true;
         }
 
         public void Add(T item)
