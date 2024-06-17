@@ -225,11 +225,11 @@ namespace Appegy.BinaryStorage
             // Arrange
             using var storage = BinaryPrefs.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
-                .SupportListsOf<int>()
+                .SupportSetsOf<int>()
                 .Build();
 
             // Assert
-            storage.SupportsListsOf<int>().Should().Be(true);
+            storage.SupportsSetsOf<int>().Should().Be(true);
         }
 
         [Test]
@@ -242,13 +242,13 @@ namespace Appegy.BinaryStorage
                 .Build();
 
             // Act
-            var list = storage.GetSetOf<int>("numbers");
-            list.Add(1);
-            list.Add(2);
+            var set = storage.GetSetOf<int>("numbers");
+            set.Add(1);
+            set.Add(2);
 
             // Assert
-            storage.GetSetOf<int>("numbers").Should().BeSameAs(list);
-            storage.GetSetOf<int>("numbers").Should().Equal(list);
+            storage.GetSetOf<int>("numbers").Should().BeSameAs(set);
+            storage.GetSetOf<int>("numbers").Should().Equal(set);
         }
 
         [Test]
@@ -279,9 +279,9 @@ namespace Appegy.BinaryStorage
                        .Build())
             {
                 // Act
-                var list = storage.GetSetOf<int>("numbers");
-                list.Add(1);
-                list.Add(2);
+                var set = storage.GetSetOf<int>("numbers");
+                set.Add(1);
+                set.Add(2);
             }
 
             using (var storage = BinaryPrefs.Construct(StoragePath)
@@ -291,10 +291,10 @@ namespace Appegy.BinaryStorage
             {
                 // Assert
                 storage.Has("numbers");
-                var list = storage.GetSetOf<int>("numbers");
-                list.Count.Should().Be(2);
-                list.Should().Contain(1);
-                list.Should().Contain(2);
+                var set = storage.GetSetOf<int>("numbers");
+                set.Count.Should().Be(2);
+                set.Should().Contain(1);
+                set.Should().Contain(2);
             }
         }
 
