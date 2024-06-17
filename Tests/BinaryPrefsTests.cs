@@ -299,5 +299,94 @@ namespace Appegy.BinaryStorage
         }
 
         #endregion
+
+        #region Reactive Dictionaries
+
+        [Test]
+        public void WhenReactiveDictionaryAddedDuringBuilding_ThenStorageSupportsIt()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SupportDictionariesOf<int, string>()
+                .Build();
+
+            // Assert
+            storage.SupportsDictionariesOf<int, string>().Should().Be(true);
+        }
+
+        [Test]
+        public void WhenReactiveDictionaryChanged_ThenValuesInStorageCorrect()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SupportDictionariesOf<int, string>()
+                .Build();
+
+            // Act
+            var map = storage.GetDictionaryOf<int, string>("numbers");
+            map[1] = "one";
+            map.Add(2, "two");
+
+            // Assert
+            storage.GetDictionaryOf<int, string>("numbers").Should().BeSameAs(map);
+            storage.GetDictionaryOf<int, string>("numbers").Should().Equal(map);
+        }
+
+        [Test]
+        public void WhenReactiveDictionaryRemoved_AndNewRecordCreated_ThenNoException()
+        {
+            // Arrange
+            using var storage = BinaryPrefs.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SupportDictionariesOf<int, string>()
+                .Build();
+
+            // Act
+            storage.GetDictionaryOf<int, string>("numbers");
+            storage.Remove("numbers");
+
+            // Assert
+            storage.Has("numbers").Should().Be(false);
+        }
+
+        [Test]
+        public void WhenReactiveDictionaryChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
+        {
+            // Arrange
+            using (var storage = BinaryPrefs.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .SupportDictionariesOf<int, string>()
+                       .EnableAutoSaveOnChange()
+                       .Build())
+            {
+                // Act
+                var map = storage.GetDictionaryOf<int, string>("numbers");
+                map[1] = "one";
+                map.Add(2, "two");
+            }
+
+            using (var storage = BinaryPrefs.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .SupportDictionariesOf<int, string>()
+                       .Build())
+            {
+                // Assert
+                storage.Has("numbers");
+                var map = storage.GetDictionaryOf<int, string>("numbers");
+                map.Count.Should().Be(2);
+                map.Should().ContainKeys(1, 2);
+                map[1].Should().Be("one");
+                map[2].Should().Be("two");
+            }
+        }
+
+        #endregion
     }
 }

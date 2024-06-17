@@ -104,6 +104,12 @@ namespace Appegy.BinaryStorage
             return _supportedTypes.Any(c => c is TypedBinarySection<ReactiveSet<T>>);
         }
 
+        public virtual bool SupportsDictionariesOf<TKey, TValue>()
+        {
+            ThrowIfDisposed();
+            return _supportedTypes.Any(c => c is TypedBinarySection<ReactiveDictionary<TKey, TValue>>);
+        }
+
         public IList<T> GetListOf<T>(string key)
         {
             return GetCollectionOf<T, ReactiveList<T>>(key);
@@ -112,6 +118,11 @@ namespace Appegy.BinaryStorage
         public ISet<T> GetSetOf<T>(string key)
         {
             return GetCollectionOf<T, ReactiveSet<T>>(key);
+        }
+
+        public IDictionary<TKey, TValue> GetDictionaryOf<TKey, TValue>(string key)
+        {
+            return GetCollectionOf<KeyValuePair<TKey, TValue>, ReactiveDictionary<TKey, TValue>>(key);
         }
 
         private TCollection GetCollectionOf<T, TCollection>(string key)
