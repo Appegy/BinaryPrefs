@@ -13,10 +13,9 @@ namespace Appegy.BinaryStorage.TypeSerializers
         }
     }
 
-    public class TypeSerializerTests<TType, TTypeSerializer>
+    public class TypeSerializerTests<TType, TTypeSerializer> : BaseStorageTests
         where TTypeSerializer : TypeSerializer<TType>
     {
-        private readonly string _storagePath = Path.Combine(Application.temporaryCachePath, "test.bin");
         private readonly byte[] _buffer = new byte[4096];
         private readonly TType _defaultValue;
         private readonly TTypeSerializer _serializer;
@@ -25,15 +24,6 @@ namespace Appegy.BinaryStorage.TypeSerializers
         {
             _defaultValue = defaultValue;
             _serializer = serializer;
-        }
-
-        [SetUp, TearDown]
-        public void CleanStorageBetweenTests()
-        {
-            if (File.Exists(_storagePath))
-            {
-                File.Delete(_storagePath);
-            }
         }
 
         [Test]
@@ -63,7 +53,7 @@ namespace Appegy.BinaryStorage.TypeSerializers
         {
             // Arrange
             using var storage = BinaryPrefs
-                .Construct(_storagePath)
+                .Construct(StoragePath)
                 .AddTypeSerializer(_serializer)
                 .Build();
 

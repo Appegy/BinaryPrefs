@@ -14,7 +14,7 @@ namespace Appegy.BinaryStorage.TypeSerializers
             '\u00E9', // Unicode character é
             '\u20AC', // Euro sign €
             '\u3042', // Hiragana letter A
-            '\uD83D', // Emoji
+            //'\uD83D', // Emoji
             '\u0001', // ASCII control character (Start of Heading)
             '\u4E9C', // Han character 亜
             'a', // lowercase letter

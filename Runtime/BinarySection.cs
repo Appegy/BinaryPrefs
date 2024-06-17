@@ -5,6 +5,13 @@ namespace Appegy.BinaryStorage
     internal abstract class BinarySection
     {
         public int Count { get; set; }
+        public TypeSerializer Serializer { get; }
+
+        protected BinarySection(TypeSerializer serializer)
+        {
+            Serializer = serializer;
+        }
+
         public abstract string TypeName { get; }
         public abstract Record ReadFrom(BinaryReader binaryReader, int typeIndex);
         public abstract void WriteTo(BinaryWriter binaryWriter, Record record);
@@ -14,10 +21,11 @@ namespace Appegy.BinaryStorage
     {
         private readonly TypeSerializer<T> _serializer;
 
-        public TypeSerializer<T> Serializer => _serializer;
+        public new TypeSerializer<T> Serializer => _serializer;
         public override string TypeName => Serializer.TypeName;
 
         public TypedBinarySection(TypeSerializer<T> serializer)
+            : base(serializer)
         {
             _serializer = serializer;
         }
