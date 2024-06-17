@@ -104,7 +104,6 @@ namespace Appegy.BinaryStorage
             {
                 throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(IList<T>));
             }
-            typedRecord.Value.Key = key;
             return typedRecord.Value;
         }
 

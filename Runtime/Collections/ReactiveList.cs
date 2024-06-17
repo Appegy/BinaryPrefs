@@ -7,8 +7,6 @@ namespace Appegy.BinaryStorage
     public class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
     {
         private readonly List<T> _list = new();
-
-        public string Key { get; internal set; }
         public bool IsDisposed { get; private set; }
 
         public event Action OnChanged;
@@ -22,7 +20,7 @@ namespace Appegy.BinaryStorage
         {
             if (IsDisposed)
             {
-                throw new CollectionDisposedException(Key);
+                throw new CollectionDisposedException();
             }
         }
 
