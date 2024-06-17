@@ -90,23 +90,43 @@ namespace Appegy.BinaryStorage
             return true;
         }
 
+        #region Collections
+
         public virtual bool SupportsListsOf<T>()
         {
             ThrowIfDisposed();
             return _supportedTypes.Any(c => c is TypedBinarySection<ReactiveList<T>>);
         }
 
-        public IList<T> GetListOf<T>(string key)
+        public virtual bool SupportsSetsOf<T>()
         {
             ThrowIfDisposed();
-            var record = GetRecord(key) ?? AddRecord(key, new ReactiveList<T>());
-            if (record is not Record<ReactiveList<T>> typedRecord)
+            return _supportedTypes.Any(c => c is TypedBinarySection<ReactiveSet<T>>);
+        }
+
+        public IList<T> GetListOf<T>(string key)
+        {
+            return GetCollectionOf<T, ReactiveList<T>>(key);
+        }
+
+        public ISet<T> GetSetOf<T>(string key)
+        {
+            return GetCollectionOf<T, ReactiveSet<T>>(key);
+        }
+
+        private TCollection GetCollectionOf<T, TCollection>(string key)
+            where TCollection : ICollection<T>, IReactiveCollection, new()
+        {
+            ThrowIfDisposed();
+            var record = GetRecord(key) ?? AddRecord(key, new TCollection());
+            if (record is not Record<TCollection> typedRecord)
             {
                 throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(IList<T>));
             }
-            typedRecord.Value.Key = key;
             return typedRecord.Value;
         }
+
+        #endregion
 
         public virtual bool Remove(string key)
         {

@@ -134,6 +134,16 @@ namespace Appegy.BinaryStorage
                 return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveList<T>>(typeSerializer.Serializer));
             }
 
+            public Builder SupportSetsOf<T>()
+            {
+                if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> typeSerializer)
+                {
+                    throw new CantSupportListOfException(typeof(T));
+                }
+
+                return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveSet<T>>(typeSerializer.Serializer));
+            }
+
             public BinaryPrefs Build()
             {
                 try
