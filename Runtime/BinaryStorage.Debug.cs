@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
-    public partial class BinaryPrefs
+    public partial class BinaryStorage
     {
         private static readonly HashSet<string> _lockedFiles = new();
 

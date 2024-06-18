@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using UnityEngine;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     internal class QuaternionSerializer : EquatableTypeSerializer<Quaternion>
     {

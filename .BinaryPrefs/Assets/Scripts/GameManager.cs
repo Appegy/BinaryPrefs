@@ -1,16 +1,16 @@
 ﻿using System.IO;
 using UnityEngine;
 
-namespace Appegy.BinaryStorage.Example
+namespace Appegy.Storage.Example
 {
     public class GameManager : MonoBehaviour
     {
-        private BinaryPrefs _prefs;
+        private BinaryStorage _storage;
 
         private void Awake()
         {
             Debug.Log("Game started");
-            _prefs = BinaryPrefs
+            _storage = BinaryStorage
                 .Construct(Path.Combine(Application.persistentDataPath, "PlayerPrefs.bin"))
                 .AddPrimitiveTypes()
                 .SupportListsOf<int>()
@@ -18,23 +18,23 @@ namespace Appegy.BinaryStorage.Example
                 .EnableAutoSaveOnChange()
                 .Build();
 
-            _prefs.GetListOf<int>("ints");
-            _prefs.Remove("ints");
+            _storage.GetListOf<int>("ints");
+            _storage.Remove("ints");
 
-            using (_prefs.MultipleChangeScope())
+            using (_storage.MultipleChangeScope())
             {
-                var value = _prefs.Get<int>("int_val", 0);
-                _prefs.Set("int_val", value + 1);
+                var value = _storage.Get<int>("int_val", 0);
+                _storage.Set("int_val", value + 1);
 
-                using (_prefs.MultipleChangeScope())
+                using (_storage.MultipleChangeScope())
                 {
-                    value = _prefs.Get<int>("int_val", 0);
-                    _prefs.Set("int_val", value + 1);
+                    value = _storage.Get<int>("int_val", 0);
+                    _storage.Set("int_val", value + 1);
 
-                    using (_prefs.MultipleChangeScope())
+                    using (_storage.MultipleChangeScope())
                     {
-                        value = _prefs.Get<int>("int_val", 0);
-                        _prefs.Set("int_val", value + 1);
+                        value = _storage.Get<int>("int_val", 0);
+                        _storage.Set("int_val", value + 1);
                     }
                 }
             }
@@ -42,17 +42,17 @@ namespace Appegy.BinaryStorage.Example
 
         private void OnGUI()
         {
-            var value = _prefs.Get<int>("int_val", 0);
+            var value = _storage.Get<int>("int_val", 0);
             if (GUILayout.Button($"INT={value}"))
             {
-                _prefs.Set("int_val", value + 1);
+                _storage.Set("int_val", value + 1);
             }
         }
 
         private void OnDestroy()
         {
-            _prefs?.Dispose();
-            _prefs = null;
+            _storage?.Dispose();
+            _storage = null;
         }
     }
 }

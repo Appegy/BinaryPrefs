@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class DuplicateTypeSerializerException : Exception
     {

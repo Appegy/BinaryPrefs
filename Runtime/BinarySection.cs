@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     internal abstract class BinarySection
     {

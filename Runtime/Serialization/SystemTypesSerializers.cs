@@ -3,7 +3,7 @@ using System.Buffers;
 using System.IO;
 using System.Text;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     internal class BooleanSerializer : EquatableTypeSerializer<bool>
     {

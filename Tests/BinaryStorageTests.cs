@@ -3,7 +3,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class BinaryStorageTests : BaseStorageTests
     {
@@ -11,7 +11,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageCreated_AndPrimitiveTypesAdded_ThenAllStandardTypesSupported()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddPrimitiveTypes()
                 .Build();
 
@@ -44,7 +44,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageHasFewKeys_AndResetAllCalled_ThenAllDataHasBeenErased()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .Build();
@@ -64,7 +64,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageHasFewKeys_AndResetAllWithPredicateCalled_ThenRemoveOnlyPredictedKeys()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -90,7 +90,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageDisposed_AndHasCalled_ThenExceptionOccured()
         {
             // Arrange
-            var storage = BinaryPrefs.Construct(StoragePath)
+            var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -106,7 +106,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageDisposed_AndTypeOfCalled_ThenExceptionOccured()
         {
             // Arrange
-            var storage = BinaryPrefs.Construct(StoragePath)
+            var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -122,7 +122,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageDisposed_AndSupportsCalled_ThenExceptionOccured()
         {
             // Arrange
-            var storage = BinaryPrefs.Construct(StoragePath)
+            var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -140,7 +140,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListAddedDuringBuilding_ThenStorageSupportsIt()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportListsOf<int>()
                 .Build();
@@ -153,7 +153,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListChanged_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportListsOf<int>()
                 .Build();
@@ -172,7 +172,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListRemoved_AndNewRecordCreated_ThenNoException()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportListsOf<int>()
                 .Build();
@@ -189,7 +189,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportListsOf<int>()
                        .EnableAutoSaveOnChange()
@@ -201,7 +201,7 @@ namespace Appegy.BinaryStorage
                 list.Add(2);
             }
 
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportListsOf<int>()
                        .Build())
@@ -223,7 +223,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetAddedDuringBuilding_ThenStorageSupportsIt()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportSetsOf<int>()
                 .Build();
@@ -236,7 +236,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetChanged_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportSetsOf<int>()
                 .Build();
@@ -255,7 +255,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetRemoved_AndNewRecordCreated_ThenNoException()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportSetsOf<int>()
                 .Build();
@@ -272,7 +272,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportSetsOf<int>()
                        .EnableAutoSaveOnChange()
@@ -284,7 +284,7 @@ namespace Appegy.BinaryStorage
                 set.Add(2);
             }
 
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportSetsOf<int>()
                        .Build())
@@ -306,7 +306,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryAddedDuringBuilding_ThenStorageSupportsIt()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .SupportDictionariesOf<int, string>()
@@ -320,7 +320,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryChanged_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .SupportDictionariesOf<int, string>()
@@ -340,7 +340,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryRemoved_AndNewRecordCreated_ThenNoException()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .SupportDictionariesOf<int, string>()
@@ -358,7 +358,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .SupportDictionariesOf<int, string>()
@@ -371,7 +371,7 @@ namespace Appegy.BinaryStorage
                 map.Add(2, "two");
             }
 
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .SupportDictionariesOf<int, string>()
