@@ -10,7 +10,6 @@ namespace Appegy.BinaryStorage
         private readonly TypeSerializer<TNumber> _numberType;
 
         public override string TypeName { get; }
-        public override int SizeOf(TEnum value) => _numberType.SizeOf(ToNumber(value));
 
         public override bool Equals(TEnum value1, TEnum value2)
         {

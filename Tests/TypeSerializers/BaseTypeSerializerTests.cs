@@ -30,7 +30,6 @@ namespace Appegy.BinaryStorage.TypeSerializers
         public void General_Checks_For_Type_Serializer()
         {
             // Arrange
-            var size = _serializer.SizeOf(_defaultValue);
             using var writeStream = new MemoryStream(_buffer);
             using var readStream = new MemoryStream(_buffer);
             using var writer = new BinaryWriter(writeStream);
@@ -41,8 +40,7 @@ namespace Appegy.BinaryStorage.TypeSerializers
             var readValue = _serializer.ReadFrom(reader);
 
             // Assert
-            writeStream.Position.Should().Be(size, "Write stream position should match the size of the serialized value");
-            readStream.Position.Should().Be(size, "Read stream position should match the size of the serialized value");
+            writeStream.Position.Should().Be(readStream.Position, "Write stream position should match the read stream position");
             readValue.Should().Be(_defaultValue, "The deserialized value should be equal to the default value");
             _serializer.Equals(_defaultValue, _defaultValue).Should().Be(true, "The default value should be equal to itself using serializer's Equals");
             _serializer.Equals(_defaultValue, readValue).Should().Be(true, "The default value should be equal to the deserialized value using serializer's Equals");
