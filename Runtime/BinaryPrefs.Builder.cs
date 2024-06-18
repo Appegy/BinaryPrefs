@@ -11,6 +11,11 @@ namespace Appegy.BinaryStorage
         static partial void ThrowIfFilePathLocked(string filePath);
         static partial void UnlockFilePathInEditor(string filePath);
 
+        /// <summary>
+        /// Creates and configures a new instance of <see cref="BinaryPrefs"/> with default settings.
+        /// </summary>
+        /// <param name="filePath">The file path for the storage.</param>
+        /// <returns>A configured <see cref="BinaryPrefs"/> instance.</returns>
         public static BinaryPrefs Get(string filePath)
         {
             return Construct(filePath)
@@ -19,6 +24,11 @@ namespace Appegy.BinaryStorage
                 .Build();
         }
 
+        /// <summary>
+        /// Begins the construction of a new <see cref="BinaryPrefs"/> instance.
+        /// </summary>
+        /// <param name="filePath">The file path for the storage.</param>
+        /// <returns>A <see cref="Builder"/> for configuring the <see cref="BinaryPrefs"/> instance.</returns>
         public static Builder Construct(string filePath)
         {
             ThrowIfFilePathLocked(filePath);
@@ -26,6 +36,10 @@ namespace Appegy.BinaryStorage
             return new Builder(filePath);
         }
 
+        /// <summary>
+        /// Deletes the storage file at the specified path.
+        /// </summary>
+        /// <param name="storagePath">The path to the storage file.</param>
         internal static void Delete(string storagePath)
         {
             if (File.Exists(storagePath))
@@ -34,23 +48,34 @@ namespace Appegy.BinaryStorage
             }
         }
 
+        /// <summary>
+        /// Provides a fluent interface for configuring and building a <see cref="BinaryPrefs"/> instance.
+        /// </summary>
         public class Builder
         {
             private readonly string _filePath;
             private readonly List<BinarySection> _serializers = new();
             private bool _autoSave;
 
-            public Builder(string filePath)
+            internal Builder(string filePath)
             {
                 _filePath = filePath;
             }
 
+            /// <summary>
+            /// Enables automatic saving of changes to the storage.
+            /// </summary>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             public Builder EnableAutoSaveOnChange()
             {
                 _autoSave = true;
                 return this;
             }
 
+            /// <summary>
+            /// Adds serializers for primitive types to the storage configuration.
+            /// </summary>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             public Builder AddPrimitiveTypes()
             {
                 return AddTypeSerializer(BooleanSerializer.Shared)
@@ -77,6 +102,13 @@ namespace Appegy.BinaryStorage
                     .AddTypeSerializer(Vector3IntSerializer.Shared);
             }
 
+            /// <summary>
+            /// Adds a serializer for a specified type to the storage configuration.
+            /// </summary>
+            /// <typeparam name="T">The type to be serialized.</typeparam>
+            /// <param name="typeSerializer">The serializer for the specified type.</param>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            /// <exception cref="DuplicateTypeSerializerException">Thrown if a serializer for the specified type already exists.</exception>
             public Builder AddTypeSerializer<T>(TypeSerializer<T> typeSerializer)
             {
                 if (_serializers.Any(c => c is TypedBinarySection<T>))
@@ -87,6 +119,13 @@ namespace Appegy.BinaryStorage
                 return this;
             }
 
+            /// <summary>
+            /// Adds support for a specified enum type to the storage configuration.
+            /// </summary>
+            /// <typeparam name="T">The enum type to be supported.</typeparam>
+            /// <param name="useFullName">Whether to use the full name of the enum type.</param>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            /// <exception cref="UnexpectedUnderlyingEnumTypeException">Thrown if the enum has an unexpected underlying type.</exception>
             public Builder SupportEnum<T>(bool useFullName = false)
                 where T : unmanaged, Enum
             {
@@ -124,38 +163,62 @@ namespace Appegy.BinaryStorage
                 return this;
             }
 
+            /// <summary>
+            /// Adds support for lists of a specified type to the storage configuration.
+            /// </summary>
+            /// <typeparam name="T">The type of elements in the list.</typeparam>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            /// <exception cref="CantSupportCollectionOfException">Thrown if the specified type is not supported.</exception>
             public Builder SupportListsOf<T>()
             {
                 if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> section)
                 {
-                    throw new CantSupportListOfException(typeof(T));
+                    throw new CantSupportCollectionOfException(typeof(T));
                 }
 
                 return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveList<T>>(section.Serializer));
             }
 
+            /// <summary>
+            /// Adds support for sets of a specified type to the storage configuration.
+            /// </summary>
+            /// <typeparam name="T">The type of elements in the set.</typeparam>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            /// <exception cref="CantSupportCollectionOfException">Thrown if the specified type is not supported.</exception>
             public Builder SupportSetsOf<T>()
             {
                 if (_serializers.FirstOrDefault(c => c is TypedBinarySection<T>) is not TypedBinarySection<T> section)
                 {
-                    throw new CantSupportListOfException(typeof(T));
+                    throw new CantSupportCollectionOfException(typeof(T));
                 }
 
                 return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveSet<T>>(section.Serializer));
             }
 
+            /// <summary>
+            /// Adds support for dictionaries of specified key and value types to the storage configuration.
+            /// </summary>
+            /// <typeparam name="TKey">The type of the dictionary keys.</typeparam>
+            /// <typeparam name="TValue">The type of the dictionary values.</typeparam>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            /// <exception cref="CantSupportCollectionOfException">Thrown if the specified key or value type is not supported.</exception>
             public Builder SupportDictionariesOf<TKey, TValue>()
             {
                 if (_serializers.FirstOrDefault(c => c is TypedBinarySection<TKey>) is not TypedBinarySection<TKey> keySection ||
                     _serializers.FirstOrDefault(c => c is TypedBinarySection<TValue>) is not TypedBinarySection<TValue> valueSection)
                 {
-                    throw new CantSupportListOfException(typeof(KeyValuePair<TKey, TValue>));
+                    throw new CantSupportCollectionOfException(typeof(KeyValuePair<TKey, TValue>));
                 }
 
                 var kvSerializer = new KeyValueTypeSerializer<TKey, TValue>(keySection.Serializer, valueSection.Serializer);
                 return AddTypeSerializer(new CollectionTypeSerializer<KeyValuePair<TKey, TValue>, ReactiveDictionary<TKey, TValue>>(kvSerializer));
             }
 
+            /// <summary>
+            /// Builds and returns the configured <see cref="BinaryPrefs"/> instance.
+            /// </summary>
+            /// <returns>The configured <see cref="BinaryPrefs"/> instance.</returns>
+            /// <exception cref="Exception">Thrown if the storage fails to load data from disk.</exception>
             public BinaryPrefs Build()
             {
                 try
