@@ -28,6 +28,11 @@ namespace Appegy.Storage
         public MissingKeyBehavior MissingKeyBehavior { get; set; } = MissingKeyBehavior.ReturnDefaultValueOnly;
 
         /// <summary>
+        /// Gets or sets the behavior when the type of a value associated with a key does not match the expected type.
+        /// </summary>
+        public TypeMismatchBehaviour TypeMismatchBehaviour { get; set; } = TypeMismatchBehaviour.OverrideValueAndType;
+
+        /// <summary>
         /// Gets a value indicating whether there are unsaved changes.
         /// </summary>
         public bool IsDirty { get; private set; }
@@ -92,11 +97,12 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the value for.</param>
         /// <param name="defaultValue">The default value to use if the key does not exist.</param>
         /// <returns>The value associated with the key.</returns>
-        public virtual T Get<T>(string key, T defaultValue = default)
+        public virtual T Get<T>(string key, T defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
             var record = GetRecord(key);
+            var missingKeyBehavior = overrideMissingKeyBehavior ?? MissingKeyBehavior;
             switch (record)
             {
                 case Record<T> typedRecord:
@@ -104,11 +110,11 @@ namespace Appegy.Storage
                 case not null:
                     throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T));
                 case null:
-                    return MissingKeyBehavior switch
+                    return missingKeyBehavior switch
                     {
                         MissingKeyBehavior.InitializeWithDefaultValue => AddRecord(key, defaultValue).Value,
                         MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue,
-                        _ => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), MissingKeyBehavior)
+                        _ => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), missingKeyBehavior)
                     };
             }
         }
@@ -119,9 +125,9 @@ namespace Appegy.Storage
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to set the value for.</param>
         /// <param name="value">The value to set.</param>
-        /// <param name="overrideTypeMismatch">Whether to override the value if the key already exists but with another type.</param>
+        /// <param name="overrideTypeMismatchBehaviour">Whether to override the value if the key already exists but with another type.</param>
         /// <returns>True if the value was set; otherwise, false.</returns>
-        public virtual bool Set<T>(string key, T value, bool overrideTypeMismatch = false)
+        public virtual bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -138,18 +144,23 @@ namespace Appegy.Storage
                 return ChangeRecord(typedRecord, value);
             }
 
-            if (!overrideTypeMismatch)
+            var mismatchBehaviour = overrideTypeMismatchBehaviour ?? TypeMismatchBehaviour;
+            switch (mismatchBehaviour)
             {
-                throw new UnexpectedTypeException(key, nameof(Set), record.Type, typeof(T));
+                case TypeMismatchBehaviour.OverrideValueAndType:
+                    using (MultipleChangeScope())
+                    {
+                        RemoveRecord(key);
+                        AddRecord(key, value);
+                    }
+                    return true;
+                case TypeMismatchBehaviour.ThrowException:
+                    throw new UnexpectedTypeException(key, nameof(Set), record.Type, typeof(T));
+                case TypeMismatchBehaviour.Ignore:
+                    return false;
+                default:
+                    throw new UnexpectedEnumException(typeof(TypeMismatchBehaviour), mismatchBehaviour);
             }
-
-            using (MultipleChangeScope())
-            {
-                RemoveRecord(key);
-                AddRecord(key, value);
-            }
-
-            return true;
         }
 
         /// <summary>

@@ -56,6 +56,8 @@ namespace Appegy.Storage
             private readonly string _filePath;
             private readonly List<BinarySection> _serializers = new();
             private bool _autoSave;
+            private MissingKeyBehavior _missingKeyBehavior = MissingKeyBehavior.InitializeWithDefaultValue;
+            private TypeMismatchBehaviour _typeMismatchBehaviour = TypeMismatchBehaviour.ThrowException;
 
             internal Builder(string filePath)
             {
@@ -69,6 +71,26 @@ namespace Appegy.Storage
             public Builder EnableAutoSaveOnChange()
             {
                 _autoSave = true;
+                return this;
+            }
+
+            /// <summary>
+            /// Specifies the behavior when a requested key is not found in the storage.
+            /// </summary>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            public Builder SetMissingKeyBehaviour(MissingKeyBehavior behavior)
+            {
+                _missingKeyBehavior = behavior;
+                return this;
+            }
+            /// <summary>
+            /// Specifies the behavior when the type of value associated with a key does not match the expected type.
+            /// </summary>
+            /// <param name="behavior">The type mismatch behavior.</param>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            public Builder SetTypeMismatchBehaviour(TypeMismatchBehaviour behavior)
+            {
+                _typeMismatchBehaviour = behavior;
                 return this;
             }
 
@@ -225,6 +247,8 @@ namespace Appegy.Storage
                 {
                     var storage = new BinaryStorage(_filePath, _serializers);
                     storage.AutoSave = _autoSave;
+                    storage.MissingKeyBehavior = _missingKeyBehavior;
+                    storage.TypeMismatchBehaviour = _typeMismatchBehaviour;
                     storage.LoadDataFromDisk();
                     return storage;
                 }
