@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class ReactiveSet<T> : IReactiveCollection, ISet<T>, IReadOnlyCollection<T>
     {

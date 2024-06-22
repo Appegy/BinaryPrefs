@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class KeyValueTypeSerializer<TKey, TValue> : TypeSerializer<KeyValuePair<TKey, TValue>>
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Appegy.BinaryStorage.CollectionTests
+namespace Appegy.Storage.CollectionTests
 {
     [TestFixture]
     public class ReactiveDictionaryTests

@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
 
-namespace Appegy.BinaryStorage.TypeSerializers
+namespace Appegy.Storage.TypeSerializers
 {
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]

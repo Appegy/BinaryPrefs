@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Appegy.BinaryStorage.TypeSerializers
+namespace Appegy.Storage.TypeSerializers
 {
     [TestFixture]
     [TestFixtureSource(nameof(Inputs))]

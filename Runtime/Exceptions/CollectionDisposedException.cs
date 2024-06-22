@@ -1,6 +1,6 @@
 using System;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class CollectionDisposedException : Exception
     {
