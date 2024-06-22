@@ -426,6 +426,7 @@ namespace Appegy.Storage
 
             // Assert
             result.Should().BeTrue();
+            storage.TypeOf("key").Should().Be(typeof(string));
             storage.Get<string>("key").Should().Be("value");
         }
 
@@ -445,11 +446,12 @@ namespace Appegy.Storage
 
             // Assert
             result.Should().BeFalse();
+            storage.TypeOf("key").Should().Be(typeof(int));
             storage.Get<int>("key").Should().Be(123);
         }
 
         [Test]
-        public void WhenTypeMismatchBehaviorOverrideIsSetInGetMethod_ThenBehaviorIsOverridden()
+        public void WhenTypeMismatchBehaviorOverride_ThenBehaviorIsOverridden()
         {
             // Arrange
             using var storage = BinaryStorage.Construct(StoragePath)
@@ -460,12 +462,13 @@ namespace Appegy.Storage
             storage.Set("key", 123);
 
             // Act
-            var value = storage.Get("key", "defaultValue", MissingKeyBehavior.InitializeWithDefaultValue);
+            var result = storage.Set("key", "value", TypeMismatchBehaviour.OverrideValueAndType);
 
             // Assert
-            value.Should().Be("defaultValue");
+            result.Should().BeTrue();
             storage.Has("key").Should().BeTrue();
-            storage.Get<string>("key").Should().Be("defaultValue");
+            storage.TypeOf("key").Should().Be(typeof(string));
+            storage.Get<string>("key").Should().Be("value");
         }
 
         #endregion
