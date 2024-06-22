@@ -7,7 +7,6 @@ namespace Appegy.BinaryStorage
     {
         public static QuaternionSerializer Shared { get; } = new();
         public override string TypeName => "vector2f";
-        public override int SizeOf(Quaternion _) => sizeof(float) * 4;
 
         public override void WriteTo(BinaryWriter writer, Quaternion value)
         {
@@ -31,7 +30,6 @@ namespace Appegy.BinaryStorage
     {
         public static Vector2Serializer Shared { get; } = new();
         public override string TypeName => "vector2f";
-        public override int SizeOf(Vector2 _) => sizeof(float) * 2;
 
         public override void WriteTo(BinaryWriter writer, Vector2 value)
         {
@@ -51,7 +49,6 @@ namespace Appegy.BinaryStorage
     {
         public static Vector3Serializer Shared { get; } = new();
         public override string TypeName => "vector3f";
-        public override int SizeOf(Vector3 _) => sizeof(float) * 3;
 
         public override void WriteTo(BinaryWriter writer, Vector3 value)
         {
@@ -73,7 +70,6 @@ namespace Appegy.BinaryStorage
     {
         public static Vector4Serializer Shared { get; } = new();
         public override string TypeName => "vector4f";
-        public override int SizeOf(Vector4 _) => sizeof(float) * 4;
 
         public override void WriteTo(BinaryWriter writer, Vector4 value)
         {
@@ -97,7 +93,6 @@ namespace Appegy.BinaryStorage
     {
         public static Vector2IntSerializer Shared { get; } = new();
         public override string TypeName => "vector2i";
-        public override int SizeOf(Vector2Int _) => sizeof(int) * 2;
 
         public override void WriteTo(BinaryWriter writer, Vector2Int value)
         {
@@ -117,7 +112,6 @@ namespace Appegy.BinaryStorage
     {
         public static Vector3IntSerializer Shared { get; } = new();
         public override string TypeName => "vector3i";
-        public override int SizeOf(Vector3Int _) => sizeof(int) * 3;
 
         public override void WriteTo(BinaryWriter writer, Vector3Int value)
         {
