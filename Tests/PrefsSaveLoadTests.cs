@@ -3,7 +3,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     public class PrefsSaveLoadTests
     {
@@ -22,7 +22,7 @@ namespace Appegy.Storage
         public void WhenStorageChanged_AndReloaded_ThenAllDataAreValid()
         {
             // Arrange
-            using (var storage = BinaryStorage
+            using (var storage = BinaryPrefs
                        .Construct(_storagePath)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .AddTypeSerializer(BooleanSerializer.Shared)
@@ -40,7 +40,7 @@ namespace Appegy.Storage
 
             // Act
             // Assert
-            using (var storage = BinaryStorage
+            using (var storage = BinaryPrefs
                        .Construct(_storagePath)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .AddTypeSerializer(BooleanSerializer.Shared)
@@ -61,7 +61,7 @@ namespace Appegy.Storage
         public void WhenStorageHasObsoleteSection_AndStorageLoaded_ThenObsoleteSectionIgnored()
         {
             // Arrange
-            using (var storage = BinaryStorage
+            using (var storage = BinaryPrefs
                        .Construct(_storagePath)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .AddTypeSerializer(BooleanSerializer.Shared)
@@ -79,7 +79,7 @@ namespace Appegy.Storage
 
             // Act
             // Assert
-            using (var storage = BinaryStorage
+            using (var storage = BinaryPrefs
                        .Construct(_storagePath)
                        .AddTypeSerializer(BooleanSerializer.Shared)
                        .AddTypeSerializer(Int64Serializer.Shared)
@@ -96,7 +96,7 @@ namespace Appegy.Storage
         public void WhenStorageSupportsTwoEnumsWithSameName_AndNamespacesAreDifferent_ThenDataIsNotCorrupting()
         {
             // Arrange
-            using (var storage = BinaryStorage
+            using (var storage = BinaryPrefs
                        .Construct(_storagePath)
                        .EnableAutoSaveOnChange()
                        .SupportEnum<ScreenOrientation>()
@@ -113,7 +113,7 @@ namespace Appegy.Storage
 
             // Act
             // Assert
-            using (var storage = BinaryStorage
+            using (var storage = BinaryPrefs
                        .Construct(_storagePath)
                        .SupportEnum<ScreenOrientation>()
                        .SupportEnum<UnityEngine.ScreenOrientation>(true)

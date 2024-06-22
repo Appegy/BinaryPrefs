@@ -1,6 +1,6 @@
 {
     "name": "Appegy.BinaryStorage",
-    "rootNamespace": "Appegy.Storage",
+    "rootNamespace": "Appegy.BinaryStorage",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -5,12 +5,12 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     /// <summary>
     /// Manages a binary storage system for saving, retrieving, and managing records of various types.
     /// </summary>
-    public partial class BinaryStorage : IDisposable
+    public partial class BinaryPrefs : IDisposable
     {
         private readonly string _storageFilePath;
         private readonly bool _autoSave;
@@ -34,11 +34,11 @@ namespace Appegy.Storage
         public bool IsDisposed { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BinaryStorage"/> class.
+        /// Initializes a new instance of the <see cref="BinaryPrefs"/> class.
         /// </summary>
         /// <param name="storageFilePath">The file path for storing data.</param>
         /// <param name="supportedTypes">The list of supported types for storage.</param>
-        internal BinaryStorage(string storageFilePath, IReadOnlyList<BinarySection> supportedTypes)
+        internal BinaryPrefs(string storageFilePath, IReadOnlyList<BinarySection> supportedTypes)
         {
             _storageFilePath = storageFilePath;
             _supportedTypes = supportedTypes;
@@ -400,7 +400,7 @@ namespace Appegy.Storage
         {
             if (_changeScopeCounter == 0)
             {
-                Debug.LogError($"{nameof(BinaryStorage)}: Unexpected behaviour - MultipleChangeScope counter is already zero");
+                Debug.LogError($"{nameof(BinaryPrefs)}: Unexpected behaviour - MultipleChangeScope counter is already zero");
                 return;
             }
             _changeScopeCounter--;
@@ -460,7 +460,7 @@ namespace Appegy.Storage
         /// <summary>
         /// Finalizer
         /// </summary>
-        ~BinaryStorage()
+        ~BinaryPrefs()
         {
             Dispose(false);
         }
@@ -512,7 +512,7 @@ namespace Appegy.Storage
         private void LoadDataFromDisk()
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data);
+            BinaryPrefsIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data);
             foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
             {
                 rc.OnChanged += MarkChanged;
@@ -525,7 +525,7 @@ namespace Appegy.Storage
         private void SaveDataFromDisk()
         {
             ThrowIfDisposed();
-            BinaryStorageIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
+            BinaryPrefsIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
             IsDirty = false;
         }
 

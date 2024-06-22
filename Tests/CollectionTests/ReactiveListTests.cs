@@ -2,7 +2,7 @@ using System;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Appegy.Storage.CollectionTests
+namespace Appegy.BinaryStorage.CollectionTests
 {
     [TestFixture]
     public class ReactiveListTests

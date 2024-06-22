@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     public class ReactiveDictionary<TKey, TValue> : IReactiveCollection, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     {

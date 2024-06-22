@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     internal class CollectionTypeSerializer<T, TCollection> : TypeSerializer<TCollection>
         where TCollection : class, IReactiveCollection, ICollection<T>, new()

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     internal static class CollectionExtensions
     {

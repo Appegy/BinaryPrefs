@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
-    internal static class BinaryStorageIO
+    internal static class BinaryPrefsIO
     {
         internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IReadOnlyDictionary<string, Record> data)
         {

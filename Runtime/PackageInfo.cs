@@ -4,7 +4,7 @@ using UnityEngine;
 
 [assembly: InternalsVisibleTo("Appegy.BinaryStorage.Tests")]
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     public static class PackageInfo
     {

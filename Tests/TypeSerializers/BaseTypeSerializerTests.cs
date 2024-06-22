@@ -1,8 +1,9 @@
 using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
+using UnityEngine;
 
-namespace Appegy.Storage.TypeSerializers
+namespace Appegy.BinaryStorage.TypeSerializers
 {
     public class BaseTypeSerializerTests<TType, TTypeSerializer> : TypeSerializerTests<TType, TTypeSerializer>
         where TTypeSerializer : TypeSerializer<TType>, new()
@@ -49,7 +50,7 @@ namespace Appegy.Storage.TypeSerializers
         public void General_Checks_For_Type_Storage()
         {
             // Arrange
-            using var storage = BinaryStorage
+            using var storage = BinaryPrefs
                 .Construct(StoragePath)
                 .AddTypeSerializer(_serializer)
                 .Build();

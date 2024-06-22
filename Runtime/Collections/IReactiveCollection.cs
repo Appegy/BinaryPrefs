@@ -1,6 +1,6 @@
 using System;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     internal interface IReactiveCollection : IDisposable
     {

@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
-    public partial class BinaryStorage
+    public partial class BinaryPrefs
     {
         static partial void LockFilePathInEditor(string filePath);
         static partial void ThrowIfFilePathLocked(string filePath);
         static partial void UnlockFilePathInEditor(string filePath);
 
         /// <summary>
-        /// Creates and configures a new instance of <see cref="BinaryStorage"/> with default settings.
+        /// Creates and configures a new instance of <see cref="BinaryPrefs"/> with default settings.
         /// </summary>
         /// <param name="filePath">The file path for the storage.</param>
-        /// <returns>A configured <see cref="BinaryStorage"/> instance.</returns>
-        public static BinaryStorage Get(string filePath)
+        /// <returns>A configured <see cref="BinaryPrefs"/> instance.</returns>
+        public static BinaryPrefs Get(string filePath)
         {
             return Construct(filePath)
                 .AddPrimitiveTypes()
@@ -25,10 +25,10 @@ namespace Appegy.Storage
         }
 
         /// <summary>
-        /// Begins the construction of a new <see cref="BinaryStorage"/> instance.
+        /// Begins the construction of a new <see cref="BinaryPrefs"/> instance.
         /// </summary>
         /// <param name="filePath">The file path for the storage.</param>
-        /// <returns>A <see cref="Builder"/> for configuring the <see cref="BinaryStorage"/> instance.</returns>
+        /// <returns>A <see cref="Builder"/> for configuring the <see cref="BinaryPrefs"/> instance.</returns>
         public static Builder Construct(string filePath)
         {
             ThrowIfFilePathLocked(filePath);
@@ -49,7 +49,7 @@ namespace Appegy.Storage
         }
 
         /// <summary>
-        /// Provides a fluent interface for configuring and building a <see cref="BinaryStorage"/> instance.
+        /// Provides a fluent interface for configuring and building a <see cref="BinaryPrefs"/> instance.
         /// </summary>
         public class Builder
         {
@@ -215,15 +215,15 @@ namespace Appegy.Storage
             }
 
             /// <summary>
-            /// Builds and returns the configured <see cref="BinaryStorage"/> instance.
+            /// Builds and returns the configured <see cref="BinaryPrefs"/> instance.
             /// </summary>
-            /// <returns>The configured <see cref="BinaryStorage"/> instance.</returns>
+            /// <returns>The configured <see cref="BinaryPrefs"/> instance.</returns>
             /// <exception cref="Exception">Thrown if the storage fails to load data from disk.</exception>
-            public BinaryStorage Build()
+            public BinaryPrefs Build()
             {
                 try
                 {
-                    var storage = new BinaryStorage(_filePath, _serializers);
+                    var storage = new BinaryPrefs(_filePath, _serializers);
                     storage.AutoSave = _autoSave;
                     storage.LoadDataFromDisk();
                     return storage;

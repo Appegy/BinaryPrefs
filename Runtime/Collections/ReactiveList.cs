@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     public class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
     {

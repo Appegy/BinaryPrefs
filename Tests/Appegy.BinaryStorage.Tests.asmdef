@@ -1,6 +1,6 @@
 {
     "name": "Appegy.BinaryStorage.Tests",
-    "rootNamespace": "Appegy.Storage",
+    "rootNamespace": "Appegy.BinaryStorage",
     "references": [
         "Appegy.BinaryStorage",
         "TNRD.NSubstitute",

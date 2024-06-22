@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace Appegy.Storage
+namespace Appegy.BinaryStorage
 {
     public class BinaryPrefsExplorer : EditorWindow
     {
