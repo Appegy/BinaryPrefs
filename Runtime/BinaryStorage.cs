@@ -13,6 +13,7 @@ namespace Appegy.Storage
     public partial class BinaryStorage : IDisposable
     {
         private readonly string _storageFilePath;
+        private readonly bool _autoSave;
         private readonly IReadOnlyList<BinarySection> _supportedTypes;
         private readonly Dictionary<string, Record> _data = new();
         private int _changeScopeCounter;
