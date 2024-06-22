@@ -23,6 +23,11 @@ namespace Appegy.Storage
         public bool AutoSave { get; set; }
 
         /// <summary>
+        /// Gets or sets the behavior when a requested key is not found in the storage.
+        /// </summary>
+        public MissingKeyBehavior MissingKeyBehavior { get; set; } = MissingKeyBehavior.ReturnDefaultValueOnly;
+
+        /// <summary>
         /// Gets a value indicating whether there are unsaved changes.
         /// </summary>
         public bool IsDirty { get; private set; }
@@ -85,18 +90,27 @@ namespace Appegy.Storage
         /// </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
-        /// <param name="initValue">The initial value to use if the key does not exist.</param>
+        /// <param name="defaultValue">The default value to use if the key does not exist.</param>
         /// <returns>The value associated with the key.</returns>
-        public virtual T Get<T>(string key, T initValue = default)
+        public virtual T Get<T>(string key, T defaultValue = default)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
-            var record = GetRecord(key) ?? AddRecord(key, initValue);
-            if (record is not Record<T> typedRecord)
+            var record = GetRecord(key);
+            switch (record)
             {
-                throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T));
+                case Record<T> typedRecord:
+                    return typedRecord.Value;
+                case not null:
+                    throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T));
+                case null:
+                    return MissingKeyBehavior switch
+                    {
+                        MissingKeyBehavior.InitializeWithDefaultValue => AddRecord(key, defaultValue).Value,
+                        MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue,
+                        _ => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), MissingKeyBehavior)
+                    };
             }
-            return typedRecord.Value;
         }
 
         /// <summary>
@@ -105,9 +119,9 @@ namespace Appegy.Storage
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to set the value for.</param>
         /// <param name="value">The value to set.</param>
-        /// <param name="overrideTypeIfExists">Whether to override the type if the key already exists.</param>
+        /// <param name="overrideTypeMismatch">Whether to override the value if the key already exists but with another type.</param>
         /// <returns>True if the value was set; otherwise, false.</returns>
-        public virtual bool Set<T>(string key, T value, bool overrideTypeIfExists = false)
+        public virtual bool Set<T>(string key, T value, bool overrideTypeMismatch = false)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -124,7 +138,7 @@ namespace Appegy.Storage
                 return ChangeRecord(typedRecord, value);
             }
 
-            if (!overrideTypeIfExists)
+            if (!overrideTypeMismatch)
             {
                 throw new UnexpectedTypeException(key, nameof(Set), record.Type, typeof(T));
             }
@@ -295,7 +309,7 @@ namespace Appegy.Storage
         /// <param name="key">The key to add the record for.</param>
         /// <param name="value">The value to add.</param>
         /// <returns>The added record.</returns>
-        private Record AddRecord<T>(string key, T value)
+        private Record<T> AddRecord<T>(string key, T value)
         {
             var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
             if (typeIndex == -1)
