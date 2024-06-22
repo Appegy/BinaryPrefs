@@ -388,5 +388,143 @@ namespace Appegy.Storage
         }
 
         #endregion
+
+        #region TypeMismatchBehaviour Tests
+
+        [Test]
+        public void WhenTypeMismatchBehaviorIsThrowException_ThenExceptionIsThrown()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.ThrowException)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            // ReSharper disable once AccessToDisposedClosure
+            Action action = () => storage.Set("key", "value");
+
+            // Assert
+            action.Should().Throw<UnexpectedTypeException>();
+        }
+
+        [Test]
+        public void WhenTypeMismatchBehaviorIsOverrideValueAndType_ThenValueAndTypeAreOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.OverrideValueAndType)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            var result = storage.Set("key", "value");
+
+            // Assert
+            result.Should().BeTrue();
+            storage.Get<string>("key").Should().Be("value");
+        }
+
+        [Test]
+        public void WhenTypeMismatchBehaviorIsIgnore_ThenValueAndTypeAreIgnored()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.Ignore)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            var result = storage.Set("key", "value");
+
+            // Assert
+            result.Should().BeFalse();
+            storage.Get<int>("key").Should().Be(123);
+        }
+
+        [Test]
+        public void WhenTypeMismatchBehaviorOverrideIsSetInGetMethod_ThenBehaviorIsOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.ThrowException)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            var value = storage.Get("key", "defaultValue", MissingKeyBehavior.InitializeWithDefaultValue);
+
+            // Assert
+            value.Should().Be("defaultValue");
+            storage.Has("key").Should().BeTrue();
+            storage.Get<string>("key").Should().Be("defaultValue");
+        }
+
+        #endregion
+
+        #region MissingKeyBehavior Tests
+
+        [Test]
+        public void WhenMissingKeyBehaviorIsInitializeWithDefaultValue_ThenKeyIsInitialized()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.InitializeWithDefaultValue)
+                .Build();
+
+            // Act
+            var value = storage.Get("key", 10);
+
+            // Assert
+            value.Should().Be(10);
+            storage.Has("key").Should().BeTrue();
+            storage.Get<int>("key").Should().Be(10);
+        }
+
+        [Test]
+        public void WhenMissingKeyBehaviorIsReturnDefaultValueOnly_ThenDefaultValueIsReturned()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            // Act
+            var value = storage.Get("key", 10);
+
+            // Assert
+            value.Should().Be(10);
+            storage.Has("key").Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenMissingKeyBehaviorOverrideIsSetInGetMethod_ThenBehaviorIsOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            // Act
+            var value = storage.Get("key", 10, MissingKeyBehavior.InitializeWithDefaultValue);
+
+            // Assert
+            value.Should().Be(10);
+            storage.Has("key").Should().BeTrue();
+            storage.Get<int>("key").Should().Be(10);
+        }
+
+        #endregion
     }
 }

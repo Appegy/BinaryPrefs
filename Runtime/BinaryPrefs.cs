@@ -9,6 +9,8 @@ namespace Appegy.Storage
             .Construct(Path.Combine(Application.persistentDataPath, PackageInfo.Name, "player_prefs.bin"))
             .AddPrimitiveTypes()
             .EnableAutoSaveOnChange()
+            .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+            .SetTypeMismatchBehaviour(TypeMismatchBehaviour.OverrideValueAndType)
             .Build();
 
         /// <summary>
