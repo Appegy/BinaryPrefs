@@ -83,6 +83,7 @@ namespace Appegy.Storage
                 _missingKeyBehavior = behavior;
                 return this;
             }
+
             /// <summary>
             /// Specifies the behavior when the type of value associated with a key does not match the expected type.
             /// </summary>
@@ -241,7 +242,7 @@ namespace Appegy.Storage
             /// </summary>
             /// <returns>The configured <see cref="BinaryStorage"/> instance.</returns>
             /// <exception cref="Exception">Thrown if the storage fails to load data from disk.</exception>
-            public BinaryStorage Build()
+            public BinaryStorage Build(KeyLoadFailedBehaviour keyLoadFailedBehaviour = KeyLoadFailedBehaviour.IgnoreWithWarning)
             {
                 try
                 {
@@ -249,7 +250,7 @@ namespace Appegy.Storage
                     storage.AutoSave = _autoSave;
                     storage.MissingKeyBehavior = _missingKeyBehavior;
                     storage.TypeMismatchBehaviour = _typeMismatchBehaviour;
-                    storage.LoadDataFromDisk();
+                    storage.LoadDataFromDisk(keyLoadFailedBehaviour);
                     return storage;
                 }
                 catch

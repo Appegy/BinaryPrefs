@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -80,7 +81,7 @@ namespace Appegy.Storage
             File.Move(storageFilePathTmp, storageFilePath);
         }
 
-        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data)
+        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             data.Clear();
             foreach (var section in sections)
@@ -127,21 +128,48 @@ namespace Appegy.Storage
 
                 // #08 <---> Read real size of entry
                 var entrySize = reader.ReadInt64();
+                var position = stream.Position;
 
                 // #09 <---> Read value from stream
                 var section = orderedSectionsFromFile[typeIndex];
                 var index = sections.FindIndex(c => c == section);
                 if (section == null || index == -1)
                 {
-                    // Skip any data for missing sections
-                    reader.BaseStream.Position += entrySize;
-                    Debug.LogWarning($"Key '{key}' skipped - unregistered type. Type={sectionsNames[typeIndex]}; Size={entrySize}");
+                    failedToLoadKey("Unregistered type serializer");
+                    continue;
                 }
-                else
+                try
                 {
                     var value = section.ReadFrom(reader, index);
-                    section.Count++;
-                    data.Add(key, value);
+                    if (stream.Position != position + entrySize)
+                    {
+                        failedToLoadKey($"Read more than expected ({stream.Position - position}b)");
+                    }
+                    else
+                    {
+                        section.Count++;
+                        data.Add(key, value);
+                    }
+                }
+                catch (EndOfStreamException)
+                {
+                    failedToLoadKey("End of file stream");
+                }
+
+                void failedToLoadKey(string reason)
+                {
+                    switch (keyLoadFailedBehaviour)
+                    {
+                        case KeyLoadFailedBehaviour.ThrowException:
+                            throw new KeyLoadFailedException(key, sectionsNames[typeIndex], entrySize, reason);
+                        case KeyLoadFailedBehaviour.IgnoreWithWarning:
+                            // skip key by moving stream position to next record
+                            stream.Position = position + entrySize;
+                            Debug.LogWarning($"Failed to load key {key} of type {sectionsNames[typeIndex]} with size {entrySize}b. Reason: {reason}");
+                            break;
+                        default:
+                            throw new UnexpectedEnumException(typeof(KeyLoadFailedBehaviour), keyLoadFailedBehaviour);
+                    }
                 }
             }
         }

@@ -96,6 +96,7 @@ namespace Appegy.Storage
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
         /// <param name="defaultValue">The default value to use if the key does not exist.</param>
+        /// <param name="overrideMissingKeyBehavior">Overrides <see cref="MissingKeyBehavior"/></param>
         /// <returns>The value associated with the key.</returns>
         public virtual T Get<T>(string key, T defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
@@ -533,10 +534,10 @@ namespace Appegy.Storage
         /// <summary>
         /// Loads the data from disk into memory.
         /// </summary>
-        private void LoadDataFromDisk()
+        private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data);
+            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
             foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
             {
                 rc.OnChanged += MarkChanged;
