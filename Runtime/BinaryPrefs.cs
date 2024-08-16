@@ -39,7 +39,7 @@ namespace Appegy.Storage
 
             if (PlayerPrefs.HasKey(key))
             {
-                int value = PlayerPrefs.GetInt(key, defaultValue);
+                var value = PlayerPrefs.GetInt(key, defaultValue);
                 _storage.Set(key, value);
                 return value;
             }
@@ -73,7 +73,7 @@ namespace Appegy.Storage
 
             if (PlayerPrefs.HasKey(key))
             {
-                float value = PlayerPrefs.GetFloat(key, defaultValue);
+                var value = PlayerPrefs.GetFloat(key, defaultValue);
                 _storage.Set(key, value);
                 return value;
             }
@@ -107,7 +107,7 @@ namespace Appegy.Storage
 
             if (PlayerPrefs.HasKey(key))
             {
-                string value = PlayerPrefs.GetString(key, defaultValue);
+                var value = PlayerPrefs.GetString(key, defaultValue);
                 _storage.Set(key, value);
                 return value;
             }
