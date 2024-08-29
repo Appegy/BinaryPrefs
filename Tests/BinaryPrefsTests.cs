@@ -1,9 +1,8 @@
-using NUnit.Framework;
 using FluentAssertions;
+using NUnit.Framework;
 using UnityEngine;
-using Appegy.Storage;
 
-namespace Appegy.Tests.Storage
+namespace Appegy.Storage
 {
     [TestFixture]
     public class BinaryPrefsIntTests
@@ -264,6 +263,25 @@ namespace Appegy.Tests.Storage
 
             // Assert
             BinaryPrefs.GetString(key).Should().Be(newValue);
+        }
+
+        #endregion
+
+        #region Edges
+
+        [Test]
+        public void SetInt_GetFloat_ShouldReturnCorrectInt()
+        {
+            // Arrange
+            var key = "key";
+            var value = 42;
+
+            // Act
+            PlayerPrefs.SetInt(key, value);
+            PlayerPrefs.SetFloat(key, value);
+
+            // Assert
+            BinaryPrefs.GetFloat(key).Should().Be(value);
         }
 
         #endregion
