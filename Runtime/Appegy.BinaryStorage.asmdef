@@ -1,14 +1,24 @@
 {
     "name": "Appegy.BinaryStorage",
     "rootNamespace": "Appegy.Storage",
-    "references": [],
+    "references": [
+        "UniRx"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        ""
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.neuecc.unirx",
+            "expression": "",
+            "define": "UNIRX"
+        }
+    ],
     "noEngineReferences": false
 }
