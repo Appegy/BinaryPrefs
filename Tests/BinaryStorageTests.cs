@@ -99,7 +99,7 @@ namespace Appegy.Storage
 
             // Assert
             Action action = () => storage.Has("key");
-            action.Should().Throw<StorageDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -115,7 +115,7 @@ namespace Appegy.Storage
 
             // Assert
             Action action = () => storage.TypeOf("key");
-            action.Should().Throw<StorageDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace Appegy.Storage
 
             // Assert
             Action action = () => storage.Supports<int>();
-            action.Should().Throw<StorageDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         #region Reactive Lists
@@ -385,6 +385,129 @@ namespace Appegy.Storage
                 map[1].Should().Be("one");
                 map[2].Should().Be("two");
             }
+        }
+
+        #endregion
+
+        #region Events
+
+        [Test]
+        public void WhenKeyAddedToStorage_ThenOnKeyAddedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            var raised = false;
+            storage.OnKeyAdded += s => { raised = s == "key"; };
+
+            // Act
+            storage.Set("key", 10);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyAdded should be raised when Set is called.");
+        }
+
+        [Test]
+        public void WhenKeyRemovedFromStorage_ThenOnKeyRemovedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.Set("key", 10);
+
+            var raised = false;
+            storage.OnKeyRemoved += s => { raised = s == "key"; };
+
+            // Act
+            storage.Remove("key");
+
+            // Assert
+            raised.Should().BeTrue("OnKeyRemoved should be raised when Remove is called.");
+        }
+
+        [Test]
+        public void WhenKeyChangedInStorage_ThenOnKeyChangedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.Set("key", 10);
+
+            var raised = false;
+            storage.OnKeyChanged += s => { raised = s == "key"; };
+
+            // Act
+            storage.Set("key", 20);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyChanged should be raised when Set is called.");
+        }
+
+        [Test]
+        public void WhenCollectionAddedToStorage_ThenOnKeyAddedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            var raised = false;
+            storage.OnKeyAdded += s => { raised = s == "key"; };
+
+            // Act
+            storage.GetListOf<int>("key").Add(10);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyAdded should be raised when Set is called.");
+        }
+
+        [Test]
+        public void WhenCollectionRemovedFromStorage_ThenOnKeyRemovedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            storage.GetListOf<int>("key").Add(10);
+
+            var raised = false;
+            storage.OnKeyRemoved += s => { raised = s == "key"; };
+
+            // Act
+            storage.Remove("key");
+
+            // Assert
+            raised.Should().BeTrue("OnKeyRemoved should be raised when Remove is called.");
+        }
+
+        [Test]
+        public void WhenCollectionChangedInStorage_ThenOnKeyChangedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            storage.GetListOf<int>("key").Add(10);
+
+            var raised = false;
+            storage.OnKeyChanged += s => { raised = s == "key"; };
+
+            // Act
+            storage.GetListOf<int>("key").Add(20);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyChanged should be raised when Set is called.");
         }
 
         #endregion
