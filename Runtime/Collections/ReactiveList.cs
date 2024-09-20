@@ -4,24 +4,24 @@ using System.Collections.Generic;
 
 namespace Appegy.Storage
 {
-    public class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
+    internal class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
     {
         private readonly List<T> _list = new();
 
         public bool IsDisposed { get; private set; }
 
-        public event Action OnChanged;
+        public event Action<IReactiveCollection> OnChanged;
 
         private void SetDirty()
         {
-            OnChanged?.Invoke();
+            OnChanged?.Invoke(this);
         }
 
         private void ThrowIfDisposed()
         {
             if (IsDisposed)
             {
-                throw new CollectionDisposedException();
+                throw new ObjectDisposedException(nameof(ReactiveList<T>));
             }
         }
 

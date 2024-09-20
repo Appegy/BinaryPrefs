@@ -4,24 +4,24 @@ using System.Collections.Generic;
 
 namespace Appegy.Storage
 {
-    public class ReactiveDictionary<TKey, TValue> : IReactiveCollection, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    internal class ReactiveDictionary<TKey, TValue> : IReactiveCollection, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     {
         private readonly Dictionary<TKey, TValue> _dictionary = new();
 
         public bool IsDisposed { get; private set; }
 
-        public event Action OnChanged;
+        public event Action<IReactiveCollection> OnChanged;
 
         private void SetDirty()
         {
-            OnChanged?.Invoke();
+            OnChanged?.Invoke(this);
         }
 
         private void ThrowIfDisposed()
         {
             if (IsDisposed)
             {
-                throw new CollectionDisposedException();
+                throw new ObjectDisposedException(nameof(ReactiveDictionary<TKey, TValue>));
             }
         }
 
