@@ -535,10 +535,10 @@ namespace Appegy.Storage
         /// <summary> Loads the data from disk into memory. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        private void LoadDataFromDisk()
+        private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data);
+            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
                 if (pair.Value.Object is IReactiveCollection rc)
