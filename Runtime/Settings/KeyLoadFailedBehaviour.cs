@@ -11,6 +11,11 @@ namespace Appegy.Storage
         ThrowException,
 
         /// <summary>
+        /// Ignores the failure and continue.
+        /// </summary>
+        Ignore,
+
+        /// <summary>
         /// Ignores the failure and logs a warning.
         /// </summary>
         IgnoreWithWarning,

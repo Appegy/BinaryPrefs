@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -89,6 +90,7 @@ namespace Appegy.Storage
         /// <param name="storageFilePath"> Path to the storage file </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
+        /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
         /// <exception cref="IOException"> An I/O error occurred </exception>
         internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
@@ -167,13 +169,16 @@ namespace Appegy.Storage
 
                 void failedToLoadKey(string reason)
                 {
+                    // move stream position to the next record
+                    stream.Position = Math.Min(position + entrySize, stream.Length);
+
                     switch (keyLoadFailedBehaviour)
                     {
                         case KeyLoadFailedBehaviour.ThrowException:
                             throw new KeyLoadFailedException(key, sectionsNames[typeIndex], entrySize, reason);
+                        case KeyLoadFailedBehaviour.Ignore:
+                            break;
                         case KeyLoadFailedBehaviour.IgnoreWithWarning:
-                            // skip key by moving stream position to next record
-                            stream.Position = position + entrySize;
                             Debug.LogWarning($"Failed to load key {key} of type {sectionsNames[typeIndex]} with size {entrySize}b. Reason: {reason}");
                             break;
                         default:

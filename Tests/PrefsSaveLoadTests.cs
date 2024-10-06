@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using FluentAssertions;
-using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using UnityEngine;
 
