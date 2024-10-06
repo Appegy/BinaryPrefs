@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
@@ -90,6 +91,40 @@ namespace Appegy.Storage
                 storage.Has("key_b").Should().BeTrue();
                 storage.Has("key_l").Should().BeTrue();
             }
+        }
+
+        [Test]
+        public void WhenStorageHasObsoleteSection_AndStorageLoaded_ThenStorageExceptionThrown()
+        {
+            // Arrange
+            using (var storage = BinaryStorage
+                       .Construct(_storagePath)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .AddTypeSerializer(BooleanSerializer.Shared)
+                       .AddTypeSerializer(Int64Serializer.Shared)
+                       .EnableAutoSaveOnChange()
+                       .Build())
+            {
+                using (storage.MultipleChangeScope())
+                {
+                    storage.Set("key_s", "value");
+                    storage.Set("key_b", true);
+                    storage.Set("key_l", 60L);
+                }
+            }
+
+            // Act
+            Action action = () =>
+            {
+                using var storage = BinaryStorage
+                    .Construct(_storagePath)
+                    .AddTypeSerializer(BooleanSerializer.Shared)
+                    .AddTypeSerializer(Int64Serializer.Shared)
+                    .Build(KeyLoadFailedBehaviour.ThrowException);
+            };
+
+            // Assert
+            action.Should().Throw<KeyLoadFailedException>();
         }
 
         [Test]
