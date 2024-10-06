@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +8,11 @@ namespace Appegy.Storage
 {
     internal static class BinaryStorageIO
     {
+        /// <summary> Save data from memory to disk. </summary>
+        /// <param name="storageFilePath"> Path to the storage file </param>
+        /// <param name="sections"> List of sections </param>
+        /// <param name="data"> Dictionary to store data </param>
+        /// <exception cref="IOException"> An I/O error occurred </exception>
         internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IReadOnlyDictionary<string, Record> data)
         {
             // make sure there is no temp file from previous (most likely failed) save try
@@ -81,6 +85,11 @@ namespace Appegy.Storage
             File.Move(storageFilePathTmp, storageFilePath);
         }
 
+        /// <summary> Load data from disk to memory. </summary>
+        /// <param name="storageFilePath"> Path to the storage file </param>
+        /// <param name="sections"> List of sections </param>
+        /// <param name="data"> Dictionary to store data </param>
+        /// <exception cref="IOException"> An I/O error occurred </exception>
         internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             data.Clear();

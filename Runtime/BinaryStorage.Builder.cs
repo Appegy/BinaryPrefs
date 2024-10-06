@@ -11,9 +11,7 @@ namespace Appegy.Storage
         static partial void ThrowIfFilePathLocked(string filePath);
         static partial void UnlockFilePathInEditor(string filePath);
 
-        /// <summary>
-        /// Creates and configures a new instance of <see cref="BinaryStorage"/> with default settings.
-        /// </summary>
+        /// <summary> Creates and configures a new instance of <see cref="BinaryStorage"/> with default settings. </summary>
         /// <param name="filePath">The file path for the storage.</param>
         /// <returns>A configured <see cref="BinaryStorage"/> instance.</returns>
         public static BinaryStorage Get(string filePath)
@@ -24,9 +22,7 @@ namespace Appegy.Storage
                 .Build();
         }
 
-        /// <summary>
-        /// Begins the construction of a new <see cref="BinaryStorage"/> instance.
-        /// </summary>
+        /// <summary> Begins the construction of a new <see cref="BinaryStorage"/> instance. </summary>
         /// <param name="filePath">The file path for the storage.</param>
         /// <returns>A <see cref="Builder"/> for configuring the <see cref="BinaryStorage"/> instance.</returns>
         public static Builder Construct(string filePath)
@@ -36,9 +32,7 @@ namespace Appegy.Storage
             return new Builder(filePath);
         }
 
-        /// <summary>
-        /// Deletes the storage file at the specified path.
-        /// </summary>
+        /// <summary> Deletes the storage file at the specified path. </summary>
         /// <param name="storagePath">The path to the storage file.</param>
         internal static void Delete(string storagePath)
         {
@@ -48,9 +42,7 @@ namespace Appegy.Storage
             }
         }
 
-        /// <summary>
-        /// Provides a fluent interface for configuring and building a <see cref="BinaryStorage"/> instance.
-        /// </summary>
+        /// <summary> Provides a fluent interface for configuring and building a <see cref="BinaryStorage"/> instance. </summary>
         public class Builder
         {
             private readonly string _filePath;
@@ -64,9 +56,7 @@ namespace Appegy.Storage
                 _filePath = filePath;
             }
 
-            /// <summary>
-            /// Enables automatic saving of changes to the storage.
-            /// </summary>
+            /// <summary> Enables automatic saving of changes to the storage. </summary>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             public Builder EnableAutoSaveOnChange()
             {
@@ -74,9 +64,7 @@ namespace Appegy.Storage
                 return this;
             }
 
-            /// <summary>
-            /// Specifies the behavior when a requested key is not found in the storage.
-            /// </summary>
+            /// <summary> Specifies the behavior when a requested key is not found in the storage. </summary>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             public Builder SetMissingKeyBehaviour(MissingKeyBehavior behavior)
             {
@@ -84,9 +72,7 @@ namespace Appegy.Storage
                 return this;
             }
 
-            /// <summary>
-            /// Specifies the behavior when the type of value associated with a key does not match the expected type.
-            /// </summary>
+            /// <summary> Specifies the behavior when the type of value associated with a key does not match the expected type. </summary>
             /// <param name="behavior">The type mismatch behavior.</param>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             public Builder SetTypeMismatchBehaviour(TypeMismatchBehaviour behavior)
@@ -95,9 +81,7 @@ namespace Appegy.Storage
                 return this;
             }
 
-            /// <summary>
-            /// Adds serializers for primitive types to the storage configuration.
-            /// </summary>
+            /// <summary> Adds serializers for primitive types to the storage configuration. </summary>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             public Builder AddPrimitiveTypes()
             {
@@ -125,9 +109,7 @@ namespace Appegy.Storage
                     .AddTypeSerializer(Vector3IntSerializer.Shared);
             }
 
-            /// <summary>
-            /// Adds a serializer for a specified type to the storage configuration.
-            /// </summary>
+            /// <summary> Adds a serializer for a specified type to the storage configuration. </summary>
             /// <typeparam name="T">The type to be serialized.</typeparam>
             /// <param name="typeSerializer">The serializer for the specified type.</param>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
@@ -142,9 +124,7 @@ namespace Appegy.Storage
                 return this;
             }
 
-            /// <summary>
-            /// Adds support for a specified enum type to the storage configuration.
-            /// </summary>
+            /// <summary> Adds support for a specified enum type to the storage configuration. </summary>
             /// <typeparam name="T">The enum type to be supported.</typeparam>
             /// <param name="useFullName">Whether to use the full name of the enum type.</param>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
@@ -186,9 +166,7 @@ namespace Appegy.Storage
                 return this;
             }
 
-            /// <summary>
-            /// Adds support for lists of a specified type to the storage configuration.
-            /// </summary>
+            /// <summary> Adds support for lists of a specified type to the storage configuration. </summary>
             /// <typeparam name="T">The type of elements in the list.</typeparam>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             /// <exception cref="CantSupportCollectionOfException">Thrown if the specified type is not supported.</exception>
@@ -202,9 +180,7 @@ namespace Appegy.Storage
                 return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveList<T>>(section.Serializer));
             }
 
-            /// <summary>
-            /// Adds support for sets of a specified type to the storage configuration.
-            /// </summary>
+            /// <summary> Adds support for sets of a specified type to the storage configuration. </summary>
             /// <typeparam name="T">The type of elements in the set.</typeparam>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             /// <exception cref="CantSupportCollectionOfException">Thrown if the specified type is not supported.</exception>
@@ -218,9 +194,7 @@ namespace Appegy.Storage
                 return AddTypeSerializer(new CollectionTypeSerializer<T, ReactiveSet<T>>(section.Serializer));
             }
 
-            /// <summary>
-            /// Adds support for dictionaries of specified key and value types to the storage configuration.
-            /// </summary>
+            /// <summary> Adds support for dictionaries of specified key and value types to the storage configuration. </summary>
             /// <typeparam name="TKey">The type of the dictionary keys.</typeparam>
             /// <typeparam name="TValue">The type of the dictionary values.</typeparam>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
@@ -237,11 +211,10 @@ namespace Appegy.Storage
                 return AddTypeSerializer(new CollectionTypeSerializer<KeyValuePair<TKey, TValue>, ReactiveDictionary<TKey, TValue>>(kvSerializer));
             }
 
-            /// <summary>
-            /// Builds and returns the configured <see cref="BinaryStorage"/> instance.
-            /// </summary>
+            /// <summary> Builds and returns the configured <see cref="BinaryStorage"/> instance. </summary>
             /// <returns>The configured <see cref="BinaryStorage"/> instance.</returns>
-            /// <exception cref="Exception">Thrown if the storage fails to load data from disk.</exception>
+            /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+            /// <exception cref="IOException"> An I/O error occurred </exception>
             public BinaryStorage Build(KeyLoadFailedBehaviour keyLoadFailedBehaviour = KeyLoadFailedBehaviour.IgnoreWithWarning)
             {
                 try
