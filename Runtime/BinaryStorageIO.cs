@@ -162,12 +162,12 @@ namespace Appegy.Storage
                         data.Add(key, value);
                     }
                 }
-                catch (EndOfStreamException)
+                catch (EndOfStreamException e)
                 {
-                    failedToLoadKey("End of file stream");
+                    failedToLoadKey("End of file stream", e);
                 }
 
-                void failedToLoadKey(string reason)
+                void failedToLoadKey(string reason, Exception exception = null)
                 {
                     // move stream position to the next record
                     stream.Position = Math.Min(position + entrySize, stream.Length);
@@ -175,7 +175,7 @@ namespace Appegy.Storage
                     switch (keyLoadFailedBehaviour)
                     {
                         case KeyLoadFailedBehaviour.ThrowException:
-                            throw new KeyLoadFailedException(key, sectionsNames[typeIndex], entrySize, reason);
+                            throw exception ?? new KeyLoadFailedException(key, sectionsNames[typeIndex], entrySize, reason);
                         case KeyLoadFailedBehaviour.Ignore:
                             break;
                         case KeyLoadFailedBehaviour.IgnoreWithWarning:
