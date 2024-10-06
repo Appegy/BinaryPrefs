@@ -7,7 +7,7 @@ namespace Appegy.Storage.Example
 {
     public static class MenuItems
     {
-        public const string RootMenuItem = "Appegy/Persistent Folder/";
+        public const string RootMenuItem = "Appegy/";
 
         [MenuItem(RootMenuItem + "Reveal in Explorer")]
         public static void OpenPersistentFolder()
@@ -31,6 +31,13 @@ namespace Appegy.Storage.Example
             {
                 Directory.Delete(cacheFolder, true);
             }
+        }
+
+        [MenuItem(RootMenuItem + "Reserialize Project", priority = 100)]
+        [MenuItem("Assets/Reserialize All", false, 40)]
+        public static void ReserializeAll()
+        {
+            ReserializationUtilities.ReserializeAssets(AssetDatabase.GetAllAssetPaths());
         }
     }
 }

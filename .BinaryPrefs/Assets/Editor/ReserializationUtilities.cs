@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Appegy.Storage.Example
 {
-    public static class MenuItemsTools
+    public static class ReserializationUtilities
     {
         private static readonly string[] _mutableFolders =
         {
@@ -26,13 +26,7 @@ namespace Appegy.Storage.Example
             typeof(AssemblyDefinitionReferenceAsset)
         };
 
-        [MenuItem("Assets/Reserialize All", false, 40)]
-        public static void ReserializeAll()
-        {
-            ReserializeAssets(AssetDatabase.GetAllAssetPaths());
-        }
-
-        private static void ReserializeAssets(IEnumerable<string> assets)
+        public static void ReserializeAssets(IEnumerable<string> assets)
         {
             var regularAssets = new HashSet<string>();
             var textAssets = new HashSet<string>();
