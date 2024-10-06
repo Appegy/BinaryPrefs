@@ -2,7 +2,7 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class BaseStorageTests
     {

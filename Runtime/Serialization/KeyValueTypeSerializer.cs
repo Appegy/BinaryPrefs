@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class KeyValueTypeSerializer<TKey, TValue> : TypeSerializer<KeyValuePair<TKey, TValue>>
     {
@@ -15,11 +15,6 @@ namespace Appegy.BinaryStorage
             _keySerializer = keySerializer;
             _valueSerializer = valueSerializer;
             TypeName = $"{typeof(TKey).Name}:{typeof(TValue).Name}";
-        }
-
-        public override int SizeOf(KeyValuePair<TKey, TValue> value)
-        {
-            return _keySerializer.SizeOf(value.Key) + _valueSerializer.SizeOf(value.Value);
         }
 
         public override bool Equals(KeyValuePair<TKey, TValue> value1, KeyValuePair<TKey, TValue> value2)

@@ -3,7 +3,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public class BinaryStorageTests : BaseStorageTests
     {
@@ -11,7 +11,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageCreated_AndPrimitiveTypesAdded_ThenAllStandardTypesSupported()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddPrimitiveTypes()
                 .Build();
 
@@ -44,7 +44,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageHasFewKeys_AndResetAllCalled_ThenAllDataHasBeenErased()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .Build();
@@ -64,7 +64,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageHasFewKeys_AndResetAllWithPredicateCalled_ThenRemoveOnlyPredictedKeys()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -90,7 +90,7 @@ namespace Appegy.BinaryStorage
         public void WhenStorageDisposed_AndHasCalled_ThenExceptionOccured()
         {
             // Arrange
-            var storage = BinaryPrefs.Construct(StoragePath)
+            var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -99,14 +99,14 @@ namespace Appegy.BinaryStorage
 
             // Assert
             Action action = () => storage.Has("key");
-            action.Should().Throw<StorageDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
         public void WhenStorageDisposed_AndTypeOfCalled_ThenExceptionOccured()
         {
             // Arrange
-            var storage = BinaryPrefs.Construct(StoragePath)
+            var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -115,14 +115,14 @@ namespace Appegy.BinaryStorage
 
             // Assert
             Action action = () => storage.TypeOf("key");
-            action.Should().Throw<StorageDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
         public void WhenStorageDisposed_AndSupportsCalled_ThenExceptionOccured()
         {
             // Arrange
-            var storage = BinaryPrefs.Construct(StoragePath)
+            var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
@@ -131,7 +131,7 @@ namespace Appegy.BinaryStorage
 
             // Assert
             Action action = () => storage.Supports<int>();
-            action.Should().Throw<StorageDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         #region Reactive Lists
@@ -140,7 +140,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListAddedDuringBuilding_ThenStorageSupportsIt()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportListsOf<int>()
                 .Build();
@@ -153,7 +153,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListChanged_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportListsOf<int>()
                 .Build();
@@ -172,7 +172,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListRemoved_AndNewRecordCreated_ThenNoException()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportListsOf<int>()
                 .Build();
@@ -189,7 +189,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveListChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportListsOf<int>()
                        .EnableAutoSaveOnChange()
@@ -201,7 +201,7 @@ namespace Appegy.BinaryStorage
                 list.Add(2);
             }
 
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportListsOf<int>()
                        .Build())
@@ -223,7 +223,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetAddedDuringBuilding_ThenStorageSupportsIt()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportSetsOf<int>()
                 .Build();
@@ -236,7 +236,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetChanged_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportSetsOf<int>()
                 .Build();
@@ -255,7 +255,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetRemoved_AndNewRecordCreated_ThenNoException()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .SupportSetsOf<int>()
                 .Build();
@@ -272,7 +272,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveSetChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportSetsOf<int>()
                        .EnableAutoSaveOnChange()
@@ -284,7 +284,7 @@ namespace Appegy.BinaryStorage
                 set.Add(2);
             }
 
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .SupportSetsOf<int>()
                        .Build())
@@ -306,7 +306,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryAddedDuringBuilding_ThenStorageSupportsIt()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .SupportDictionariesOf<int, string>()
@@ -320,7 +320,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryChanged_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .SupportDictionariesOf<int, string>()
@@ -340,7 +340,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryRemoved_AndNewRecordCreated_ThenNoException()
         {
             // Arrange
-            using var storage = BinaryPrefs.Construct(StoragePath)
+            using var storage = BinaryStorage.Construct(StoragePath)
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .AddTypeSerializer(StringSerializer.Shared)
                 .SupportDictionariesOf<int, string>()
@@ -358,7 +358,7 @@ namespace Appegy.BinaryStorage
         public void WhenReactiveDictionaryChanged_AndStorageReloaded_ThenValuesInStorageCorrect()
         {
             // Arrange
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .SupportDictionariesOf<int, string>()
@@ -371,7 +371,7 @@ namespace Appegy.BinaryStorage
                 map.Add(2, "two");
             }
 
-            using (var storage = BinaryPrefs.Construct(StoragePath)
+            using (var storage = BinaryStorage.Construct(StoragePath)
                        .AddTypeSerializer(Int32Serializer.Shared)
                        .AddTypeSerializer(StringSerializer.Shared)
                        .SupportDictionariesOf<int, string>()
@@ -385,6 +385,270 @@ namespace Appegy.BinaryStorage
                 map[1].Should().Be("one");
                 map[2].Should().Be("two");
             }
+        }
+
+        #endregion
+
+        #region Events
+
+        [Test]
+        public void WhenKeyAddedToStorage_ThenOnKeyAddedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            var raised = false;
+            storage.OnKeyAdded += s => { raised = s == "key"; };
+
+            // Act
+            storage.Set("key", 10);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyAdded should be raised when Set is called.");
+        }
+
+        [Test]
+        public void WhenKeyRemovedFromStorage_ThenOnKeyRemovedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.Set("key", 10);
+
+            var raised = false;
+            storage.OnKeyRemoved += s => { raised = s == "key"; };
+
+            // Act
+            storage.Remove("key");
+
+            // Assert
+            raised.Should().BeTrue("OnKeyRemoved should be raised when Remove is called.");
+        }
+
+        [Test]
+        public void WhenKeyChangedInStorage_ThenOnKeyChangedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.Set("key", 10);
+
+            var raised = false;
+            storage.OnKeyChanged += s => { raised = s == "key"; };
+
+            // Act
+            storage.Set("key", 20);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyChanged should be raised when Set is called.");
+        }
+
+        [Test]
+        public void WhenCollectionAddedToStorage_ThenOnKeyAddedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            var raised = false;
+            storage.OnKeyAdded += s => { raised = s == "key"; };
+
+            // Act
+            storage.GetListOf<int>("key").Add(10);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyAdded should be raised when Set is called.");
+        }
+
+        [Test]
+        public void WhenCollectionRemovedFromStorage_ThenOnKeyRemovedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            storage.GetListOf<int>("key").Add(10);
+
+            var raised = false;
+            storage.OnKeyRemoved += s => { raised = s == "key"; };
+
+            // Act
+            storage.Remove("key");
+
+            // Assert
+            raised.Should().BeTrue("OnKeyRemoved should be raised when Remove is called.");
+        }
+
+        [Test]
+        public void WhenCollectionChangedInStorage_ThenOnKeyChangedEventRaised()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .SupportListsOf<int>()
+                .Build();
+
+            storage.GetListOf<int>("key").Add(10);
+
+            var raised = false;
+            storage.OnKeyChanged += s => { raised = s == "key"; };
+
+            // Act
+            storage.GetListOf<int>("key").Add(20);
+
+            // Assert
+            raised.Should().BeTrue("OnKeyChanged should be raised when Set is called.");
+        }
+
+        #endregion
+
+        #region TypeMismatchBehaviour Tests
+
+        [Test]
+        public void WhenTypeMismatchBehaviorIsThrowException_ThenExceptionIsThrown()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.ThrowException)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            // ReSharper disable once AccessToDisposedClosure
+            Action action = () => storage.Set("key", "value");
+
+            // Assert
+            action.Should().Throw<UnexpectedTypeException>();
+        }
+
+        [Test]
+        public void WhenTypeMismatchBehaviorIsOverrideValueAndType_ThenValueAndTypeAreOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.OverrideValueAndType)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            var result = storage.Set("key", "value");
+
+            // Assert
+            result.Should().BeTrue();
+            storage.TypeOf("key").Should().Be(typeof(string));
+            storage.Get<string>("key").Should().Be("value");
+        }
+
+        [Test]
+        public void WhenTypeMismatchBehaviorIsIgnore_ThenValueAndTypeAreIgnored()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.Ignore)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            var result = storage.Set("key", "value");
+
+            // Assert
+            result.Should().BeFalse();
+            storage.TypeOf("key").Should().Be(typeof(int));
+            storage.Get<int>("key").Should().Be(123);
+        }
+
+        [Test]
+        public void WhenTypeMismatchBehaviorOverride_ThenBehaviorIsOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.ThrowException)
+                .Build();
+
+            storage.Set("key", 123);
+
+            // Act
+            var result = storage.Set("key", "value", TypeMismatchBehaviour.OverrideValueAndType);
+
+            // Assert
+            result.Should().BeTrue();
+            storage.Has("key").Should().BeTrue();
+            storage.TypeOf("key").Should().Be(typeof(string));
+            storage.Get<string>("key").Should().Be("value");
+        }
+
+        #endregion
+
+        #region MissingKeyBehavior Tests
+
+        [Test]
+        public void WhenMissingKeyBehaviorIsInitializeWithDefaultValue_ThenKeyIsInitialized()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.InitializeWithDefaultValue)
+                .Build();
+
+            // Act
+            var value = storage.Get("key", 10);
+
+            // Assert
+            value.Should().Be(10);
+            storage.Has("key").Should().BeTrue();
+            storage.Get<int>("key").Should().Be(10);
+        }
+
+        [Test]
+        public void WhenMissingKeyBehaviorIsReturnDefaultValueOnly_ThenDefaultValueIsReturned()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            // Act
+            var value = storage.Get("key", 10);
+
+            // Assert
+            value.Should().Be(10);
+            storage.Has("key").Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenMissingKeyBehaviorOverrideIsSetInGetMethod_ThenBehaviorIsOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            // Act
+            var value = storage.Get("key", 10, MissingKeyBehavior.InitializeWithDefaultValue);
+
+            // Assert
+            value.Should().Be(10);
+            storage.Has("key").Should().BeTrue();
+            storage.Get<int>("key").Should().Be(10);
         }
 
         #endregion

@@ -1,6 +1,6 @@
 {
     "name": "Appegy.BinaryStorage.Editor",
-    "rootNamespace": "Appegy.BinaryStorage",
+    "rootNamespace": "Appegy.Storage",
     "references": [
         "Appegy.BinaryStorage"
     ],

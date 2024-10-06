@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Appegy.BinaryStorage.CollectionTests
+namespace Appegy.Storage.CollectionTests
 {
     [TestFixture]
     public class ReactiveDictionaryTests
@@ -12,7 +12,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsAdded_AndDictionaryIsNotDisposed_ThenItemShouldBeInDictionary()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string>();
+            using var dictionary = new ReactiveDictionary<int, string>();
 
             // Act
             dictionary.Add(1, "one");
@@ -25,7 +25,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemoved_AndItemExistsInDictionary_ThenItemShouldNotBeInDictionary()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.AddRange((1, "one"), (2, "two"));
 
             // Act
             dictionary.Remove(2);
@@ -38,7 +39,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenClearIsCalled_AndDictionaryHasItems_ThenDictionaryShouldBeEmpty()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.AddRange((1, "one"), (2, "two"));
 
             // Act
             dictionary.Clear();
@@ -51,7 +53,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenGettingItemByKey_AndKeyIsValid_ThenShouldReturnCorrectItem()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.AddRange((1, "one"), (2, "two"));
 
             // Act
             var item = dictionary[1];
@@ -64,7 +67,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenSettingItemByKey_AndKeyIsValid_ThenShouldUpdateItem()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.AddRange((1, "one"), (2, "two"));
 
             // Act
             dictionary[1] = "uno";
@@ -84,7 +88,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => dictionary.Add(1, "one");
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -98,7 +102,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => dictionary.Remove(1);
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -112,7 +116,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => dictionary.Clear();
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -126,7 +130,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => dictionary[1] = "uno";
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -159,9 +163,9 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndDictionaryIsModified_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string>();
+            using var dictionary = new ReactiveDictionary<int, string>();
             var wasTriggered = false;
-            dictionary.OnChanged += () => wasTriggered = true;
+            dictionary.OnChanged += (_) => wasTriggered = true;
 
             // Act
             dictionary.Add(1, "one");
@@ -174,9 +178,10 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndDictionaryIsCleared_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.AddRange((1, "one"), (2, "two"));
             var wasTriggered = false;
-            dictionary.OnChanged += () => wasTriggered = true;
+            dictionary.OnChanged += (_) => wasTriggered = true;
 
             // Act
             dictionary.Clear();
@@ -191,7 +196,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             // Arrange
             var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
             var wasTriggered = false;
-            dictionary.OnChanged += () => wasTriggered = true;
+            dictionary.OnChanged += (_) => wasTriggered = true;
 
             // Act
             dictionary.Dispose();
@@ -204,7 +209,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenKeyExists_AndTryGetValueIsCalled_ThenShouldReturnTrueAndCorrectValue()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.Add(1, "one");
 
             // Act
             var result = dictionary.TryGetValue(1, out var value);
@@ -218,7 +224,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenKeyDoesNotExist_AndTryGetValueIsCalled_ThenShouldReturnFalse()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string>();
+            using var dictionary = new ReactiveDictionary<int, string>();
 
             // Act
             var result = dictionary.TryGetValue(1, out var value);
@@ -232,7 +238,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenContainsKeyIsCalled_AndKeyExists_ThenShouldReturnTrue()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.Add(1, "one");
 
             // Act
             var result = dictionary.ContainsKey(1);
@@ -245,7 +252,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenContainsKeyIsCalled_AndKeyDoesNotExist_ThenShouldReturnFalse()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string>();
+            using var dictionary = new ReactiveDictionary<int, string>();
 
             // Act
             var result = dictionary.ContainsKey(1);
@@ -258,7 +265,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenCopyToIsCalled_ThenDictionaryShouldBeCopiedToArray()
         {
             // Arrange
-            var dictionary = new ReactiveDictionary<int, string> { { 1, "one" }, { 2, "two" } };
+            using var dictionary = new ReactiveDictionary<int, string>();
+            dictionary.AddRange((1, "one"), (2, "two"));
             var array = new KeyValuePair<int, string>[2];
 
             // Act

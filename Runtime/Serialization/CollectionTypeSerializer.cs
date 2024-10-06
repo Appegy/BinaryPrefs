@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     internal class CollectionTypeSerializer<T, TCollection> : TypeSerializer<TCollection>
         where TCollection : class, IReactiveCollection, ICollection<T>, new()
@@ -15,11 +14,6 @@ namespace Appegy.BinaryStorage
         {
             _typeSerializer = typeSerializer;
             TypeName = $"{typeof(TCollection).Name}<{typeSerializer.TypeName}>";
-        }
-
-        public override int SizeOf(TCollection value)
-        {
-            return sizeof(int) + value.Sum(c => _typeSerializer.SizeOf(c));
         }
 
         public override bool Equals(TCollection value1, TCollection value2)

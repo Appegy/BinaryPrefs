@@ -1,9 +1,9 @@
 using System;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     internal interface IReactiveCollection : IDisposable
     {
-        public event Action OnChanged;
+        public event Action<IReactiveCollection> OnChanged;
     }
 }

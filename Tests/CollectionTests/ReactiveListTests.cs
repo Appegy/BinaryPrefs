@@ -2,7 +2,7 @@ using System;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Appegy.BinaryStorage.CollectionTests
+namespace Appegy.Storage.CollectionTests
 {
     [TestFixture]
     public class ReactiveListTests
@@ -11,7 +11,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsAdded_AndListIsNotDisposed_ThenItemShouldBeInList()
         {
             // Arrange
-            var list = new ReactiveList<int>();
+            using var list = new ReactiveList<int>();
 
             // Act
             list.Add(1);
@@ -24,7 +24,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemoved_AndItemExistsInList_ThenItemShouldNotBeInList()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
 
             // Act
             list.Remove(2);
@@ -37,7 +38,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenClearIsCalled_AndListHasItems_ThenListShouldBeEmpty()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
 
             // Act
             list.Clear();
@@ -50,7 +52,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenGettingItemByIndex_AndIndexIsValid_ThenShouldReturnCorrectItem()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
 
             // Act
             var item = list[1];
@@ -63,7 +66,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenSettingItemByIndex_AndIndexIsValid_ThenShouldUpdateItem()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
 
             // Act
             list[1] = 5;
@@ -76,7 +80,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsInserted_AndIndexIsValid_ThenShouldInsertItemAtCorrectPosition()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
 
             // Act
             list.Insert(1, 5);
@@ -90,7 +95,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemovedByIndex_AndIndexIsValid_ThenShouldRemoveItemAtCorrectPosition()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
 
             // Act
             list.RemoveAt(1);
@@ -136,7 +142,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => list.Add(1);
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -147,10 +153,10 @@ namespace Appegy.BinaryStorage.CollectionTests
             list.Dispose();
 
             // Act
-            Action action = () => { var item = list[1]; };
+            Action action = () => { _ = list[1]; };
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -164,7 +170,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => list[1] = 5;
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -173,7 +179,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             // Arrange
             var list = new ReactiveList<int>();
             var wasTriggered = false;
-            list.OnChanged += () => wasTriggered = true;
+            list.OnChanged += (_) => wasTriggered = true;
 
             // Act
             list.Add(1);
@@ -186,9 +192,10 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemoved_AndListIsNotDisposed_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
             var wasTriggered = false;
-            list.OnChanged += () => wasTriggered = true;
+            list.OnChanged += (_) => wasTriggered = true;
 
             // Act
             list.Remove(2);
@@ -201,9 +208,10 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenListIsCleared_AndListIsNotDisposed_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var list = new ReactiveList<int> { 1, 2, 3 };
+            using var list = new ReactiveList<int>();
+            list.AddRange(1, 2, 3);
             var wasTriggered = false;
-            list.OnChanged += () => wasTriggered = true;
+            list.OnChanged += (_) => wasTriggered = true;
 
             // Act
             list.Clear();

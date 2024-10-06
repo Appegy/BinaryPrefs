@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
     public abstract class TypeSerializer
     {
@@ -11,7 +11,6 @@ namespace Appegy.BinaryStorage
     public abstract class TypeSerializer<T> : TypeSerializer
     {
         public override string TypeName { get; } = typeof(T).FullName;
-        public abstract int SizeOf(T value);
         public abstract bool Equals(T value1, T value2);
         public abstract void WriteTo(BinaryWriter writer, T value);
         public abstract T ReadFrom(BinaryReader reader);

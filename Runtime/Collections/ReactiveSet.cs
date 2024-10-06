@@ -3,26 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Appegy.BinaryStorage
+namespace Appegy.Storage
 {
-    public class ReactiveSet<T> : IReactiveCollection, ISet<T>, IReadOnlyCollection<T>
+    internal class ReactiveSet<T> : IReactiveCollection, ISet<T>, IReadOnlyCollection<T>
     {
         private readonly HashSet<T> _set = new();
 
         public bool IsDisposed { get; private set; }
 
-        public event Action OnChanged;
+        public event Action<IReactiveCollection> OnChanged;
 
         private void SetDirty()
         {
-            OnChanged?.Invoke();
+            OnChanged?.Invoke(this);
         }
 
         private void ThrowIfDisposed()
         {
             if (IsDisposed)
             {
-                throw new CollectionDisposedException();
+                throw new ObjectDisposedException(nameof(ReactiveSet<T>));
             }
         }
 

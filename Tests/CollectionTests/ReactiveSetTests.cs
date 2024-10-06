@@ -2,7 +2,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Appegy.BinaryStorage.CollectionTests
+namespace Appegy.Storage.CollectionTests
 {
     [TestFixture]
     public class ReactiveSetTests
@@ -11,7 +11,7 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsAdded_AndSetIsNotDisposed_ThenItemShouldBeInSet()
         {
             // Arrange
-            var set = new ReactiveSet<int>();
+            using var set = new ReactiveSet<int>();
 
             // Act
             set.Add(1);
@@ -24,7 +24,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenItemIsRemoved_AndItemExistsInSet_ThenItemShouldNotBeInSet()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
 
             // Act
             set.Remove(2);
@@ -37,7 +38,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenClearIsCalled_AndSetHasItems_ThenSetShouldBeEmpty()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
 
             // Act
             set.Clear();
@@ -57,7 +59,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => set.Add(1);
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -71,7 +73,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => set.Remove(1);
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
@@ -85,14 +87,15 @@ namespace Appegy.BinaryStorage.CollectionTests
             Action action = () => set.Clear();
 
             // Assert
-            action.Should().Throw<CollectionDisposedException>();
+            action.Should().Throw<ObjectDisposedException>();
         }
 
         [Test]
         public void WhenExceptWithIsCalled_AndSetIsNotDisposed_ThenShouldRemoveItems()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
 
             // Act
             set.ExceptWith(new[] { 2, 3, 4 });
@@ -106,7 +109,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenIntersectWithIsCalled_AndSetIsNotDisposed_ThenShouldRetainOnlyCommonItems()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
 
             // Act
             set.IntersectWith(new[] { 2, 3, 4 });
@@ -120,7 +124,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenSymmetricExceptWithIsCalled_AndSetIsNotDisposed_ThenShouldRetainUniqueItems()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
 
             // Act
             set.SymmetricExceptWith(new[] { 2, 3, 4 });
@@ -134,7 +139,8 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenUnionWithIsCalled_AndSetIsNotDisposed_ThenShouldIncludeAllUniqueItems()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
 
             // Act
             set.UnionWith(new[] { 2, 3, 4 });
@@ -173,9 +179,9 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndSetIsModified_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var set = new ReactiveSet<int>();
+            using var set = new ReactiveSet<int>();
             var wasTriggered = false;
-            set.OnChanged += () => wasTriggered = true;
+            set.OnChanged += (_) => wasTriggered = true;
 
             // Act
             set.Add(1);
@@ -188,9 +194,10 @@ namespace Appegy.BinaryStorage.CollectionTests
         public void WhenOnChangedIsSubscribed_AndSetIsCleared_ThenOnChangedShouldBeTriggered()
         {
             // Arrange
-            var set = new ReactiveSet<int> { 1, 2, 3 };
+            using var set = new ReactiveSet<int>();
+            set.AddRange(1, 2, 3);
             var wasTriggered = false;
-            set.OnChanged += () => wasTriggered = true;
+            set.OnChanged += (_) => wasTriggered = true;
 
             // Act
             set.Clear();
@@ -205,7 +212,7 @@ namespace Appegy.BinaryStorage.CollectionTests
             // Arrange
             var set = new ReactiveSet<int> { 1, 2, 3 };
             var wasTriggered = false;
-            set.OnChanged += () => wasTriggered = true;
+            set.OnChanged += (_) => wasTriggered = true;
 
             // Act
             set.Dispose();
