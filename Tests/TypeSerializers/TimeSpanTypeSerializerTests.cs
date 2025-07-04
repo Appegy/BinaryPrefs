@@ -1,5 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -7,21 +8,21 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class TimeSpanTypeSerializerTests : BaseTypeSerializerTests<TimeSpan, TimeSpanSerializer>
     {
-        private static TimeSpan[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            TimeSpan.Zero, // 00:00:00
-            TimeSpan.FromHours(1), // 01:00:00
-            TimeSpan.FromMinutes(30), // 00:30:00
-            TimeSpan.FromSeconds(45), // 00:00:45
-            TimeSpan.FromMilliseconds(500), // 00:00:00.5000000
-            TimeSpan.FromTicks(123456789), // 00:00:00.0123456
-            TimeSpan.FromDays(2), // 2.00:00:00
-            TimeSpan.FromDays(-2), // -2.00:00:00
-            TimeSpan.FromHours(23) + TimeSpan.FromMinutes(59) + TimeSpan.FromSeconds(59), // 23:59:59
-            TimeSpan.FromHours(-23) + TimeSpan.FromMinutes(-59) + TimeSpan.FromSeconds(-59), // -23:59:59
+            new object[] { TimeSpan.Zero, "zero" },
+            new object[] { TimeSpan.FromHours(1), "hour" },
+            new object[] { TimeSpan.FromMinutes(30), "min_30" },
+            new object[] { TimeSpan.FromSeconds(45), "sec_45" },
+            new object[] { TimeSpan.FromMilliseconds(500), "ms_500" },
+            new object[] { TimeSpan.FromTicks(123456789), "ticks_123456789" },
+            new object[] { TimeSpan.FromDays(2), "days_2" },
+            new object[] { TimeSpan.FromDays(-2), "days_minus_2" },
+            new object[] { TimeSpan.FromHours(23) + TimeSpan.FromMinutes(59) + TimeSpan.FromSeconds(59), "23_59_59" },
+            new object[] { TimeSpan.FromHours(-23) + TimeSpan.FromMinutes(-59) + TimeSpan.FromSeconds(-59), "minus_23_59_59" }
         };
 
-        public TimeSpanTypeSerializerTests(TimeSpan value) : base(value)
+        public TimeSpanTypeSerializerTests(TimeSpan value, string _) : base(value)
         {
         }
     }

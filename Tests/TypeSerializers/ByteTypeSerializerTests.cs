@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,20 +7,20 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class ByteTypeSerializerTests : BaseTypeSerializerTests<byte, ByteSerializer>
     {
-        private static byte[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            byte.MinValue, // 0
-            byte.MaxValue, // 255
-            (byte)1, // Smallest positive byte
-            (byte)127, // Middle value
-            (byte)64, // Power of two
-            (byte)3, // Just below a power of two
-            (byte)10, // Random small value
-            (byte)100, // Random middle value
-            (byte)200, // Random large value
+            new object[] { byte.MinValue, "min" },
+            new object[] { byte.MaxValue, "max" },
+            new object[] { (byte)1, "one" },
+            new object[] { (byte)127, "mid" },
+            new object[] { (byte)64, "pow2" },
+            new object[] { (byte)3, "below_pow2" },
+            new object[] { (byte)10, "small" },
+            new object[] { (byte)100, "middle" },
+            new object[] { (byte)200, "large" }
         };
 
-        public ByteTypeSerializerTests(byte value) : base(value)
+        public ByteTypeSerializerTests(byte value, string _) : base(value)
         {
         }
     }

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,20 +7,20 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class Int16TypeSerializerTests : BaseTypeSerializerTests<short, Int16Serializer>
     {
-        private static short[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            short.MinValue, // -32768
-            short.MaxValue, // 32767
-            (short)0, // zero
-            (short)1, // smallest positive short
-            (short)-1, // smallest negative short
-            (short)1024, // power of two
-            (short)-1024, // negative power of two
-            (short)12345, // random positive value
-            (short)-12345 // random negative value
+            new object[] { short.MinValue, "min" },
+            new object[] { short.MaxValue, "max" },
+            new object[] { (short)0, "zero" },
+            new object[] { (short)1, "one" },
+            new object[] { (short)-1, "minus_one" },
+            new object[] { (short)1024, "pow2" },
+            new object[] { (short)-1024, "minus_pow2" },
+            new object[] { (short)12345, "rnd_pos" },
+            new object[] { (short)-12345, "rnd_neg" }
         };
 
-        public Int16TypeSerializerTests(short value) : base(value)
+        public Int16TypeSerializerTests(short value, string _) : base(value)
         {
         }
     }

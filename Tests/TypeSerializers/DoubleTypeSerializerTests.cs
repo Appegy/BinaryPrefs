@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,21 +7,21 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class DoubleTypeSerializerTests : BaseTypeSerializerTests<double, DoubleSerializer>
     {
-        private static double[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            double.MinValue, // -1.7976931348623157E+308
-            double.MaxValue, // 1.7976931348623157E+308
-            double.Epsilon, // 4.94065645841247E-324
-            double.NegativeInfinity, // Negative infinity
-            double.PositiveInfinity, // Positive infinity
-            0.0, // zero
-            1.0, // smallest positive double
-            -1.0, // smallest negative double
-            3.14159265358979, // pi
-            -3.14159265358979 // negative pi
+            new object[] { double.MinValue, "min" },
+            new object[] { double.MaxValue, "max" },
+            new object[] { double.Epsilon, "epsilon" },
+            new object[] { double.NegativeInfinity, "neg_inf" },
+            new object[] { double.PositiveInfinity, "pos_inf" },
+            new object[] { 0.0, "zero" },
+            new object[] { 1.0, "one" },
+            new object[] { -1.0, "minus_one" },
+            new object[] { 3.14159265358979, "pi" },
+            new object[] { -3.14159265358979, "minus_pi" }
         };
 
-        public DoubleTypeSerializerTests(double value) : base(value)
+        public DoubleTypeSerializerTests(double value, string _) : base(value)
         {
         }
     }

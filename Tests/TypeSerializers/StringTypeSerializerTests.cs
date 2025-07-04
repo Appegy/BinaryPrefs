@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,35 +7,33 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class StringTypeSerializerTests : BaseTypeSerializerTests<string, StringSerializer>
     {
-        private static string[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            null, // null
-            "", // empty
-            "Hello world!", // latin
-            "Прывітанне сусвет!", // cyrillic
-            "你好世界", // chinese
-            "مرحبا بالعالم!", // arabic
-            "こんにちは世界", // japanese
-            "안녕하세요 세계", // korean
-            "שלום עולם!", // hebrew
-            "Bonjour le monde!", // french
-            "¡Hola mundo!", // spanish
-            "Olá mundo!", // portuguese
-            "Hallo Welt!", // german
-            "Ciao mondo!", // italian
-            "नमस्ते दुनिया!", // hindi
-            "👋 🌍", // emojis
-            "!@#$%^&*()_+-=[]{}|;':\",.<>/?", // special characters
-            "    ", // whitespace
-            "Line1\nLine2\nLine3", // multiline
-            new string('a', 1000), // long string
-            "Leading and trailing spaces ", // leading/trailing spaces
-            "Mixed123Numbers456And789Text" // alphanumeric
-            // TODO: this one currently breaks tests
-            //"Null\0Character", // string with null character
+            new object[] { null, "null" },
+            new object[] { "", "empty" },
+            new object[] { "Hello world!", "latin" },
+            new object[] { "Прывітанне сусвет!", "cyrillic" },
+            new object[] { "你好世界", "chinese" },
+            new object[] { "مرحبا بالعالم!", "arabic" },
+            new object[] { "こんにちは世界", "japanese" },
+            new object[] { "안녕하세요 세계", "korean" },
+            new object[] { "שלום עולם!", "hebrew" },
+            new object[] { "Bonjour le monde!", "french" },
+            new object[] { "¡Hola mundo!", "spanish" },
+            new object[] { "Olá mundo!", "portuguese" },
+            new object[] { "Hallo Welt!", "german" },
+            new object[] { "Ciao mondo!", "italian" },
+            new object[] { "नमस्ते दुनिया!", "hindi" },
+            new object[] { "👋 🌍", "emojis" },
+            new object[] { "!@#$%^&*()_+-=[]{}|;':\",.<>/?", "special" },
+            new object[] { "    ", "whitespace" },
+            new object[] { "Line1\nLine2\nLine3", "multiline" },
+            new object[] { new string('a', 1000), "long" },
+            new object[] { "Leading and trailing spaces ", "spaces" },
+            new object[] { "Mixed123Numbers456And789Text", "alphanumeric" }
         };
 
-        public StringTypeSerializerTests(string defaultValue) : base(defaultValue)
+        public StringTypeSerializerTests(string defaultValue, string _) : base(defaultValue)
         {
         }
     }

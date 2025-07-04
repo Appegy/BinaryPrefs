@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,20 +7,20 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class SByteTypeSerializerTests : BaseTypeSerializerTests<sbyte, SByteSerializer>
     {
-        private static sbyte[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            sbyte.MinValue, // -128
-            sbyte.MaxValue, // 127
-            (sbyte)0, // zero
-            (sbyte)1, // smallest positive sbyte
-            (sbyte)-1, // smallest negative sbyte
-            (sbyte)64, // positive power of two
-            (sbyte)-64, // negative power of two
-            (sbyte)10, // random positive value
-            (sbyte)-10 // random negative value
+            new object[] { sbyte.MinValue, "min" },
+            new object[] { sbyte.MaxValue, "max" },
+            new object[] { (sbyte)0, "zero" },
+            new object[] { (sbyte)1, "one" },
+            new object[] { (sbyte)-1, "minus_one" },
+            new object[] { (sbyte)64, "pow2" },
+            new object[] { (sbyte)-64, "minus_pow2" },
+            new object[] { (sbyte)10, "rnd_pos" },
+            new object[] { (sbyte)-10, "rnd_neg" }
         };
 
-        public SByteTypeSerializerTests(sbyte value) : base(value)
+        public SByteTypeSerializerTests(sbyte value, string _) : base(value)
         {
         }
     }

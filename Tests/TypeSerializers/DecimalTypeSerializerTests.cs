@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,22 +7,22 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class DecimalTypeSerializerTests : BaseTypeSerializerTests<decimal, DecimalSerializer>
     {
-        private static decimal[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            decimal.MinValue, // -79228162514264337593543950335
-            decimal.MaxValue, // 79228162514264337593543950335
-            0.0m, // zero
-            1.0m, // smallest positive decimal
-            -1.0m, // smallest negative decimal
-            3.1415926535897932384626433832m, // pi
-            -3.1415926535897932384626433832m, // negative pi
-            1234567890123456789012345678.9m, // random positive value
-            -1234567890123456789012345678.9m, // random negative value
-            1234.5678901234567890123456789m, // random positive value
-            -1234.5678901234567890123456789m // random negative value
+            new object[] { decimal.MinValue, "min" },
+            new object[] { decimal.MaxValue, "max" },
+            new object[] { 0.0m, "zero" },
+            new object[] { 1.0m, "one" },
+            new object[] { -1.0m, "minus_one" },
+            new object[] { 3.1415926535897932384626433832m, "pi" },
+            new object[] { -3.1415926535897932384626433832m, "minus_pi" },
+            new object[] { 1234567890123456789012345678.9m, "big_pos" },
+            new object[] { -1234567890123456789012345678.9m, "big_neg" },
+            new object[] { 1234.5678901234567890123456789m, "rnd_pos" },
+            new object[] { -1234.5678901234567890123456789m, "rnd_neg" }
         };
 
-        public DecimalTypeSerializerTests(decimal value) : base(value)
+        public DecimalTypeSerializerTests(decimal value, string _) : base(value)
         {
         }
     }

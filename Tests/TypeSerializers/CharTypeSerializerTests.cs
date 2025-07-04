@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,32 +7,29 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class CharTypeSerializerTests : BaseTypeSerializerTests<char, CharSerializer>
     {
-        private static char[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            '\t', // tab
-            '\n', // newline
-            '\r', // carriage return
-            '\u00E9', // Unicode character é
-            '\u20AC', // Euro sign €
-            '\u3042', // Hiragana letter A
-            //'\uD83D', // Emoji
-            '\u0001', // ASCII control character (Start of Heading)
-            '\u4E9C', // Han character 亜
-            'a', // lowercase letter
-            'Z', // uppercase letter
-            '5', // digit
-            ' ', // space
-            '!', // exclamation mark
-            'g', // latin
-            'ў', // cyrillic
-            '里', // chinese simplified
-            '爾', // chinese traditional
-            'ة', // arabic
-            // TODO: this one currently breaks tests
-            //'\0',
+            new object[] { '\t', "tab" },
+            new object[] { '\n', "newline" },
+            new object[] { '\r', "carriage_return" },
+            new object[] { '\u00E9', "unicode_e" },
+            new object[] { '\u20AC', "euro" },
+            new object[] { '\u3042', "hiragana_a" },
+            new object[] { '\u0001', "ctrl_soh" },
+            new object[] { '\u4E9C', "han_1" },
+            new object[] { 'a', "a" },
+            new object[] { 'Z', "Z" },
+            new object[] { '5', "5" },
+            new object[] { ' ', "space" },
+            new object[] { '!', "exclamation" },
+            new object[] { 'g', "g" },
+            new object[] { 'ў', "cyrillic" },
+            new object[] { '里', "chinese_simple" },
+            new object[] { '爾', "chinese_trad" },
+            new object[] { 'ة', "arabic" }
         };
 
-        public CharTypeSerializerTests(char value) : base(value)
+        public CharTypeSerializerTests(char value, string _) : base(value)
         {
         }
     }

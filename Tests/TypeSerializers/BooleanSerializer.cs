@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,13 +7,13 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     internal class BooleanTypeSerializerTests : BaseTypeSerializerTests<bool, BooleanSerializer>
     {
-        private static bool[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            true, // true boolean value
-            false, // false boolean value
+            new object[] { true, "true" },
+            new object[] { false, "false" }
         };
 
-        public BooleanTypeSerializerTests(bool value) : base(value)
+        public BooleanTypeSerializerTests(bool value, string _) : base(value)
         {
         }
     }

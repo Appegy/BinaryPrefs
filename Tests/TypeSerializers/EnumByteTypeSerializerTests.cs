@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Appegy.Storage.TypeSerializers
 {
@@ -6,23 +7,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumByteTypeSerializerTests : TypeSerializerTests<EnumByteTypeSerializerTests.ByteEnum, EnumTypeSerializer<EnumByteTypeSerializerTests.ByteEnum, byte>>
     {
-        public enum ByteEnum : byte
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum ByteEnum : byte { Value1, Value2, Value3 }
 
-        public EnumByteTypeSerializerTests(ByteEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<ByteEnum, byte>(ByteSerializer.Shared, false))
-        {
-        }
+        public EnumByteTypeSerializerTests(ByteEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<ByteEnum, byte>(ByteSerializer.Shared, false)) { }
 
-        private static ByteEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            ByteEnum.Value1,
-            ByteEnum.Value2,
-            ByteEnum.Value3
+            new object[] { ByteEnum.Value1, "v1" },
+            new object[] { ByteEnum.Value2, "v2" },
+            new object[] { ByteEnum.Value3, "v3" }
         };
     }
 
@@ -30,23 +24,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumSByteTypeSerializerTests : TypeSerializerTests<EnumSByteTypeSerializerTests.SByteEnum, EnumTypeSerializer<EnumSByteTypeSerializerTests.SByteEnum, sbyte>>
     {
-        public enum SByteEnum : sbyte
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum SByteEnum : sbyte { Value1, Value2, Value3 }
 
-        public EnumSByteTypeSerializerTests(SByteEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<SByteEnum, sbyte>(SByteSerializer.Shared, false))
-        {
-        }
+        public EnumSByteTypeSerializerTests(SByteEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<SByteEnum, sbyte>(SByteSerializer.Shared, false)) { }
 
-        private static SByteEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            SByteEnum.Value1,
-            SByteEnum.Value2,
-            SByteEnum.Value3
+            new object[] { SByteEnum.Value1, "v1" },
+            new object[] { SByteEnum.Value2, "v2" },
+            new object[] { SByteEnum.Value3, "v3" }
         };
     }
 
@@ -54,23 +41,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumShortTypeSerializerTests : TypeSerializerTests<EnumShortTypeSerializerTests.ShortEnum, EnumTypeSerializer<EnumShortTypeSerializerTests.ShortEnum, short>>
     {
-        public enum ShortEnum : short
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum ShortEnum : short { Value1, Value2, Value3 }
 
-        public EnumShortTypeSerializerTests(ShortEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<ShortEnum, short>(Int16Serializer.Shared, false))
-        {
-        }
+        public EnumShortTypeSerializerTests(ShortEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<ShortEnum, short>(Int16Serializer.Shared, false)) { }
 
-        private static ShortEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            ShortEnum.Value1,
-            ShortEnum.Value2,
-            ShortEnum.Value3
+            new object[] { ShortEnum.Value1, "v1" },
+            new object[] { ShortEnum.Value2, "v2" },
+            new object[] { ShortEnum.Value3, "v3" }
         };
     }
 
@@ -78,23 +58,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumUShortTypeSerializerTests : TypeSerializerTests<EnumUShortTypeSerializerTests.UShortEnum, EnumTypeSerializer<EnumUShortTypeSerializerTests.UShortEnum, ushort>>
     {
-        public enum UShortEnum : ushort
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum UShortEnum : ushort { Value1, Value2, Value3 }
 
-        public EnumUShortTypeSerializerTests(UShortEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<UShortEnum, ushort>(UInt16Serializer.Shared, false))
-        {
-        }
+        public EnumUShortTypeSerializerTests(UShortEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<UShortEnum, ushort>(UInt16Serializer.Shared, false)) { }
 
-        private static UShortEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            UShortEnum.Value1,
-            UShortEnum.Value2,
-            UShortEnum.Value3
+            new object[] { UShortEnum.Value1, "v1" },
+            new object[] { UShortEnum.Value2, "v2" },
+            new object[] { UShortEnum.Value3, "v3" }
         };
     }
 
@@ -102,23 +75,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumIntTypeSerializerTests : TypeSerializerTests<EnumIntTypeSerializerTests.IntEnum, EnumTypeSerializer<EnumIntTypeSerializerTests.IntEnum, int>>
     {
-        public enum IntEnum : int
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum IntEnum : int { Value1, Value2, Value3 }
 
-        public EnumIntTypeSerializerTests(IntEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<IntEnum, int>(Int32Serializer.Shared, false))
-        {
-        }
+        public EnumIntTypeSerializerTests(IntEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<IntEnum, int>(Int32Serializer.Shared, false)) { }
 
-        private static IntEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            IntEnum.Value1,
-            IntEnum.Value2,
-            IntEnum.Value3
+            new object[] { IntEnum.Value1, "v1" },
+            new object[] { IntEnum.Value2, "v2" },
+            new object[] { IntEnum.Value3, "v3" }
         };
     }
 
@@ -126,23 +92,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumUIntTypeSerializerTests : TypeSerializerTests<EnumUIntTypeSerializerTests.UIntEnum, EnumTypeSerializer<EnumUIntTypeSerializerTests.UIntEnum, uint>>
     {
-        public enum UIntEnum : uint
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum UIntEnum : uint { Value1, Value2, Value3 }
 
-        public EnumUIntTypeSerializerTests(UIntEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<UIntEnum, uint>(UInt32Serializer.Shared, false))
-        {
-        }
+        public EnumUIntTypeSerializerTests(UIntEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<UIntEnum, uint>(UInt32Serializer.Shared, false)) { }
 
-        private static UIntEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            UIntEnum.Value1,
-            UIntEnum.Value2,
-            UIntEnum.Value3
+            new object[] { UIntEnum.Value1, "v1" },
+            new object[] { UIntEnum.Value2, "v2" },
+            new object[] { UIntEnum.Value3, "v3" }
         };
     }
 
@@ -150,23 +109,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumLongTypeSerializerTests : TypeSerializerTests<EnumLongTypeSerializerTests.LongEnum, EnumTypeSerializer<EnumLongTypeSerializerTests.LongEnum, long>>
     {
-        public enum LongEnum : long
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum LongEnum : long { Value1, Value2, Value3 }
 
-        public EnumLongTypeSerializerTests(LongEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<LongEnum, long>(Int64Serializer.Shared, false))
-        {
-        }
+        public EnumLongTypeSerializerTests(LongEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<LongEnum, long>(Int64Serializer.Shared, false)) { }
 
-        private static LongEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            LongEnum.Value1,
-            LongEnum.Value2,
-            LongEnum.Value3
+            new object[] { LongEnum.Value1, "v1" },
+            new object[] { LongEnum.Value2, "v2" },
+            new object[] { LongEnum.Value3, "v3" }
         };
     }
 
@@ -174,23 +126,16 @@ namespace Appegy.Storage.TypeSerializers
     [TestFixtureSource(nameof(Inputs))]
     public class EnumULongTypeSerializerTests : TypeSerializerTests<EnumULongTypeSerializerTests.ULongEnum, EnumTypeSerializer<EnumULongTypeSerializerTests.ULongEnum, ulong>>
     {
-        public enum ULongEnum : ulong
-        {
-            Value1,
-            Value2,
-            Value3,
-        }
+        public enum ULongEnum : ulong { Value1, Value2, Value3 }
 
-        public EnumULongTypeSerializerTests(ULongEnum defaultValue)
-            : base(defaultValue, new EnumTypeSerializer<ULongEnum, ulong>(UInt64Serializer.Shared, false))
-        {
-        }
+        public EnumULongTypeSerializerTests(ULongEnum defaultValue, string _)
+            : base(defaultValue, new EnumTypeSerializer<ULongEnum, ulong>(UInt64Serializer.Shared, false)) { }
 
-        private static ULongEnum[] Inputs => new[]
+        private static IEnumerable<object[]> Inputs => new[]
         {
-            ULongEnum.Value1,
-            ULongEnum.Value2,
-            ULongEnum.Value3
+            new object[] { ULongEnum.Value1, "v1" },
+            new object[] { ULongEnum.Value2, "v2" },
+            new object[] { ULongEnum.Value3, "v3" }
         };
     }
 }
