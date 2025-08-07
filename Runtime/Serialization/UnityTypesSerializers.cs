@@ -6,7 +6,7 @@ namespace Appegy.Storage
     internal class QuaternionSerializer : EquatableTypeSerializer<Quaternion>
     {
         public static QuaternionSerializer Shared { get; } = new();
-        public override string TypeName => "vector2f";
+        public override string TypeName => "quaternion";
 
         public override void WriteTo(BinaryWriter writer, Quaternion value)
         {

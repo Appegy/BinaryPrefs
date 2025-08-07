@@ -3,10 +3,15 @@ using System.IO;
 
 namespace Appegy.Storage
 {
+    /// <summary>
+    /// Thrown when a second serializer for the same value type is being registered.
+    /// </summary>
     public class DuplicateTypeSerializerException : Exception
     {
-        public DuplicateTypeSerializerException(Type type, string typeNameCode, string storagePath)
-            : base($"You're trying to add second serializer for type {type.Name} ({typeNameCode}) to storage {Path.GetFileName(storagePath)}. This is not allowed")
+        public DuplicateTypeSerializerException(TypeSerializer newSerializer, TypeSerializer existingSerializer, string storagePath)
+            : base($"Duplicate serializer detected in '{Path.GetFileName(storagePath)}'. " +
+                   $"Attempted: {newSerializer.GetType().Name} (TypeName: '{newSerializer.TypeName}'); " +
+                   $"Already registered: {existingSerializer.GetType().Name} (TypeName: '{existingSerializer.TypeName}').")
         {
         }
     }

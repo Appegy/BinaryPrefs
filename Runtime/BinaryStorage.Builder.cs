@@ -28,7 +28,6 @@ namespace Appegy.Storage
         public static Builder Construct(string filePath)
         {
             ThrowIfFilePathLocked(filePath);
-            LockFilePathInEditor(filePath);
             return new Builder(filePath);
         }
 
@@ -114,12 +113,21 @@ namespace Appegy.Storage
             /// <param name="typeSerializer">The serializer for the specified type.</param>
             /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
             /// <exception cref="DuplicateTypeSerializerException">Thrown if a serializer for the specified type already exists.</exception>
+            /// <exception cref="DuplicateTypeSerializerNameException">Thrown if a serializer with the same type name already exists.</exception>
             public Builder AddTypeSerializer<T>(TypeSerializer<T> typeSerializer)
             {
-                if (_serializers.Any(c => c is TypedBinarySection<T>))
+                var otherSerializer = _serializers.FirstOrDefault(c => c is TypedBinarySection<T>)?.Serializer;
+                if (otherSerializer != null)
                 {
-                    throw new DuplicateTypeSerializerException(typeof(T), typeSerializer.TypeName, _filePath);
+                    throw new DuplicateTypeSerializerException(typeSerializer, otherSerializer, _filePath);
                 }
+
+                otherSerializer = _serializers.FirstOrDefault(c => c.Serializer.TypeName == typeSerializer.TypeName)?.Serializer;
+                if (otherSerializer != null)
+                {
+                    throw new DuplicateTypeSerializerNameException(typeSerializer, otherSerializer, _filePath);
+                }
+
                 _serializers.Add(new TypedBinarySection<T>(typeSerializer));
                 return this;
             }
@@ -217,20 +225,13 @@ namespace Appegy.Storage
             /// <exception cref="IOException"> An I/O error occurred </exception>
             public BinaryStorage Build(KeyLoadFailedBehaviour keyLoadFailedBehaviour = KeyLoadFailedBehaviour.IgnoreWithWarning)
             {
-                try
-                {
-                    var storage = new BinaryStorage(_filePath, _serializers);
-                    storage.AutoSave = _autoSave;
-                    storage.MissingKeyBehavior = _missingKeyBehavior;
-                    storage.TypeMismatchBehaviour = _typeMismatchBehaviour;
-                    storage.LoadDataFromDisk(keyLoadFailedBehaviour);
-                    return storage;
-                }
-                catch
-                {
-                    UnlockFilePathInEditor(_filePath);
-                    throw;
-                }
+                var storage = new BinaryStorage(_filePath, _serializers);
+                storage.AutoSave = _autoSave;
+                storage.MissingKeyBehavior = _missingKeyBehavior;
+                storage.TypeMismatchBehaviour = _typeMismatchBehaviour;
+                storage.LoadDataFromDisk(keyLoadFailedBehaviour);
+                LockFilePathInEditor(_filePath);
+                return storage;
             }
         }
     }
