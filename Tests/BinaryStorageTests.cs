@@ -166,6 +166,8 @@ namespace Appegy.Storage
             // Assert
             storage.GetListOf<int>("numbers").Should().BeSameAs(list);
             storage.GetListOf<int>("numbers").Should().Equal(list);
+            storage.GetReadOnlyListOf<int>("numbers").Should().BeSameAs(list);
+            storage.GetReadOnlyListOf<int>("numbers").Should().Equal(list);
         }
 
         [Test]
@@ -208,10 +210,12 @@ namespace Appegy.Storage
             {
                 // Assert
                 storage.Has("numbers");
-                var list = storage.GetListOf<int>("numbers");
-                list.Count.Should().Be(2);
-                list[0].Should().Be(1);
-                list[1].Should().Be(2);
+                storage.GetListOf<int>("numbers").Count.Should().Be(2);
+                storage.GetListOf<int>("numbers")[0].Should().Be(1);
+                storage.GetListOf<int>("numbers")[1].Should().Be(2);
+                storage.GetReadOnlyListOf<int>("numbers").Count.Should().Be(2);
+                storage.GetReadOnlyListOf<int>("numbers")[0].Should().Be(1);
+                storage.GetReadOnlyListOf<int>("numbers")[1].Should().Be(2);
             }
         }
 
@@ -249,6 +253,8 @@ namespace Appegy.Storage
             // Assert
             storage.GetSetOf<int>("numbers").Should().BeSameAs(set);
             storage.GetSetOf<int>("numbers").Should().Equal(set);
+            storage.GetReadOnlySetOf<int>("numbers").Should().BeSameAs(set);
+            storage.GetReadOnlySetOf<int>("numbers").Should().Equal(set);
         }
 
         [Test]
@@ -291,10 +297,12 @@ namespace Appegy.Storage
             {
                 // Assert
                 storage.Has("numbers");
-                var set = storage.GetSetOf<int>("numbers");
-                set.Count.Should().Be(2);
-                set.Should().Contain(1);
-                set.Should().Contain(2);
+                storage.GetSetOf<int>("numbers").Count.Should().Be(2);
+                storage.GetSetOf<int>("numbers").Should().Contain(1);
+                storage.GetSetOf<int>("numbers").Should().Contain(2);
+                storage.GetReadOnlySetOf<int>("numbers").Count.Should().Be(2);
+                storage.GetReadOnlySetOf<int>("numbers").Should().Contain(1);
+                storage.GetReadOnlySetOf<int>("numbers").Should().Contain(2);
             }
         }
 
@@ -334,6 +342,8 @@ namespace Appegy.Storage
             // Assert
             storage.GetDictionaryOf<int, string>("numbers").Should().BeSameAs(map);
             storage.GetDictionaryOf<int, string>("numbers").Should().Equal(map);
+            storage.GetReadOnlyDictionaryOf<int, string>("numbers").Should().BeSameAs(map);
+            storage.GetReadOnlyDictionaryOf<int, string>("numbers").Should().Equal(map);
         }
 
         [Test]
@@ -379,11 +389,14 @@ namespace Appegy.Storage
             {
                 // Assert
                 storage.Has("numbers");
-                var map = storage.GetDictionaryOf<int, string>("numbers");
-                map.Count.Should().Be(2);
-                map.Should().ContainKeys(1, 2);
-                map[1].Should().Be("one");
-                map[2].Should().Be("two");
+                storage.GetDictionaryOf<int, string>("numbers").Count.Should().Be(2);
+                storage.GetDictionaryOf<int, string>("numbers").Should().ContainKeys(1, 2);
+                storage.GetDictionaryOf<int, string>("numbers")[1].Should().Be("one");
+                storage.GetDictionaryOf<int, string>("numbers")[2].Should().Be("two");
+                storage.GetReadOnlyDictionaryOf<int, string>("numbers").Count.Should().Be(2);
+                storage.GetReadOnlyDictionaryOf<int, string>("numbers").Should().ContainKeys(1, 2);
+                storage.GetReadOnlyDictionaryOf<int, string>("numbers")[1].Should().Be("one");
+                storage.GetReadOnlyDictionaryOf<int, string>("numbers")[2].Should().Be("two");
             }
         }
 

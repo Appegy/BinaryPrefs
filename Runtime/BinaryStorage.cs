@@ -254,6 +254,14 @@ namespace Appegy.Storage
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         public IList<T> GetListOf<T>(string key) => GetCollectionOf<T, ReactiveList<T>>(key);
 
+        /// <summary> Gets the read-only list associated with the specified key. </summary>
+        /// <typeparam name="T">The type of the list elements.</typeparam>
+        /// <param name="key">The key to get the list for.</param>
+        /// <returns>The read-only list associated with the key.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
+        public IReadOnlyList<T> GetReadOnlyListOf<T>(string key) => GetCollectionOf<T, ReactiveList<T>>(key);
+
         /// <summary> Gets the set associated with the specified key. </summary>
         /// <typeparam name="T">The type of the set elements.</typeparam>
         /// <param name="key">The key to get the set for.</param>
@@ -261,6 +269,14 @@ namespace Appegy.Storage
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         public ISet<T> GetSetOf<T>(string key) => GetCollectionOf<T, ReactiveSet<T>>(key);
+
+        /// <summary> Gets the read-only set associated with the specified key. </summary>
+        /// <typeparam name="T">The type of the set elements.</typeparam>
+        /// <param name="key">The key to get the set for.</param>
+        /// <returns>The read-only set associated with the key.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
+        public IReadOnlyCollection<T> GetReadOnlySetOf<T>(string key) => GetCollectionOf<T, ReactiveSet<T>>(key);
 
         /// <summary> Gets the dictionary associated with the specified key. </summary>
         /// <typeparam name="TKey">The type of the dictionary keys.</typeparam>
@@ -270,6 +286,15 @@ namespace Appegy.Storage
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         public IDictionary<TKey, TValue> GetDictionaryOf<TKey, TValue>(string key) => GetCollectionOf<KeyValuePair<TKey, TValue>, ReactiveDictionary<TKey, TValue>>(key);
+
+        /// <summary> Gets the read-only dictionary associated with the specified key. </summary>
+        /// <typeparam name="TKey">The type of the dictionary keys.</typeparam>
+        /// <typeparam name="TValue">The type of the dictionary values.</typeparam>
+        /// <param name="key">The key to get the dictionary for.</param>
+        /// <returns>The read-only dictionary associated with the key.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
+        public IReadOnlyDictionary<TKey, TValue> GetReadOnlyDictionaryOf<TKey, TValue>(string key) => GetCollectionOf<KeyValuePair<TKey, TValue>, ReactiveDictionary<TKey, TValue>>(key);
 
         /// <summary> Determines whether the specified collection type is supported. </summary>
         /// <typeparam name="T">The type of elements in the collection.</typeparam>
