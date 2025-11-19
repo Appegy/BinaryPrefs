@@ -2,7 +2,7 @@
   "name": "com.appegy.binary-prefs",
   "displayName": "Appegy: Binary Prefs",
   "description": "Fast persistant thread-safe binary storage for Unity.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "unity": "2021.3",
   "documentationUrl": "https://github.com/Appegy/BinaryPrefs",
   "changelogUrl": "https://github.com/Appegy/BinaryPrefs/releases",
@@ -13,7 +13,7 @@
   ],
   "author": {
     "name": "Appegy",
-    "email" : "imurashka.me@gmail.com",
+    "email": "imurashka.me@gmail.com",
     "url": "https://github.com/Appegy"
   }
 }
