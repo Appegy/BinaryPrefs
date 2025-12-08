@@ -9,7 +9,7 @@ using UnityEngine.Pool;
 namespace Appegy.Storage
 {
     /// <summary> Manages a binary storage system for saving, retrieving, and managing records of various types. </summary>
-    public partial class BinaryStorage : IDisposable
+    public partial class BinaryStorage : IDisposable, IBinaryStorage
     {
         private readonly string _storageFilePath;
         private readonly IReadOnlyList<BinarySection> _supportedTypes;
