@@ -57,7 +57,7 @@ namespace Appegy.Storage
 
         public bool Remove(string key)
         {
-            return _root.Remove(key);
+            return _root.Remove(GetKey(key));
         }
 
         public int Remove(Func<string, bool> predicate)
@@ -97,7 +97,7 @@ namespace Appegy.Storage
 
         public IList<T> GetListOf<T>(string key)
         {
-            return _root.GetListOf<T>(key);
+            return _root.GetListOf<T>(GetKey(key));
         }
 
         public IReadOnlyList<T> GetReadOnlyListOf<T>(string key)
