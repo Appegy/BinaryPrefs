@@ -3,9 +3,9 @@ using System.Buffers;
 using System.IO;
 using System.Text;
 
-namespace Appegy.Storage
+namespace Appegy.Storage.Serializers
 {
-    internal class BooleanSerializer : EquatableTypeSerializer<bool>
+    public class BooleanSerializer : EquatableTypeSerializer<bool>
     {
         public static BooleanSerializer Shared { get; } = new();
         public override string TypeName => "bool";
@@ -13,7 +13,7 @@ namespace Appegy.Storage
         public override bool ReadFrom(BinaryReader reader) => reader.ReadBoolean();
     }
 
-    internal class CharSerializer : EquatableTypeSerializer<char>
+    public class CharSerializer : EquatableTypeSerializer<char>
     {
         public static CharSerializer Shared { get; } = new();
         public override string TypeName => "char";
@@ -43,7 +43,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class ByteSerializer : EquatableTypeSerializer<byte>
+    public class ByteSerializer : EquatableTypeSerializer<byte>
     {
         public static ByteSerializer Shared { get; } = new();
         public override string TypeName => "byte";
@@ -51,7 +51,7 @@ namespace Appegy.Storage
         public override byte ReadFrom(BinaryReader reader) => reader.ReadByte();
     }
 
-    internal class SByteSerializer : EquatableTypeSerializer<sbyte>
+    public class SByteSerializer : EquatableTypeSerializer<sbyte>
     {
         public static SByteSerializer Shared { get; } = new();
         public override string TypeName => "sbyte";
@@ -59,7 +59,7 @@ namespace Appegy.Storage
         public override sbyte ReadFrom(BinaryReader reader) => reader.ReadSByte();
     }
 
-    internal class Int16Serializer : EquatableTypeSerializer<short>
+    public class Int16Serializer : EquatableTypeSerializer<short>
     {
         public static Int16Serializer Shared { get; } = new();
         public override string TypeName => "short";
@@ -67,7 +67,7 @@ namespace Appegy.Storage
         public override short ReadFrom(BinaryReader reader) => reader.ReadInt16();
     }
 
-    internal class UInt16Serializer : EquatableTypeSerializer<ushort>
+    public class UInt16Serializer : EquatableTypeSerializer<ushort>
     {
         public static UInt16Serializer Shared { get; } = new();
         public override string TypeName => "ushort";
@@ -75,7 +75,7 @@ namespace Appegy.Storage
         public override ushort ReadFrom(BinaryReader reader) => reader.ReadUInt16();
     }
 
-    internal class Int32Serializer : EquatableTypeSerializer<int>
+    public class Int32Serializer : EquatableTypeSerializer<int>
     {
         public static Int32Serializer Shared { get; } = new();
         public override string TypeName => "int";
@@ -83,7 +83,7 @@ namespace Appegy.Storage
         public override int ReadFrom(BinaryReader reader) => reader.ReadInt32();
     }
 
-    internal class UInt32Serializer : EquatableTypeSerializer<uint>
+    public class UInt32Serializer : EquatableTypeSerializer<uint>
     {
         public static UInt32Serializer Shared { get; } = new();
         public override string TypeName => "uint";
@@ -91,7 +91,7 @@ namespace Appegy.Storage
         public override uint ReadFrom(BinaryReader reader) => reader.ReadUInt32();
     }
 
-    internal class Int64Serializer : EquatableTypeSerializer<long>
+    public class Int64Serializer : EquatableTypeSerializer<long>
     {
         public static Int64Serializer Shared { get; } = new();
         public override string TypeName => "long";
@@ -99,7 +99,7 @@ namespace Appegy.Storage
         public override long ReadFrom(BinaryReader reader) => reader.ReadInt64();
     }
 
-    internal class UInt64Serializer : EquatableTypeSerializer<ulong>
+    public class UInt64Serializer : EquatableTypeSerializer<ulong>
     {
         public static UInt64Serializer Shared { get; } = new();
         public override string TypeName => "ulong";
@@ -107,7 +107,7 @@ namespace Appegy.Storage
         public override ulong ReadFrom(BinaryReader reader) => reader.ReadUInt64();
     }
 
-    internal class SingleSerializer : EquatableTypeSerializer<float>
+    public class SingleSerializer : EquatableTypeSerializer<float>
     {
         public static SingleSerializer Shared { get; } = new();
         public override string TypeName => "float";
@@ -115,7 +115,7 @@ namespace Appegy.Storage
         public override float ReadFrom(BinaryReader reader) => reader.ReadSingle();
     }
 
-    internal class DoubleSerializer : EquatableTypeSerializer<double>
+    public class DoubleSerializer : EquatableTypeSerializer<double>
     {
         public static DoubleSerializer Shared { get; } = new();
         public override string TypeName => "double";
@@ -123,7 +123,7 @@ namespace Appegy.Storage
         public override double ReadFrom(BinaryReader reader) => reader.ReadDouble();
     }
 
-    internal class DecimalSerializer : EquatableTypeSerializer<decimal>
+    public class DecimalSerializer : EquatableTypeSerializer<decimal>
     {
         public static DecimalSerializer Shared { get; } = new();
         public override string TypeName => "decimal";
@@ -131,7 +131,7 @@ namespace Appegy.Storage
         public override decimal ReadFrom(BinaryReader reader) => reader.ReadDecimal();
     }
 
-    internal class StringSerializer : EquatableTypeSerializerRef<string>
+    public class StringSerializer : EquatableTypeSerializerRef<string>
     {
         public static StringSerializer Shared { get; } = new();
         public static readonly Encoding Encoding = Encoding.UTF8;
@@ -183,7 +183,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class DateTimeSerializer : EquatableTypeSerializer<DateTime>
+    public class DateTimeSerializer : EquatableTypeSerializer<DateTime>
     {
         public static DateTimeSerializer Shared { get; } = new();
         public override string TypeName => "DateTime";
@@ -191,7 +191,7 @@ namespace Appegy.Storage
         public override DateTime ReadFrom(BinaryReader reader) => DateTime.FromBinary(reader.ReadInt64());
     }
 
-    internal class TimeSpanSerializer : EquatableTypeSerializer<TimeSpan>
+    public class TimeSpanSerializer : EquatableTypeSerializer<TimeSpan>
     {
         public static TimeSpanSerializer Shared { get; } = new();
         public override string TypeName => "TimeSpan";

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Appegy.Storage
+namespace Appegy.Storage.Serializers
 {
     public class EnumTypeSerializer<TEnum, TNumber> : TypeSerializer<TEnum>
         where TEnum : unmanaged

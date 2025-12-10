@@ -1,4 +1,5 @@
 using System;
+using Appegy.Storage.Serializers;
 using FluentAssertions;
 using NUnit.Framework;
 using UnityEngine;

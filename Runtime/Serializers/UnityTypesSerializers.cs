@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using UnityEngine;
 
-namespace Appegy.Storage
+namespace Appegy.Storage.Serializers
 {
-    internal class QuaternionSerializer : EquatableTypeSerializer<Quaternion>
+    public class QuaternionSerializer : EquatableTypeSerializer<Quaternion>
     {
         public static QuaternionSerializer Shared { get; } = new();
         public override string TypeName => "quaternion";
@@ -26,7 +26,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class Vector2Serializer : EquatableTypeSerializer<Vector2>
+    public class Vector2Serializer : EquatableTypeSerializer<Vector2>
     {
         public static Vector2Serializer Shared { get; } = new();
         public override string TypeName => "vector2f";
@@ -45,7 +45,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class Vector3Serializer : EquatableTypeSerializer<Vector3>
+    public class Vector3Serializer : EquatableTypeSerializer<Vector3>
     {
         public static Vector3Serializer Shared { get; } = new();
         public override string TypeName => "vector3f";
@@ -66,7 +66,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class Vector4Serializer : EquatableTypeSerializer<Vector4>
+    public class Vector4Serializer : EquatableTypeSerializer<Vector4>
     {
         public static Vector4Serializer Shared { get; } = new();
         public override string TypeName => "vector4f";
@@ -89,7 +89,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class Vector2IntSerializer : EquatableTypeSerializer<Vector2Int>
+    public class Vector2IntSerializer : EquatableTypeSerializer<Vector2Int>
     {
         public static Vector2IntSerializer Shared { get; } = new();
         public override string TypeName => "vector2i";
@@ -108,7 +108,7 @@ namespace Appegy.Storage
         }
     }
 
-    internal class Vector3IntSerializer : EquatableTypeSerializer<Vector3Int>
+    public class Vector3IntSerializer : EquatableTypeSerializer<Vector3Int>
     {
         public static Vector3IntSerializer Shared { get; } = new();
         public override string TypeName => "vector3i";

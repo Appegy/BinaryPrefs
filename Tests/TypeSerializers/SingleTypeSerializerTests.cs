@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System.Collections.Generic;
+using Appegy.Storage.Serializers;
 
 namespace Appegy.Storage.TypeSerializers
 {
