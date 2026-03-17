@@ -666,5 +666,359 @@ namespace Appegy.Storage
         }
 
         #endregion
+
+        #region Keys Tests
+
+        [Test]
+        public void WhenStorageHasKeys_ThenKeysReturnsAllKeys()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .Build();
+
+            storage.Set("key_i", 10);
+            storage.Set("key_s", "value");
+
+            // Act
+            var keys = storage.Keys;
+
+            // Assert
+            keys.Count.Should().Be(2);
+            keys.Should().Contain("key_i");
+            keys.Should().Contain("key_s");
+        }
+
+        [Test]
+        public void WhenStorageIsEmpty_ThenKeysReturnsEmptyCollection()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Assert
+            storage.Keys.Count.Should().Be(0);
+        }
+
+        [Test]
+        public void WhenStorageDisposed_AndKeysCalled_ThenExceptionOccured()
+        {
+            // Arrange
+            var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act
+            storage.Dispose();
+
+            // Assert
+            Action action = () => _ = storage.Keys;
+            action.Should().Throw<ObjectDisposedException>();
+        }
+
+        #endregion
+
+        #region GetRaw Tests
+
+        [Test]
+        public void WhenKeyExists_AndGetRawCalled_ThenValueReturned()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .Build();
+
+            storage.Set("int_key", 42);
+            storage.Set("str_key", "hello");
+
+            // Act & Assert
+            storage.GetRaw("int_key").Should().Be(42);
+            storage.GetRaw("str_key").Should().Be("hello");
+        }
+
+        [Test]
+        public void WhenKeyDoesNotExist_AndGetRawCalled_ThenNullReturned()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act & Assert
+            storage.GetRaw("missing").Should().BeNull();
+        }
+
+        [Test]
+        public void WhenStorageDisposed_AndGetRawCalled_ThenExceptionOccured()
+        {
+            // Arrange
+            var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.Dispose();
+
+            // Assert
+            Action action = () => storage.GetRaw("key");
+            action.Should().Throw<ObjectDisposedException>();
+        }
+
+        #endregion
+
+        #region SetRaw Tests
+
+        [Test]
+        public void WhenSetRawCalledWithSupportedType_ThenValueIsStored()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act
+            var result = storage.SetRaw("key", 42);
+
+            // Assert
+            result.Should().BeTrue();
+            storage.Has("key").Should().BeTrue();
+            storage.Get<int>("key").Should().Be(42);
+            storage.GetRaw("key").Should().Be(42);
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithSameValue_ThenReturnsFalse()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.SetRaw("key", 42);
+
+            // Act
+            var result = storage.SetRaw("key", 42);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithDifferentValue_ThenValueIsUpdated()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.SetRaw("key", 42);
+
+            // Act
+            var result = storage.SetRaw("key", 99);
+
+            // Assert
+            result.Should().BeTrue();
+            storage.GetRaw("key").Should().Be(99);
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithNull_ThenArgumentNullExceptionThrown()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Assert
+            Action action = () => storage.SetRaw("key", null);
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithUnregisteredType_ThenUnregisteredTypeExceptionThrown()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Assert
+            Action action = () => storage.SetRaw("key", 3.14);
+            action.Should().Throw<UnregisteredTypeException>();
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithTypeMismatch_AndBehaviorIsOverride_ThenValueAndTypeOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.OverrideValueAndType)
+                .Build();
+
+            storage.SetRaw("key", 42);
+
+            // Act
+            var result = storage.SetRaw("key", "hello");
+
+            // Assert
+            result.Should().BeTrue();
+            storage.TypeOf("key").Should().Be(typeof(string));
+            storage.GetRaw("key").Should().Be("hello");
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithTypeMismatch_AndBehaviorIsThrow_ThenExceptionThrown()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.ThrowException)
+                .Build();
+
+            storage.SetRaw("key", 42);
+
+            // Assert
+            Action action = () => storage.SetRaw("key", "hello");
+            action.Should().Throw<UnexpectedTypeException>();
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithTypeMismatch_AndBehaviorIsIgnore_ThenValueNotChanged()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.Ignore)
+                .Build();
+
+            storage.SetRaw("key", 42);
+
+            // Act
+            var result = storage.SetRaw("key", "hello");
+
+            // Assert
+            result.Should().BeFalse();
+            storage.TypeOf("key").Should().Be(typeof(int));
+            storage.GetRaw("key").Should().Be(42);
+        }
+
+        [Test]
+        public void WhenSetRawUsed_ThenEventsFireCorrectly()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            var addedKey = (string)null;
+            var changedKey = (string)null;
+            storage.OnKeyAdded += k => addedKey = k;
+            storage.OnKeyChanged += k => changedKey = k;
+
+            // Act - add
+            storage.SetRaw("key", 10);
+
+            // Assert - add
+            addedKey.Should().Be("key");
+            changedKey.Should().BeNull();
+
+            // Act - change
+            storage.SetRaw("key", 20);
+
+            // Assert - change
+            changedKey.Should().Be("key");
+        }
+
+        [Test]
+        public void WhenSetRawUsed_AndStorageReloaded_ThenValuePersisted()
+        {
+            // Arrange & Act
+            using (var storage = BinaryStorage.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .EnableAutoSaveOnChange()
+                       .Build())
+            {
+                storage.SetRaw("int_key", 42);
+                storage.SetRaw("str_key", "hello");
+            }
+
+            // Assert
+            using (var storage = BinaryStorage.Construct(StoragePath)
+                       .AddTypeSerializer(Int32Serializer.Shared)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .Build())
+            {
+                storage.GetRaw("int_key").Should().Be(42);
+                storage.GetRaw("str_key").Should().Be("hello");
+                storage.Get<int>("int_key").Should().Be(42);
+                storage.Get<string>("str_key").Should().Be("hello");
+            }
+        }
+
+        [Test]
+        public void WhenSetRawCalledWithTypeMismatchOverride_ThenBehaviorIsOverridden()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .SetTypeMismatchBehaviour(TypeMismatchBehaviour.ThrowException)
+                .Build();
+
+            storage.SetRaw("key", 42);
+
+            // Act
+            var result = storage.SetRaw("key", "hello", TypeMismatchBehaviour.OverrideValueAndType);
+
+            // Assert
+            result.Should().BeTrue();
+            storage.TypeOf("key").Should().Be(typeof(string));
+            storage.GetRaw("key").Should().Be("hello");
+        }
+
+        [Test]
+        public void WhenStorageDisposed_AndSetRawCalled_ThenExceptionOccured()
+        {
+            // Arrange
+            var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            storage.Dispose();
+
+            // Assert
+            Action action = () => storage.SetRaw("key", 42);
+            action.Should().Throw<ObjectDisposedException>();
+        }
+
+        [Test]
+        public void WhenSetRawAndGenericSetUsedInterchangeably_ThenBehaviorIsConsistent()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(Int32Serializer.Shared)
+                .Build();
+
+            // Act - set via generic, read via raw
+            storage.Set("key1", 100);
+            var raw1 = storage.GetRaw("key1");
+
+            // Act - set via raw, read via generic
+            storage.SetRaw("key2", 200);
+            var typed2 = storage.Get<int>("key2");
+
+            // Assert
+            raw1.Should().Be(100);
+            typed2.Should().Be(200);
+        }
+
+        #endregion
     }
 }

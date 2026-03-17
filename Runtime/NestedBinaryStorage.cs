@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Appegy.Storage
 {
@@ -12,6 +13,17 @@ namespace Appegy.Storage
         {
             _prefix = $"__{prefix}->";
             _root = root;
+        }
+
+        public IReadOnlyCollection<string> Keys
+        {
+            get
+            {
+                return _root.Keys
+                    .Where(k => k.StartsWith(_prefix, StringComparison.Ordinal))
+                    .Select(k => k.Substring(_prefix.Length))
+                    .ToArray();
+            }
         }
 
         private string GetKey(string key)
@@ -28,6 +40,16 @@ namespace Appegy.Storage
             }
             value = null;
             return false;
+        }
+
+        public object GetRaw(string key)
+        {
+            return _root.GetRaw(GetKey(key));
+        }
+
+        public bool SetRaw(string key, object value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+        {
+            return _root.SetRaw(GetKey(key), value, overrideTypeMismatchBehaviour);
         }
 
         public bool Has(string key)

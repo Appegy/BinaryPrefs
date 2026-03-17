@@ -1,10 +1,34 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Appegy.Storage
 {
     public interface IBinaryStorage
     {
+        /// <summary> Gets all keys currently stored in the storage. </summary>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        IReadOnlyCollection<string> Keys { get; }
+
+        /// <summary> Gets the value associated with the specified key as an untyped object. </summary>
+        /// <param name="key">The key to get the value for.</param>
+        /// <returns>The value associated with the key, or null if the key does not exist.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        [CanBeNull]
+        object GetRaw(string key);
+
+        /// <summary> Sets the value for the specified key using an untyped object. </summary>
+        /// <param name="key">The key to set the value for.</param>
+        /// <param name="value">The value to set. Its runtime type must be registered in the storage.</param>
+        /// <param name="overrideTypeMismatchBehaviour">Override default behavior when the key already exists with a different type.</param>
+        /// <returns>True if the value was set; otherwise, false.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if value is null.</exception>
+        /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the value type is a collection.</exception>
+        /// <exception cref="UnregisteredTypeException">Thrown if the value type is not registered.</exception>
+        /// <exception cref="UnexpectedTypeException">Thrown if the key already exists with a different type and the mismatch behavior is set to throw.</exception>
+        bool SetRaw(string key, object value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null);
+
         /// <summary> Determines whether the specified key exists in the storage. </summary>
         /// <param name="key">The key to check for existence.</param>
         /// <returns>True if the key exists; otherwise, false.</returns>
