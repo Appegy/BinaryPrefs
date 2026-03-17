@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
-using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Appegy.Storage
@@ -551,7 +550,6 @@ namespace Appegy.Storage
         {
             if (_changeScopeCounter == 0)
             {
-                Debug.LogError($"{nameof(BinaryStorage)}: Unexpected behaviour - MultipleChangeScope counter is already zero");
                 return;
             }
             _changeScopeCounter--;
