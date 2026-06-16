@@ -1,9 +1,9 @@
 {
   "dependencies": {
     "com.appegy.binary-prefs": {
-      "version": "file:com.appegy.binary-prefs",
+      "version": "file:../../Package",
       "depth": 0,
-      "source": "embedded",
+      "source": "local",
       "dependencies": {}
     },
     "com.boundfoxstudios.fluentassertions": {
