@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.appegy.binary-prefs": {
-      "version": "file:../../Package",
+      "version": "file:../../src",
       "depth": 0,
       "source": "local",
       "dependencies": {}
