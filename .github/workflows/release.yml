@@ -1,0 +1,6 @@
+name: Release
+on: workflow_dispatch
+jobs:
+  release:
+    uses: Appegy/upm-ci/.github/workflows/release.yml@v1
+    secrets: inherit
