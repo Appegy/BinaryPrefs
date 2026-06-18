@@ -30,7 +30,6 @@ namespace Appegy.Storage
 
         public void Dispose()
         {
-            ThrowIfDisposed();
             if (IsDisposed)
             {
                 return;

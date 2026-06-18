@@ -35,7 +35,7 @@ namespace Appegy.Storage.Serializers
             if (read != size)
             {
                 ArrayPool<byte>.Shared.Return(buffer);
-                return default;
+                throw new EndOfStreamException($"Expected {size} bytes for char but read {read}.");
             }
             var value = BitConverter.ToChar(buffer);
             ArrayPool<byte>.Shared.Return(buffer);
@@ -175,7 +175,7 @@ namespace Appegy.Storage.Serializers
             if (read != size)
             {
                 ArrayPool<byte>.Shared.Return(buffer);
-                return string.Empty;
+                throw new EndOfStreamException($"Expected {size} bytes for string but read {read}.");
             }
             var value = Encoding.GetString(buffer, 0, size);
             ArrayPool<byte>.Shared.Return(buffer);

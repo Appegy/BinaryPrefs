@@ -21,6 +21,15 @@ namespace Appegy.Storage.CollectionTests
         }
 
         [Test]
+        public void WhenDisposedTwice_ThenSecondDisposeDoesNotThrow()
+        {
+            var set = new ReactiveSet<int>();
+            set.Dispose();
+
+            set.Invoking(s => s.Dispose()).Should().NotThrow();
+        }
+
+        [Test]
         public void WhenItemIsRemoved_AndItemExistsInSet_ThenItemShouldNotBeInSet()
         {
             // Arrange
