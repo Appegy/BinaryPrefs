@@ -132,8 +132,7 @@ namespace Appegy.Storage
                     // #04 <---> Read name of type in serializer
                     var serializerName = reader.ReadString();
                     sectionsNames[i] = serializerName;
-                    orderedSectionsFromFile[i] = sections.FirstOrDefault(c => c.TypeName == serializerName)
-                        ?? sections.FirstOrDefault(c => c.FallbackNames.Contains(serializerName));
+                    orderedSectionsFromFile[i] = sections.FirstOrDefault(c => c.TypeName == serializerName) ?? sections.FirstOrDefault(c => c.FallbackNames.Contains(serializerName));
                 }
 
                 // #05 <---> Read amount of records in storage
