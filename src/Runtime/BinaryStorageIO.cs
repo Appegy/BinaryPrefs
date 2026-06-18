@@ -92,6 +92,8 @@ namespace Appegy.Storage
         /// <param name="data"> Dictionary to store data </param>
         /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
         /// <exception cref="IOException"> An I/O error occurred </exception>
+        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
+        /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             data.Clear();

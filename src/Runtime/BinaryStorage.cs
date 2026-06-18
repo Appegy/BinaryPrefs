@@ -589,23 +589,23 @@ namespace Appegy.Storage
 
         /// <summary> Throws an exception if the storage has been disposed. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private void ThrowIfDisposed()
+        private void ThrowIfDisposed([CallerMemberName] string action = null)
         {
             if (IsDisposed)
             {
-                throw new ObjectDisposedException($"{nameof(BinaryStorage)}: {_storageFilePath}");
+                throw new ObjectDisposedException($"{nameof(BinaryStorage)}: {_storageFilePath}", $"Cannot '{action}' on a disposed storage.");
             }
         }
 
         /// <summary> Throws an exception if the specified type is a collection. </summary>
         /// <typeparam name="T">The type to check.</typeparam>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
-        private void ThrowIfCollection<T>()
+        private void ThrowIfCollection<T>([CallerMemberName] string action = null)
         {
             var type = typeof(T);
             if (type.IsCollection())
             {
-                throw new IncorrectUsageOfCollectionException(nameof(Get), type);
+                throw new IncorrectUsageOfCollectionException(action, type);
             }
         }
 
@@ -669,6 +669,8 @@ namespace Appegy.Storage
         /// <summary> Loads the data from disk into memory. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IOException"> An I/O error occurred </exception>
+        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
+        /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();

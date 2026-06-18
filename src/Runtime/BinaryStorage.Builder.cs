@@ -224,6 +224,8 @@ namespace Appegy.Storage
             /// <returns>The configured <see cref="BinaryStorage"/> instance.</returns>
             /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
             /// <exception cref="IOException"> An I/O error occurred </exception>
+            /// <exception cref="StorageFileCorruptedException"> The storage file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
+            /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
             public BinaryStorage Build(KeyLoadFailedBehaviour keyLoadFailedBehaviour = KeyLoadFailedBehaviour.IgnoreWithWarning)
             {
                 var storage = new BinaryStorage(_filePath, _serializers);
