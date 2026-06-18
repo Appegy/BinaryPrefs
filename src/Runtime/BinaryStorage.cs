@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using UnityEngine.Pool;
 
@@ -397,14 +398,14 @@ namespace Appegy.Storage
         /// <returns>The collection associated with the key.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
-        private TCollection GetCollectionOf<T, TCollection>(string key)
+        private TCollection GetCollectionOf<T, TCollection>(string key, [CallerMemberName] string action = null)
             where TCollection : ICollection<T>, IReactiveCollection, new()
         {
             ThrowIfDisposed();
             var record = GetRecord(key) ?? AddRecord(key, new TCollection());
             if (record is not Record<TCollection> typedRecord)
             {
-                throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(IList<T>));
+                throw new UnexpectedTypeException(key, action, record.Type, typeof(TCollection));
             }
             return typedRecord.Value;
         }
