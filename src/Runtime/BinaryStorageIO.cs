@@ -142,6 +142,11 @@ namespace Appegy.Storage
                 var position = stream.Position;
 
                 // #09 <---> Read value from stream
+                if (typeIndex < 0 || typeIndex >= orderedSectionsFromFile.Length)
+                {
+                    failedToLoadKey($"Type index {typeIndex} is out of range");
+                    continue;
+                }
                 var section = orderedSectionsFromFile[typeIndex];
                 var index = sections.FindIndex(c => c == section);
                 if (section == null || index == -1)
@@ -149,37 +154,41 @@ namespace Appegy.Storage
                     failedToLoadKey("Unregistered type serializer");
                     continue;
                 }
+
+                Record value;
                 try
                 {
-                    var value = section.ReadFrom(reader, index);
-                    if (stream.Position != position + entrySize)
-                    {
-                        failedToLoadKey($"Read more than expected ({stream.Position - position}b)");
-                    }
-                    else
-                    {
-                        section.Count++;
-                        data.Add(key, value);
-                    }
+                    value = section.ReadFrom(reader, index);
                 }
-                catch (EndOfStreamException e)
+                catch (Exception e)
                 {
-                    failedToLoadKey("End of file stream", e);
+                    failedToLoadKey("Failed to deserialize value", e);
+                    continue;
                 }
+
+                if (stream.Position != position + entrySize)
+                {
+                    failedToLoadKey($"Read more than expected ({stream.Position - position}b)");
+                    continue;
+                }
+
+                section.Count++;
+                data.Add(key, value);
 
                 void failedToLoadKey(string reason, Exception exception = null)
                 {
                     // move stream position to the next record
                     stream.Position = Math.Min(position + entrySize, stream.Length);
 
+                    var typeName = typeIndex >= 0 && typeIndex < sectionsNames.Length ? sectionsNames[typeIndex] : "<unknown>";
                     switch (keyLoadFailedBehaviour)
                     {
                         case KeyLoadFailedBehaviour.ThrowException:
-                            throw exception ?? new KeyLoadFailedException(key, sectionsNames[typeIndex], entrySize, reason);
+                            throw exception ?? new KeyLoadFailedException(key, typeName, entrySize, reason);
                         case KeyLoadFailedBehaviour.Ignore:
                             break;
                         case KeyLoadFailedBehaviour.IgnoreWithWarning:
-                            Debug.LogWarning($"Failed to load key {key} of type {sectionsNames[typeIndex]} with size {entrySize}b. Reason: {reason}");
+                            Debug.LogWarning($"Failed to load key {key} of type {typeName} with size {entrySize}b. Reason: {reason}");
                             break;
                         default:
                             throw new UnexpectedEnumException(typeof(KeyLoadFailedBehaviour), keyLoadFailedBehaviour);
