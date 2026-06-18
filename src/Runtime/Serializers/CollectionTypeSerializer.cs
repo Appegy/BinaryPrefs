@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Appegy.Storage.Serializers
 {
@@ -9,11 +10,15 @@ namespace Appegy.Storage.Serializers
         private readonly TypeSerializer<T> _typeSerializer;
 
         public override string TypeName { get; }
+        public override IReadOnlyList<string> FallbackNames { get; }
 
         public CollectionTypeSerializer(TypeSerializer<T> typeSerializer)
         {
             _typeSerializer = typeSerializer;
             TypeName = $"{typeof(TCollection).Name}<{typeSerializer.TypeName}>";
+            FallbackNames = typeSerializer.FallbackNames
+                .Select(fallback => $"{typeof(TCollection).Name}<{fallback}>")
+                .ToArray();
         }
 
         public override bool Equals(TCollection value1, TCollection value2)

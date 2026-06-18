@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Appegy.Storage
@@ -6,6 +7,7 @@ namespace Appegy.Storage
     public abstract class TypeSerializer
     {
         public abstract string TypeName { get; }
+        public virtual IReadOnlyList<string> FallbackNames => Array.Empty<string>();
     }
 
     public abstract class TypeSerializer<T> : TypeSerializer

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Appegy.Storage
@@ -17,6 +18,7 @@ namespace Appegy.Storage
         public abstract Type Type { get; }
 
         public abstract string TypeName { get; }
+        public abstract IReadOnlyList<string> FallbackNames { get; }
         public abstract Record ReadFrom(BinaryReader binaryReader, int typeIndex);
         public abstract void WriteTo(BinaryWriter binaryWriter, Record record);
 
@@ -40,6 +42,7 @@ namespace Appegy.Storage
         public new TypeSerializer<T> Serializer => _serializer;
         public override Type Type => typeof(T);
         public override string TypeName => Serializer.TypeName;
+        public override IReadOnlyList<string> FallbackNames => Serializer.FallbackNames;
 
         public TypedBinarySection(TypeSerializer<T> serializer)
             : base(serializer)
