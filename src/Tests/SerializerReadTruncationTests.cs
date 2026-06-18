@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Appegy.Storage.Serializers;
 using FluentAssertions;
@@ -13,9 +12,7 @@ namespace Appegy.Storage
         {
             var data = new byte[] { 10, 0, 0, 0, 1, 2, 3 };
 
-            Action action = () => ReadString(data);
-
-            action.Should().Throw<EndOfStreamException>();
+            FluentActions.Invoking(() => ReadString(data)).Should().Throw<EndOfStreamException>();
         }
 
         [Test]
@@ -23,9 +20,7 @@ namespace Appegy.Storage
         {
             var data = new byte[] { 1 };
 
-            Action action = () => ReadChar(data);
-
-            action.Should().Throw<EndOfStreamException>();
+            FluentActions.Invoking(() => ReadChar(data)).Should().Throw<EndOfStreamException>();
         }
 
         private static void ReadString(byte[] data)
