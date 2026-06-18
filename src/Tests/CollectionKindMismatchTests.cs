@@ -1,4 +1,3 @@
-using System;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -17,9 +16,8 @@ namespace Appegy.Storage
 
             storage.GetListOf<int>("k").Add(1);
 
-            Action action = () => storage.GetSetOf<int>("k");
-
-            action.Should().Throw<UnexpectedTypeException>()
+            storage.Invoking(s => s.GetSetOf<int>("k"))
+                .Should().Throw<UnexpectedTypeException>()
                 .Where(e => e.Message.Contains("GetSetOf") && e.Message.Contains("ReactiveSet"));
         }
     }
