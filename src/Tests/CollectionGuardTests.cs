@@ -10,45 +10,35 @@ namespace Appegy.Storage
         public void WhenSetCalledWithCollectionType_ThenThrows()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
-            storage.Invoking(s => s.Set("key", new List<int> { 1, 2, 3 }))
-                .Should().Throw<IncorrectUsageOfCollectionException>();
+            storage.Invoking(s => s.Set("key", new List<int> { 1, 2, 3 })).Should().Throw<IncorrectUsageOfCollectionException>();
         }
 
         [Test]
         public void WhenGetCalledWithCollectionType_ThenThrows()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
-            storage.Invoking(s => s.Get<List<int>>("key"))
-                .Should().Throw<IncorrectUsageOfCollectionException>();
+            storage.Invoking(s => s.Get<List<int>>("key")).Should().Throw<IncorrectUsageOfCollectionException>();
         }
 
         [Test]
         public void WhenSetRawCalledWithCollectionInstance_ThenThrows()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
-            storage.Invoking(s => s.SetRaw("key", new List<int> { 1 }))
-                .Should().Throw<IncorrectUsageOfCollectionException>();
+            storage.Invoking(s => s.SetRaw("key", new List<int> { 1 })).Should().Throw<IncorrectUsageOfCollectionException>();
         }
 
         [Test]
         public void WhenSupportsCalledWithCollectionType_ThenThrows()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
-            storage.Invoking(s => s.Supports<List<int>>())
-                .Should().Throw<IncorrectUsageOfCollectionException>();
+            storage.Invoking(s => s.Supports<List<int>>()).Should().Throw<IncorrectUsageOfCollectionException>();
         }
 
         [Test]
         public void WhenStringValueUsed_ThenNotTreatedAsCollection()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
             storage.Set("name", "John");
-
             storage.Get("name", string.Empty).Should().Be("John");
         }
 
