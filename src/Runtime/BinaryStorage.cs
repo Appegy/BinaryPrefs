@@ -634,6 +634,11 @@ namespace Appegy.Storage
                 return;
             }
 
+            if (disposing && AutoSave && IsDirty)
+            {
+                SaveDataFromDisk();
+            }
+
             // Always dispose IReactiveCollection instances
             foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
             {
