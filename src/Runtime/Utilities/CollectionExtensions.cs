@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Appegy.Storage
 {
@@ -64,12 +65,7 @@ namespace Appegy.Storage
 
         public static bool IsCollection(this Type type)
         {
-            if (!type.IsGenericType)
-            {
-                return false;
-            }
-            var genericTypeDefinition = type.GetGenericTypeDefinition();
-            return typeof(ICollection<>).IsAssignableFrom(genericTypeDefinition);
+            return type.GetInterfaces().Append(type).Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
         }
 
         public static void ForEach<T>(this Span<T> source, Action<T> predicate)
