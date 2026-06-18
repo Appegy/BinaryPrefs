@@ -8,5 +8,10 @@ namespace Appegy.Storage
             : base($"Failed to load key {key} of type {type} with size {size}b. Reason: {reason}")
         {
         }
+
+        public KeyLoadFailedException(string key, string type, long size, string reason, Exception innerException)
+            : base($"Failed to load key {key} of type {type} with size {size}b. Reason: {reason}", innerException)
+        {
+        }
     }
 }
