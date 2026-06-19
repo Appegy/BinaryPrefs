@@ -452,7 +452,15 @@ namespace Appegy.Storage
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         private void AddRawRecord(string key, object value, Type valueType)
         {
-            var typeIndex = _supportedTypes.FindIndex(c => c.Type == valueType);
+            var typeIndex = -1;
+            for (var i = 0; i < _supportedTypes.Count; i++)
+            {
+                if (_supportedTypes[i].Type == valueType)
+                {
+                    typeIndex = i;
+                    break;
+                }
+            }
             if (typeIndex == -1)
             {
                 throw new UnregisteredTypeException(valueType);
