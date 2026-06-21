@@ -68,7 +68,7 @@ namespace Appegy.Storage
             return _root.Supports<T>();
         }
 
-        [return: NotNullIfNotNull(nameof(defaultValue))]
+        [return: NotNullIfNotNull("defaultValue")]
         public T? Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
             return _root.Get(GetKey(key), defaultValue, overrideMissingKeyBehavior);

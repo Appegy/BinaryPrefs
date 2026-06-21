@@ -1027,7 +1027,10 @@ namespace Appegy.Storage
         [Test]
         public void WhenKeyMissing_AndGetCalled_ThenReturnsDefault()
         {
-            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
 
             storage.Get("missing", 7).Should().Be(7);
             storage.Has("missing").Should().BeFalse();
