@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Appegy.Storage.Serializers;
 using FluentAssertions;
 using NUnit.Framework;
@@ -666,6 +665,31 @@ namespace Appegy.Storage
             storage.Get<int>("key").Should().Be(10);
         }
 
+        [Test]
+        public void WhenMissingKeyBehaviorIsReturnDefaultValueOnly_AndStringHasNoDefault_ThenReturnsEmpty()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            storage.Get<string>("missing").Should().Be(string.Empty);
+            storage.Has("missing").Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenMissingKeyBehaviorIsInitializeWithDefaultValue_AndStringHasNoDefault_ThenInitializesWithEmpty()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.InitializeWithDefaultValue)
+                .Build();
+
+            storage.Get<string>("missing").Should().Be(string.Empty);
+            storage.Has("missing").Should().BeTrue();
+            storage.Get<string>("missing").Should().Be(string.Empty);
+        }
+
         #endregion
 
         #region Keys Tests
@@ -1018,56 +1042,6 @@ namespace Appegy.Storage
             // Assert
             raw1.Should().Be(100);
             typed2.Should().Be(200);
-        }
-
-        #endregion
-
-        #region Get Default Tests
-
-        [Test]
-        public void WhenKeyMissing_AndGetCalled_ThenReturnsDefault()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
-                .Build();
-
-            storage.Get("missing", 7).Should().Be(7);
-            storage.Has("missing").Should().BeFalse();
-        }
-
-        [Test]
-        public void WhenKeyExists_AndGetCalled_ThenReturnsValue()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-            storage.Set("key", 42);
-
-            storage.Get<int>("key").Should().Be(42);
-        }
-
-        [Test]
-        public void WhenStringKeyMissing_AndNoDefaultProvided_ThenReturnsEmptyInsteadOfNull()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
-                .Build();
-
-            storage.Get<string>("missing").Should().Be(string.Empty);
-            storage.Has("missing").Should().BeFalse();
-        }
-
-        [Test]
-        public void WhenStringKeyMissing_AndInitializeBehavior_ThenInitializesWithEmpty()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .SetMissingKeyBehaviour(MissingKeyBehavior.InitializeWithDefaultValue)
-                .Build();
-
-            storage.Get<string>("missing").Should().Be(string.Empty);
-            storage.Has("missing").Should().BeTrue();
-            storage.Get<string>("missing").Should().Be(string.Empty);
         }
 
         #endregion
