@@ -392,6 +392,7 @@ namespace Appegy.Storage
         /// <typeparam name="T">The type of the collection elements.</typeparam>
         /// <typeparam name="TCollection">The type of the collection.</typeparam>
         /// <param name="key">The key to get the collection for.</param>
+        /// <param name="action">The calling member name, supplied automatically and used in exception messages.</param>
         /// <returns>The collection associated with the key.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
