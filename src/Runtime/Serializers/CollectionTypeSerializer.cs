@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,17 +21,13 @@ namespace Appegy.Storage.Serializers
                 .ToArray();
         }
 
-        public override bool Equals(TCollection? value1, TCollection? value2)
+        public override bool Equals(TCollection value1, TCollection value2)
         {
             return value1 == value2;
         }
 
-        public override void WriteTo(BinaryWriter writer, TCollection? collection)
+        public override void WriteTo(BinaryWriter writer, TCollection collection)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
             writer.Write(collection.Count);
             foreach (var value in collection)
             {
@@ -47,7 +42,7 @@ namespace Appegy.Storage.Serializers
             for (var i = 0; i < count; i++)
             {
                 var value = _typeSerializer.ReadFrom(reader);
-                collection.Add(value!);
+                collection.Add(value);
             }
             return collection;
         }

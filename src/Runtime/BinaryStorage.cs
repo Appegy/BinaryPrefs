@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -173,14 +174,62 @@ namespace Appegy.Storage
         /// <summary> Gets the value associated with the specified key. </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
-        /// <param name="defaultValue">The default value to use if the key does not exist.</param>
-        /// <param name="overrideMissingKeyBehavior">Override default behavior when a requested key is not found in the storage.</param>
         /// <returns>The value associated with the key.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if the key does not exist.</exception>
+        /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
+        public virtual T Get<T>(string key)
+        {
+            ThrowIfDisposed();
+            ThrowIfCollection<T>();
+            var record = GetRecord(key);
+            return record switch
+            {
+                Record<T> typedRecord => typedRecord.Value,
+                not null => throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T)),
+                null => throw new KeyNotFoundException($"Key '{key}' was not found in the storage.")
+            };
+        }
+
+        /// <summary> Tries to get the value associated with the specified key. </summary>
+        /// <typeparam name="T">The type of the value.</typeparam>
+        /// <param name="key">The key to get the value for.</param>
+        /// <param name="value">When this method returns true, contains the value associated with the key.</param>
+        /// <returns>True if the key exists; otherwise, false.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
+        /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
+        public virtual bool TryGet<T>(string key, [MaybeNullWhen(false)] out T value)
+        {
+            ThrowIfDisposed();
+            ThrowIfCollection<T>();
+            var record = GetRecord(key);
+            switch (record)
+            {
+                case Record<T> typedRecord:
+                    value = typedRecord.Value;
+                    return true;
+                case not null:
+                    throw new UnexpectedTypeException(key, nameof(TryGet), record.Type, typeof(T));
+                default:
+                    value = default;
+                    return false;
+            }
+        }
+
+        /// <summary> Gets the value associated with the specified key, or a fallback if the key does not exist. </summary>
+        /// <typeparam name="T">The type of the value.</typeparam>
+        /// <param name="key">The key to get the value for.</param>
+        /// <param name="fallback">The value to return (and optionally store) when the key does not exist.</param>
+        /// <param name="overrideMissingKeyBehavior">Override default behavior when a requested key is not found in the storage.</param>
+        /// <returns>The value associated with the key, or the fallback.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        public virtual T? Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
+        [return: NotNullIfNotNull("fallback")]
+        public virtual T? GetOrDefault<T>(string key, T? fallback = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -189,13 +238,10 @@ namespace Appegy.Storage
             return record switch
             {
                 Record<T> typedRecord => typedRecord.Value,
-                not null => throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T)),
-                null => missingKeyBehavior switch
-                {
-                    MissingKeyBehavior.InitializeWithDefaultValue => AddRecord(key, defaultValue).Value,
-                    MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue,
-                    _ => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), missingKeyBehavior)
-                }
+                not null => throw new UnexpectedTypeException(key, nameof(GetOrDefault), record.Type, typeof(T)),
+                null when missingKeyBehavior == MissingKeyBehavior.InitializeWithDefaultValue && fallback is not null => AddRecord(key, fallback).Value,
+                null when missingKeyBehavior is MissingKeyBehavior.InitializeWithDefaultValue or MissingKeyBehavior.ReturnDefaultValueOnly => fallback,
+                null => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), missingKeyBehavior)
             };
         }
 
@@ -209,7 +255,8 @@ namespace Appegy.Storage
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        public virtual bool Set<T>(string key, T? value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+        public virtual bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+            where T : notnull
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -395,7 +442,7 @@ namespace Appegy.Storage
         /// <returns>The collection associated with the key.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
-        private TCollection GetCollectionOf<T, TCollection>(string key, [CallerMemberName] string action = null!)
+        private TCollection GetCollectionOf<T, TCollection>(string key, [CallerMemberName] string action = "")
             where TCollection : ICollection<T>, IReactiveCollection, new()
         {
             ThrowIfDisposed();
@@ -404,7 +451,7 @@ namespace Appegy.Storage
             {
                 throw new UnexpectedTypeException(key, action, record.Type, typeof(TCollection));
             }
-            return typedRecord.Value!;
+            return typedRecord.Value;
         }
 
         #endregion
@@ -420,7 +467,7 @@ namespace Appegy.Storage
         /// <returns>The added record.</returns>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private Record<T> AddRecord<T>(string key, T? value)
+        private Record<T> AddRecord<T>(string key, T value)
         {
             var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
             if (typeIndex == -1)
@@ -478,7 +525,7 @@ namespace Appegy.Storage
         /// <param name="value">The new value.</param>
         /// <returns>True if the value was changed; otherwise, false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private bool ChangeRecord<T>(string key, Record<T> record, T? value)
+        private bool ChangeRecord<T>(string key, Record<T> record, T value)
         {
             var serializer = ((TypedBinarySection<T>)_supportedTypes[record.TypeIndex]).Serializer;
             var equals = serializer.Equals(record.Value, value);
@@ -593,7 +640,7 @@ namespace Appegy.Storage
 
         /// <summary> Throws an exception if the storage has been disposed. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private void ThrowIfDisposed([CallerMemberName] string action = null!)
+        private void ThrowIfDisposed([CallerMemberName] string action = "")
         {
             if (IsDisposed)
             {
@@ -604,7 +651,7 @@ namespace Appegy.Storage
         /// <summary> Throws an exception if the specified type is a collection. </summary>
         /// <typeparam name="T">The type to check.</typeparam>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
-        private void ThrowIfCollection<T>([CallerMemberName] string action = null!)
+        private void ThrowIfCollection<T>([CallerMemberName] string action = "")
         {
             var type = typeof(T);
             if (type.IsCollection())

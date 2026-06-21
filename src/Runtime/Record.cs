@@ -15,9 +15,9 @@ namespace Appegy.Storage
         public override int TypeIndex { get; }
         public override Object? Object => Value;
 
-        public T? Value { get; set; }
+        public T Value { get; set; }
 
-        public Record(T? value, int typeIndex)
+        public Record(T value, int typeIndex)
         {
             Type = typeof(T);
             TypeIndex = typeIndex;

@@ -16,7 +16,7 @@ namespace Appegy.Storage
 
             using var reopened = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().EnableAutoSaveOnChange().Build();
 
-            reopened.Get("a", 0).Should().Be(42);
+            reopened.GetOrDefault("a", 0).Should().Be(42);
         }
 
         [Test]

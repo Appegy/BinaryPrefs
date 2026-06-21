@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Appegy.Storage
 {
@@ -49,14 +50,35 @@ namespace Appegy.Storage
         /// <summary> Gets the value associated with the specified key. </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
-        /// <param name="defaultValue">The default value to use if the key does not exist.</param>
-        /// <param name="overrideMissingKeyBehavior">Override default behavior when a requested key is not found in the storage.</param>
         /// <returns>The value associated with the key.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if the key does not exist.</exception>
+        /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
+        T Get<T>(string key);
+
+        /// <summary> Tries to get the value associated with the specified key. </summary>
+        /// <typeparam name="T">The type of the value.</typeparam>
+        /// <param name="key">The key to get the value for.</param>
+        /// <param name="value">When this method returns true, contains the value associated with the key.</param>
+        /// <returns>True if the key exists; otherwise, false.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
+        /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
+        bool TryGet<T>(string key, [MaybeNullWhen(false)] out T value);
+
+        /// <summary> Gets the value associated with the specified key, or a fallback if the key does not exist. </summary>
+        /// <typeparam name="T">The type of the value.</typeparam>
+        /// <param name="key">The key to get the value for.</param>
+        /// <param name="fallback">The value to return (and optionally store) when the key does not exist.</param>
+        /// <param name="overrideMissingKeyBehavior">Override default behavior when a requested key is not found in the storage.</param>
+        /// <returns>The value associated with the key, or the fallback.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        T? Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null);
+        [return: NotNullIfNotNull("fallback")]
+        T? GetOrDefault<T>(string key, T? fallback = default, MissingKeyBehavior? overrideMissingKeyBehavior = null);
 
         /// <summary> Sets the value for the specified key. </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
@@ -68,7 +90,7 @@ namespace Appegy.Storage
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        bool Set<T>(string key, T? value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null);
+        bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null) where T : notnull;
 
         /// <summary>
         /// Removes the value associated with the specified key.

@@ -68,12 +68,24 @@ namespace Appegy.Storage
             return _root.Supports<T>();
         }
 
-        public T? Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
+        public T Get<T>(string key)
         {
-            return _root.Get(GetKey(key), defaultValue, overrideMissingKeyBehavior);
+            return _root.Get<T>(GetKey(key));
         }
 
-        public bool Set<T>(string key, T? value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+        public bool TryGet<T>(string key, [MaybeNullWhen(false)] out T value)
+        {
+            return _root.TryGet(GetKey(key), out value);
+        }
+
+        [return: NotNullIfNotNull("fallback")]
+        public T? GetOrDefault<T>(string key, T? fallback = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
+        {
+            return _root.GetOrDefault(GetKey(key), fallback, overrideMissingKeyBehavior);
+        }
+
+        public bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+            where T : notnull
         {
             return _root.Set(GetKey(key), value, overrideTypeMismatchBehaviour);
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Appegy.Storage.Serializers;
 using FluentAssertions;
 using NUnit.Framework;
@@ -622,7 +623,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Act
-            var value = storage.Get("key", 10);
+            var value = storage.GetOrDefault("key", 10);
 
             // Assert
             value.Should().Be(10);
@@ -640,7 +641,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Act
-            var value = storage.Get("key", 10);
+            var value = storage.GetOrDefault("key", 10);
 
             // Assert
             value.Should().Be(10);
@@ -657,7 +658,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Act
-            var value = storage.Get("key", 10, MissingKeyBehavior.InitializeWithDefaultValue);
+            var value = storage.GetOrDefault("key", 10, MissingKeyBehavior.InitializeWithDefaultValue);
 
             // Assert
             value.Should().Be(10);
@@ -1021,61 +1022,51 @@ namespace Appegy.Storage
 
         #endregion
 
-        #region Null Value Tests
+        #region Get / TryGet / GetOrDefault
 
         [Test]
-        public void WhenStringValueSetToNull_ThenGetReturnsNull()
+        public void WhenKeyMissing_AndGetCalled_ThenThrowsKeyNotFound()
         {
-            // Arrange
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddTypeSerializer(StringSerializer.Shared)
-                .Build();
+            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
 
-            // Act
-            storage.Set<string>("key", null);
-
-            // Assert
-            storage.Has("key").Should().Be(true);
-            storage.Get<string>("key").Should().BeNull();
+            storage.Invoking(s => s.Get<int>("missing")).Should().Throw<KeyNotFoundException>();
         }
 
         [Test]
-        public void WhenNullStringStored_AndStorageReloaded_ThenNullPersisted()
+        public void WhenKeyExists_AndGetCalled_ThenReturnsValue()
         {
-            // Arrange & Act
-            using (var storage = BinaryStorage.Construct(StoragePath)
-                       .AddTypeSerializer(StringSerializer.Shared)
-                       .EnableAutoSaveOnChange()
-                       .Build())
-            {
-                storage.Set<string>("key", null);
-            }
+            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
+            storage.Set("key", 42);
 
-            // Assert
-            using (var storage = BinaryStorage.Construct(StoragePath)
-                       .AddTypeSerializer(StringSerializer.Shared)
-                       .Build())
-            {
-                storage.Has("key").Should().Be(true);
-                storage.Get<string>("key").Should().BeNull();
-            }
+            storage.Get<int>("key").Should().Be(42);
         }
 
         [Test]
-        public void WhenNullStringStored_ThenDistinctFromEmptyString()
+        public void WhenKeyMissing_AndTryGetCalled_ThenReturnsFalse()
         {
-            // Arrange
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddTypeSerializer(StringSerializer.Shared)
-                .Build();
+            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
 
-            // Act
-            storage.Set<string>("null_key", null);
-            storage.Set<string>("empty_key", string.Empty);
+            storage.TryGet<int>("missing", out var value).Should().BeFalse();
+            value.Should().Be(0);
+        }
 
-            // Assert
-            storage.Get<string>("null_key").Should().BeNull();
-            storage.Get<string>("empty_key").Should().Be(string.Empty);
+        [Test]
+        public void WhenKeyExists_AndTryGetCalled_ThenReturnsTrueWithValue()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
+            storage.Set("key", "value");
+
+            storage.TryGet<string>("key", out var value).Should().BeTrue();
+            value.Should().Be("value");
+        }
+
+        [Test]
+        public void WhenKeyMissing_AndGetOrDefaultCalled_ThenReturnsFallback()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
+
+            storage.GetOrDefault("missing", 7).Should().Be(7);
+            storage.Has("missing").Should().BeFalse();
         }
 
         #endregion
