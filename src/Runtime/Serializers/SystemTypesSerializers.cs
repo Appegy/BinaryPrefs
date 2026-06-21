@@ -138,13 +138,11 @@ namespace Appegy.Storage.Serializers
 
         public override string TypeName => "string";
 
+        public override string GetDefault() => string.Empty;
+
         public override void WriteTo(BinaryWriter writer, string value)
         {
-            if (value == null)
-            {
-                writer.Write(-1);
-            }
-            else if (value.Length == 0)
+            if (string.IsNullOrEmpty(value))
             {
                 writer.Write(0);
             }
@@ -162,11 +160,7 @@ namespace Appegy.Storage.Serializers
         public override string ReadFrom(BinaryReader reader)
         {
             var size = reader.ReadInt32();
-            if (size == -1)
-            {
-                return null;
-            }
-            if (size == 0)
+            if (size == 0 || size == -1)
             {
                 return string.Empty;
             }

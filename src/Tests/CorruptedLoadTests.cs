@@ -94,11 +94,11 @@ namespace Appegy.Storage
             reopened.Keys.Count.Should().Be(1);
             if (reopened.Has("a"))
             {
-                reopened.Get("a", 0).Should().Be(1);
+                reopened.Get<int>("a").Should().Be(1);
             }
             else
             {
-                reopened.Get("b", 0).Should().Be(2);
+                reopened.Get<int>("b").Should().Be(2);
             }
         }
 

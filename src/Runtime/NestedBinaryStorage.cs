@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Appegy.Storage
@@ -31,7 +32,7 @@ namespace Appegy.Storage
             return _prefix + key;
         }
 
-        private bool TryExtractKey(string key, out string value)
+        private bool TryExtractKey(string key, [MaybeNullWhen(false)] out string value)
         {
             if (key.StartsWith(_prefix, StringComparison.Ordinal))
             {
@@ -42,7 +43,7 @@ namespace Appegy.Storage
             return false;
         }
 
-        public object GetRaw(string key)
+        public object? GetRaw(string key)
         {
             return _root.GetRaw(GetKey(key));
         }
@@ -57,7 +58,7 @@ namespace Appegy.Storage
             return _root.Has(GetKey(key));
         }
 
-        public Type TypeOf(string key)
+        public Type? TypeOf(string key)
         {
             return _root.TypeOf(GetKey(key));
         }
@@ -67,12 +68,13 @@ namespace Appegy.Storage
             return _root.Supports<T>();
         }
 
-        public T Get<T>(string key, T defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
+        public T Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
             return _root.Get(GetKey(key), defaultValue, overrideMissingKeyBehavior);
         }
 
         public bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+            where T : notnull
         {
             return _root.Set(GetKey(key), value, overrideTypeMismatchBehaviour);
         }

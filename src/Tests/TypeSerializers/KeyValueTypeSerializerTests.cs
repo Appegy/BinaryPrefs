@@ -14,7 +14,6 @@ namespace Appegy.Storage.TypeSerializers
             new object[] { new KeyValuePair<string, int>("key2", 2), "key2_2" },
             new object[] { new KeyValuePair<string, int>("key3", 3), "key3_3" },
             new object[] { new KeyValuePair<string, int>("", 0), "empty_0" },
-            new object[] { new KeyValuePair<string, int>(null, 0), "null_0" },
             new object[] { new KeyValuePair<string, int>("key with space", 12345), "space_12345" },
             new object[] { new KeyValuePair<string, int>("long key with multiple words", 67890), "long_67890" }
         };

@@ -143,34 +143,41 @@ namespace Appegy.Storage
             {
                 var enumType = typeof(T);
                 var underlyingType = Enum.GetUnderlyingType(enumType);
-                switch (underlyingType)
+                if (underlyingType == typeof(byte))
                 {
-                    case not null when underlyingType == typeof(byte):
-                        AddTypeSerializer(new EnumTypeSerializer<T, byte>(ByteSerializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(sbyte):
-                        AddTypeSerializer(new EnumTypeSerializer<T, sbyte>(SByteSerializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(short):
-                        AddTypeSerializer(new EnumTypeSerializer<T, short>(Int16Serializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(ushort):
-                        AddTypeSerializer(new EnumTypeSerializer<T, ushort>(UInt16Serializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(int):
-                        AddTypeSerializer(new EnumTypeSerializer<T, int>(Int32Serializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(uint):
-                        AddTypeSerializer(new EnumTypeSerializer<T, uint>(UInt32Serializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(long):
-                        AddTypeSerializer(new EnumTypeSerializer<T, long>(Int64Serializer.Shared, useFullName));
-                        break;
-                    case not null when underlyingType == typeof(ulong):
-                        AddTypeSerializer(new EnumTypeSerializer<T, ulong>(UInt64Serializer.Shared, useFullName));
-                        break;
-                    default:
-                        throw new UnexpectedUnderlyingEnumTypeException(enumType, underlyingType);
+                    AddTypeSerializer(new EnumTypeSerializer<T, byte>(ByteSerializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(sbyte))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, sbyte>(SByteSerializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(short))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, short>(Int16Serializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(ushort))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, ushort>(UInt16Serializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(int))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, int>(Int32Serializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(uint))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, uint>(UInt32Serializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(long))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, long>(Int64Serializer.Shared, useFullName));
+                }
+                else if (underlyingType == typeof(ulong))
+                {
+                    AddTypeSerializer(new EnumTypeSerializer<T, ulong>(UInt64Serializer.Shared, useFullName));
+                }
+                else
+                {
+                    throw new UnexpectedUnderlyingEnumTypeException(enumType, underlyingType);
                 }
                 return this;
             }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace Appegy.Storage
 {
@@ -14,8 +13,7 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value associated with the key, or null if the key does not exist.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        [CanBeNull]
-        object GetRaw(string key);
+        object? GetRaw(string key);
 
         /// <summary> Sets the value for the specified key using an untyped object. </summary>
         /// <param name="key">The key to set the value for.</param>
@@ -39,7 +37,7 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the type for.</param>
         /// <returns>The type of the value associated with the key, or null if the key does not exist.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        Type TypeOf(string key);
+        Type? TypeOf(string key);
 
         /// <summary> Determines whether the storage supports the specified type. </summary>
         /// <typeparam name="T">The type to check for support.</typeparam>
@@ -53,12 +51,12 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the value for.</param>
         /// <param name="defaultValue">The default value to use if the key does not exist.</param>
         /// <param name="overrideMissingKeyBehavior">Override default behavior when a requested key is not found in the storage.</param>
-        /// <returns>The value associated with the key.</returns>
+        /// <returns>The value associated with the key, the supplied default value, or the type's non-null default.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        T Get<T>(string key, T defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null);
+        T Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null);
 
         /// <summary> Sets the value for the specified key. </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
@@ -70,7 +68,7 @@ namespace Appegy.Storage
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null);
+        bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null) where T : notnull;
 
         /// <summary>
         /// Removes the value associated with the specified key.

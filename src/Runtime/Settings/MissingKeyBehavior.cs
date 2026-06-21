@@ -6,12 +6,12 @@ namespace Appegy.Storage
     public enum MissingKeyBehavior
     {
         /// <summary>
-        /// Initializes the key with the provided default value and stores it.
+        /// Initializes the key with the provided default value, or the type's non-null default when none is provided, and stores it.
         /// </summary>
         InitializeWithDefaultValue,
 
         /// <summary>
-        /// Returns the provided default value without storing it.
+        /// Returns the provided default value, or the type's non-null default when none is provided, without storing it.
         /// </summary>
         ReturnDefaultValueOnly
     }

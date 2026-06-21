@@ -210,7 +210,7 @@ namespace Appegy.Storage
                 section.Count++;
                 data.Add(key, value);
 
-                void failedToLoadKey(string reason, Exception exception = null)
+                void failedToLoadKey(string reason, Exception? exception = null)
                 {
                     // move stream position to the next record
                     stream.Position = Math.Min(position + entrySize, stream.Length);

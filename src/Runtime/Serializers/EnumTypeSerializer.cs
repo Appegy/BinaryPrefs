@@ -16,6 +16,8 @@ namespace Appegy.Storage.Serializers
             return ToNumber(value1).Equals(ToNumber(value2));
         }
 
+        public override TEnum GetDefault() => default;
+
         public EnumTypeSerializer(TypeSerializer<TNumber> numberType, bool useFullName)
         {
             _numberType = numberType;

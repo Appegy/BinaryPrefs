@@ -39,7 +39,7 @@ namespace Appegy.Storage
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
             storage.Set("name", "John");
-            storage.Get("name", string.Empty).Should().Be("John");
+            storage.Get<string>("name").Should().Be("John");
         }
 
         [Test]

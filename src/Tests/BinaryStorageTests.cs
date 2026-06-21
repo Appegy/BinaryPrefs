@@ -665,6 +665,31 @@ namespace Appegy.Storage
             storage.Get<int>("key").Should().Be(10);
         }
 
+        [Test]
+        public void WhenMissingKeyBehaviorIsReturnDefaultValueOnly_AndStringHasNoDefault_ThenReturnsEmpty()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            storage.Get<string>("missing").Should().Be(string.Empty);
+            storage.Has("missing").Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenMissingKeyBehaviorIsInitializeWithDefaultValue_AndStringHasNoDefault_ThenInitializesWithEmpty()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.InitializeWithDefaultValue)
+                .Build();
+
+            storage.Get<string>("missing").Should().Be(string.Empty);
+            storage.Has("missing").Should().BeTrue();
+            storage.Get<string>("missing").Should().Be(string.Empty);
+        }
+
         #endregion
 
         #region Keys Tests
@@ -832,7 +857,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Assert
-            Action action = () => storage.SetRaw("key", null);
+            Action action = () => storage.SetRaw("key", null!);
             action.Should().Throw<ArgumentNullException>();
         }
 
@@ -916,8 +941,8 @@ namespace Appegy.Storage
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
-            var addedKey = (string)null;
-            var changedKey = (string)null;
+            string? addedKey = null;
+            string? changedKey = null;
             storage.OnKeyAdded += k => addedKey = k;
             storage.OnKeyChanged += k => changedKey = k;
 

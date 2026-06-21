@@ -4,6 +4,6 @@ namespace Appegy.Storage
 {
     internal interface IReactiveCollection : IDisposable
     {
-        public event Action<IReactiveCollection> OnChanged;
+        public event Action<IReactiveCollection>? OnChanged;
     }
 }

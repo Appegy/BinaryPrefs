@@ -24,6 +24,8 @@ namespace Appegy.Storage.Serializers
             return _keySerializer.Equals(value1.Key, value2.Key) && _valueSerializer.Equals(value1.Value, value2.Value);
         }
 
+        public override KeyValuePair<TKey, TValue> GetDefault() => default;
+
         public override void WriteTo(BinaryWriter writer, KeyValuePair<TKey, TValue> value)
         {
             _keySerializer.WriteTo(writer, value.Key);
