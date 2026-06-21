@@ -623,7 +623,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Act
-            var value = storage.GetOrDefault("key", 10);
+            var value = storage.Get("key", 10);
 
             // Assert
             value.Should().Be(10);
@@ -641,7 +641,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Act
-            var value = storage.GetOrDefault("key", 10);
+            var value = storage.Get("key", 10);
 
             // Assert
             value.Should().Be(10);
@@ -658,7 +658,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Act
-            var value = storage.GetOrDefault("key", 10, MissingKeyBehavior.InitializeWithDefaultValue);
+            var value = storage.Get("key", 10, MissingKeyBehavior.InitializeWithDefaultValue);
 
             // Assert
             value.Should().Be(10);
@@ -1022,14 +1022,15 @@ namespace Appegy.Storage
 
         #endregion
 
-        #region Get / TryGet / GetOrDefault
+        #region Get Default Tests
 
         [Test]
-        public void WhenKeyMissing_AndGetCalled_ThenThrowsKeyNotFound()
+        public void WhenKeyMissing_AndGetCalled_ThenReturnsDefault()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
 
-            storage.Invoking(s => s.Get<int>("missing")).Should().Throw<KeyNotFoundException>();
+            storage.Get("missing", 7).Should().Be(7);
+            storage.Has("missing").Should().BeFalse();
         }
 
         [Test]
@@ -1039,34 +1040,6 @@ namespace Appegy.Storage
             storage.Set("key", 42);
 
             storage.Get<int>("key").Should().Be(42);
-        }
-
-        [Test]
-        public void WhenKeyMissing_AndTryGetCalled_ThenReturnsFalse()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
-            storage.TryGet<int>("missing", out var value).Should().BeFalse();
-            value.Should().Be(0);
-        }
-
-        [Test]
-        public void WhenKeyExists_AndTryGetCalled_ThenReturnsTrueWithValue()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-            storage.Set("key", "value");
-
-            storage.TryGet<string>("key", out var value).Should().BeTrue();
-            value.Should().Be("value");
-        }
-
-        [Test]
-        public void WhenKeyMissing_AndGetOrDefaultCalled_ThenReturnsFallback()
-        {
-            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-
-            storage.GetOrDefault("missing", 7).Should().Be(7);
-            storage.Has("missing").Should().BeFalse();
         }
 
         #endregion

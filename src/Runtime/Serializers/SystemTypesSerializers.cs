@@ -158,7 +158,7 @@ namespace Appegy.Storage.Serializers
         public override string ReadFrom(BinaryReader reader)
         {
             var size = reader.ReadInt32();
-            if (size == 0)
+            if (size <= 0)
             {
                 return string.Empty;
             }

@@ -23,17 +23,17 @@ namespace Appegy.Storage.Example
 
             using (_storage.MultipleChangeScope())
             {
-                var value = _storage.GetOrDefault<int>("int_val", 0);
+                var value = _storage.Get<int>("int_val", 0);
                 _storage.Set("int_val", value + 1);
 
                 using (_storage.MultipleChangeScope())
                 {
-                    value = _storage.GetOrDefault<int>("int_val", 0);
+                    value = _storage.Get<int>("int_val", 0);
                     _storage.Set("int_val", value + 1);
 
                     using (_storage.MultipleChangeScope())
                     {
-                        value = _storage.GetOrDefault<int>("int_val", 0);
+                        value = _storage.Get<int>("int_val", 0);
                         _storage.Set("int_val", value + 1);
                     }
                 }
@@ -42,7 +42,7 @@ namespace Appegy.Storage.Example
 
         private void OnGUI()
         {
-            var value = _storage.GetOrDefault<int>("int_val", 0);
+            var value = _storage.Get<int>("int_val", 0);
             if (GUILayout.Button($"INT={value}"))
             {
                 _storage.Set("int_val", value + 1);

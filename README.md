@@ -75,9 +75,9 @@ storage.Set("player_score", 100);
 storage.Set("player_speed", 5.5f);
 storage.Set("player_name", "John Doe");
 
-int score = storage.Get<int>("player_score");
-float speed = storage.Get<float>("player_speed");
-string name = storage.Get<string>("player_name");
+int score = storage.Get("player_score", 0);
+float speed = storage.Get("player_speed", 1.0f);
+string name = storage.Get("player_name", "Unknown");
 ```
 
 > `BinaryStorage` implements `IDisposable`. Dispose it (e.g. with `using`) to flush and release the file. In the Editor the file path is locked while a storage instance is open, preventing accidental concurrent access to the same file.
@@ -117,9 +117,7 @@ To persist your own type, register a serializer for it:
 storage.Set("level", 7);                      // returns bool: true if the value was written
 bool exists = storage.Has("level");           // key present?
 System.Type type = storage.TypeOf("level");   // stored type, or null if absent
-int level = storage.Get<int>("level");        // typed read; throws KeyNotFoundException if absent
-int lvlOr = storage.GetOrDefault("level", 1); // typed read with a fallback
-storage.TryGet("level", out int parsed);      // typed read without throwing
+int level = storage.Get("level", 1);          // typed read with default
 
 storage.Remove("level");                       // remove one key
 storage.Remove(key => key.StartsWith("tmp_")); // remove by predicate, returns count
