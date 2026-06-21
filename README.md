@@ -75,9 +75,9 @@ storage.Set("player_score", 100);
 storage.Set("player_speed", 5.5f);
 storage.Set("player_name", "John Doe");
 
-int score = storage.GetOrDefault("player_score", 0);
-float speed = storage.GetOrDefault("player_speed", 1.0f);
-string name = storage.GetOrDefault("player_name", "Unknown");
+int score = storage.Get<int>("player_score");
+float speed = storage.Get<float>("player_speed");
+string name = storage.Get<string>("player_name");
 ```
 
 > `BinaryStorage` implements `IDisposable`. Dispose it (e.g. with `using`) to flush and release the file. In the Editor the file path is locked while a storage instance is open, preventing accidental concurrent access to the same file.
