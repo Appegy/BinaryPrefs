@@ -415,16 +415,6 @@ namespace Appegy.Storage
 
         #region Mutable methods
 
-        private T GetDefaultOf<T>()
-        {
-            var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
-            if (typeIndex == -1)
-            {
-                throw new UnregisteredTypeException(typeof(T));
-            }
-            return ((TypedBinarySection<T>)_supportedTypes[typeIndex]).Serializer.GetDefault();
-        }
-
         /// <summary> Adds a new record with the specified key and value. </summary>
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="key">The key to add the record for.</param>
@@ -557,6 +547,16 @@ namespace Appegy.Storage
         private Record? GetRecord(string key)
         {
             return _data.GetValueOrDefault(key);
+        }
+
+        private T GetDefaultOf<T>()
+        {
+            var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
+            if (typeIndex == -1)
+            {
+                throw new UnregisteredTypeException(typeof(T));
+            }
+            return ((TypedBinarySection<T>)_supportedTypes[typeIndex]).Serializer.GetDefault();
         }
 
         /// <summary>
