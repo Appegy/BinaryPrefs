@@ -1045,6 +1045,31 @@ namespace Appegy.Storage
             storage.Get<int>("key").Should().Be(42);
         }
 
+        [Test]
+        public void WhenStringKeyMissing_AndNoDefaultProvided_ThenReturnsEmptyInsteadOfNull()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
+                .Build();
+
+            storage.Get<string>("missing").Should().Be(string.Empty);
+            storage.Has("missing").Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenStringKeyMissing_AndInitializeBehavior_ThenInitializesWithEmpty()
+        {
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SetMissingKeyBehaviour(MissingKeyBehavior.InitializeWithDefaultValue)
+                .Build();
+
+            storage.Get<string>("missing").Should().Be(string.Empty);
+            storage.Has("missing").Should().BeTrue();
+            storage.Get<string>("missing").Should().Be(string.Empty);
+        }
+
         #endregion
     }
 }

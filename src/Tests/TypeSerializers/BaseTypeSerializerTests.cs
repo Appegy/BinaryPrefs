@@ -69,7 +69,7 @@ namespace Appegy.Storage.TypeSerializers
 
             storage.Remove("key").Should().Be(true, "The key should be successfully removed from the storage.");
             storage.Has("key").Should().Be(false, "Storage must not contain the removed key");
-            storage.Get<TType>("key").Should().Be(default(TType), "The value retrieved after removal must be default(TType)");
+            storage.Get<TType>("key").Should().Be(_serializer.GetDefault(), "The value retrieved after removal must be the serializer's non-null default");
         }
     }
 }

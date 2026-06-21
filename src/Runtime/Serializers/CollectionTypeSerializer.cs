@@ -26,6 +26,8 @@ namespace Appegy.Storage.Serializers
             return value1 == value2;
         }
 
+        public override TCollection GetDefault() => new();
+
         public override void WriteTo(BinaryWriter writer, TCollection collection)
         {
             writer.Write(collection.Count);

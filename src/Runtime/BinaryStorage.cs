@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,7 +20,7 @@ namespace Appegy.Storage
         public bool AutoSave { get; set; }
 
         /// <summary> Gets or sets the behavior when a requested key is not found in the storage. </summary>
-        public MissingKeyBehavior MissingKeyBehavior { get; set; } = MissingKeyBehavior.ReturnDefaultValueOnly;
+        public MissingKeyBehavior MissingKeyBehavior { get; set; } = MissingKeyBehavior.InitializeWithDefaultValue;
 
         /// <summary> Gets or sets the behavior when the type of value associated with a key does not match the expected type. </summary>
         public TypeMismatchBehaviour TypeMismatchBehaviour { get; set; } = TypeMismatchBehaviour.OverrideValueAndType;
@@ -176,13 +175,12 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the value for.</param>
         /// <param name="defaultValue">The default value to use if the key does not exist.</param>
         /// <param name="overrideMissingKeyBehavior">Override default behavior when a requested key is not found in the storage.</param>
-        /// <returns>The value associated with the key, or the default value.</returns>
+        /// <returns>The value associated with the key, the supplied default value, or the type's non-null default.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        [return: NotNullIfNotNull("defaultValue")]
-        public virtual T? Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
+        public virtual T Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -194,8 +192,8 @@ namespace Appegy.Storage
                 not null => throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T)),
                 null => missingKeyBehavior switch
                 {
-                    MissingKeyBehavior.InitializeWithDefaultValue when defaultValue is not null => AddRecord(key, defaultValue).Value,
-                    MissingKeyBehavior.InitializeWithDefaultValue or MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue,
+                    MissingKeyBehavior.InitializeWithDefaultValue => AddRecord(key, defaultValue is not null ? defaultValue : GetDefaultOf<T>()).Value,
+                    MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue is not null ? defaultValue : GetDefaultOf<T>(),
                     _ => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), missingKeyBehavior)
                 }
             };
@@ -416,6 +414,16 @@ namespace Appegy.Storage
         #endregion
 
         #region Mutable methods
+
+        private T GetDefaultOf<T>()
+        {
+            var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
+            if (typeIndex == -1)
+            {
+                throw new UnregisteredTypeException(typeof(T));
+            }
+            return ((TypedBinarySection<T>)_supportedTypes[typeIndex]).Serializer.GetDefault();
+        }
 
         /// <summary> Adds a new record with the specified key and value. </summary>
         /// <typeparam name="T">The type of the value.</typeparam>

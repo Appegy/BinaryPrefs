@@ -138,6 +138,8 @@ namespace Appegy.Storage.Serializers
 
         public override string TypeName => "string";
 
+        public override string GetDefault() => string.Empty;
+
         public override void WriteTo(BinaryWriter writer, string value)
         {
             if (string.IsNullOrEmpty(value))

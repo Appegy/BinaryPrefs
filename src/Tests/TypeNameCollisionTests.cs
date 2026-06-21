@@ -30,6 +30,7 @@ namespace Appegy.Storage
             public override bool Equals(CollisionA.Thing a, CollisionA.Thing b) => a.Value == b.Value;
             public override void WriteTo(BinaryWriter writer, CollisionA.Thing value) => writer.Write(value.Value);
             public override CollisionA.Thing ReadFrom(BinaryReader reader) => new CollisionA.Thing { Value = reader.ReadInt32() };
+            public override CollisionA.Thing GetDefault() => default;
         }
 
         private class ThingBSerializer : TypeSerializer<CollisionB.Thing>
@@ -37,6 +38,7 @@ namespace Appegy.Storage
             public override bool Equals(CollisionB.Thing a, CollisionB.Thing b) => a.Value == b.Value;
             public override void WriteTo(BinaryWriter writer, CollisionB.Thing value) => writer.Write(value.Value);
             public override CollisionB.Thing ReadFrom(BinaryReader reader) => new CollisionB.Thing { Value = reader.ReadInt32() };
+            public override CollisionB.Thing GetDefault() => default;
         }
 
         [Test]
