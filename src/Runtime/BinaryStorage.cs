@@ -192,9 +192,12 @@ namespace Appegy.Storage
             {
                 Record<T> typedRecord => typedRecord.Value,
                 not null => throw new UnexpectedTypeException(key, nameof(Get), record.Type, typeof(T)),
-                null when missingKeyBehavior == MissingKeyBehavior.InitializeWithDefaultValue && defaultValue is not null => AddRecord(key, defaultValue).Value,
-                null when missingKeyBehavior is MissingKeyBehavior.InitializeWithDefaultValue or MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue,
-                null => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), missingKeyBehavior)
+                null => missingKeyBehavior switch
+                {
+                    MissingKeyBehavior.InitializeWithDefaultValue when defaultValue is not null => AddRecord(key, defaultValue).Value,
+                    MissingKeyBehavior.InitializeWithDefaultValue or MissingKeyBehavior.ReturnDefaultValueOnly => defaultValue,
+                    _ => throw new UnexpectedEnumException(typeof(MissingKeyBehavior), missingKeyBehavior)
+                }
             };
         }
 
