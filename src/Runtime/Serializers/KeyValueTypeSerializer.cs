@@ -32,7 +32,7 @@ namespace Appegy.Storage.Serializers
 
         public override KeyValuePair<TKey, TValue> ReadFrom(BinaryReader reader)
         {
-            return new KeyValuePair<TKey, TValue>(_keySerializer.ReadFrom(reader), _valueSerializer.ReadFrom(reader));
+            return new KeyValuePair<TKey, TValue>(_keySerializer.ReadFrom(reader)!, _valueSerializer.ReadFrom(reader)!);
         }
     }
 }

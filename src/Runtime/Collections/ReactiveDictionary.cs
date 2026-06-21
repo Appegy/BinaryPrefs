@@ -10,7 +10,7 @@ namespace Appegy.Storage
 
         public bool IsDisposed { get; private set; }
 
-        public event Action<IReactiveCollection> OnChanged;
+        public event Action<IReactiveCollection>? OnChanged;
 
         private void SetDirty()
         {

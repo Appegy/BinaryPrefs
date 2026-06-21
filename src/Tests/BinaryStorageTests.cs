@@ -832,7 +832,7 @@ namespace Appegy.Storage
                 .Build();
 
             // Assert
-            Action action = () => storage.SetRaw("key", null);
+            Action action = () => storage.SetRaw("key", null!);
             action.Should().Throw<ArgumentNullException>();
         }
 
@@ -916,8 +916,8 @@ namespace Appegy.Storage
                 .AddTypeSerializer(Int32Serializer.Shared)
                 .Build();
 
-            var addedKey = (string)null;
-            var changedKey = (string)null;
+            string? addedKey = null;
+            string? changedKey = null;
             storage.OnKeyAdded += k => addedKey = k;
             storage.OnKeyChanged += k => changedKey = k;
 
@@ -1017,6 +1017,65 @@ namespace Appegy.Storage
             // Assert
             raw1.Should().Be(100);
             typed2.Should().Be(200);
+        }
+
+        #endregion
+
+        #region Null Value Tests
+
+        [Test]
+        public void WhenStringValueSetToNull_ThenGetReturnsNull()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .Build();
+
+            // Act
+            storage.Set<string>("key", null);
+
+            // Assert
+            storage.Has("key").Should().Be(true);
+            storage.Get<string>("key").Should().BeNull();
+        }
+
+        [Test]
+        public void WhenNullStringStored_AndStorageReloaded_ThenNullPersisted()
+        {
+            // Arrange & Act
+            using (var storage = BinaryStorage.Construct(StoragePath)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .EnableAutoSaveOnChange()
+                       .Build())
+            {
+                storage.Set<string>("key", null);
+            }
+
+            // Assert
+            using (var storage = BinaryStorage.Construct(StoragePath)
+                       .AddTypeSerializer(StringSerializer.Shared)
+                       .Build())
+            {
+                storage.Has("key").Should().Be(true);
+                storage.Get<string>("key").Should().BeNull();
+            }
+        }
+
+        [Test]
+        public void WhenNullStringStored_ThenDistinctFromEmptyString()
+        {
+            // Arrange
+            using var storage = BinaryStorage.Construct(StoragePath)
+                .AddTypeSerializer(StringSerializer.Shared)
+                .Build();
+
+            // Act
+            storage.Set<string>("null_key", null);
+            storage.Set<string>("empty_key", string.Empty);
+
+            // Assert
+            storage.Get<string>("null_key").Should().BeNull();
+            storage.Get<string>("empty_key").Should().Be(string.Empty);
         }
 
         #endregion

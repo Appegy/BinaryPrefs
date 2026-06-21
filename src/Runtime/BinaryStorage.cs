@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using UnityEngine.Pool;
 
 namespace Appegy.Storage
@@ -44,13 +43,13 @@ namespace Appegy.Storage
         #region Events
 
         /// <summary> Occurs when a key is added to the storage. </summary>
-        public event Action<string> OnKeyAdded;
+        public event Action<string>? OnKeyAdded;
 
         /// <summary> Occurs when a key is changed in the storage. </summary>
-        public event Action<string> OnKeyChanged;
+        public event Action<string>? OnKeyChanged;
 
         /// <summary> Occurs when a key is removed from the storage. </summary>
-        public event Action<string> OnKeyRemoved;
+        public event Action<string>? OnKeyRemoved;
 
         #endregion
 
@@ -71,8 +70,7 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value associated with the key, or null if the key does not exist.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        [CanBeNull]
-        public virtual object GetRaw(string key)
+        public virtual object? GetRaw(string key)
         {
             ThrowIfDisposed();
             return GetRecord(key)?.Object;
@@ -154,8 +152,7 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the type for.</param>
         /// <returns>The type of the value associated with the key, or null if the key does not exist.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        [CanBeNull]
-        public virtual Type TypeOf(string key)
+        public virtual Type? TypeOf(string key)
         {
             ThrowIfDisposed();
             return _data.TryGetValue(key, out var record) ? record.Type : null;
@@ -183,7 +180,7 @@ namespace Appegy.Storage
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        public virtual T Get<T>(string key, T defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
+        public virtual T? Get<T>(string key, T? defaultValue = default, MissingKeyBehavior? overrideMissingKeyBehavior = null)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -212,7 +209,7 @@ namespace Appegy.Storage
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="UnexpectedTypeException">Thrown if the type of the value associated with the key does not match the expected type.</exception>
-        public virtual bool Set<T>(string key, T value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
+        public virtual bool Set<T>(string key, T? value, TypeMismatchBehaviour? overrideTypeMismatchBehaviour = null)
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
@@ -398,7 +395,7 @@ namespace Appegy.Storage
         /// <returns>The collection associated with the key.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
-        private TCollection GetCollectionOf<T, TCollection>(string key, [CallerMemberName] string action = null)
+        private TCollection GetCollectionOf<T, TCollection>(string key, [CallerMemberName] string action = null!)
             where TCollection : ICollection<T>, IReactiveCollection, new()
         {
             ThrowIfDisposed();
@@ -407,7 +404,7 @@ namespace Appegy.Storage
             {
                 throw new UnexpectedTypeException(key, action, record.Type, typeof(TCollection));
             }
-            return typedRecord.Value;
+            return typedRecord.Value!;
         }
 
         #endregion
@@ -423,7 +420,7 @@ namespace Appegy.Storage
         /// <returns>The added record.</returns>
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private Record<T> AddRecord<T>(string key, T value)
+        private Record<T> AddRecord<T>(string key, T? value)
         {
             var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
             if (typeIndex == -1)
@@ -481,7 +478,7 @@ namespace Appegy.Storage
         /// <param name="value">The new value.</param>
         /// <returns>True if the value was changed; otherwise, false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private bool ChangeRecord<T>(string key, Record<T> record, T value)
+        private bool ChangeRecord<T>(string key, Record<T> record, T? value)
         {
             var serializer = ((TypedBinarySection<T>)_supportedTypes[record.TypeIndex]).Serializer;
             var equals = serializer.Equals(record.Value, value);
@@ -545,8 +542,7 @@ namespace Appegy.Storage
         /// <summary> Gets the record associated with the specified key. </summary>
         /// <param name="key">The key to get the record for.</param>
         /// <returns>The record associated with the key, or null if the key does not exist.</returns>
-        [CanBeNull]
-        private Record GetRecord(string key)
+        private Record? GetRecord(string key)
         {
             return _data.GetValueOrDefault(key);
         }
@@ -597,7 +593,7 @@ namespace Appegy.Storage
 
         /// <summary> Throws an exception if the storage has been disposed. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
-        private void ThrowIfDisposed([CallerMemberName] string action = null)
+        private void ThrowIfDisposed([CallerMemberName] string action = null!)
         {
             if (IsDisposed)
             {
@@ -608,7 +604,7 @@ namespace Appegy.Storage
         /// <summary> Throws an exception if the specified type is a collection. </summary>
         /// <typeparam name="T">The type to check.</typeparam>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
-        private void ThrowIfCollection<T>([CallerMemberName] string action = null)
+        private void ThrowIfCollection<T>([CallerMemberName] string action = null!)
         {
             var type = typeof(T);
             if (type.IsCollection())

@@ -10,7 +10,7 @@ namespace Appegy.Storage.TypeSerializers
     {
         private static IEnumerable<object[]> Inputs => new[]
         {
-            new object[] { null, "null" },
+            new object[] { null!, "null" },
             new object[] { "", "empty" },
             new object[] { "Hello world!", "latin" },
             new object[] { "Прывітанне сусвет!", "cyrillic" },
