@@ -608,12 +608,11 @@ namespace Appegy.Storage
         /// <summary> Throws an exception if the specified type is a collection. </summary>
         /// <typeparam name="T">The type to check.</typeparam>
         /// <exception cref="IncorrectUsageOfCollectionException">Thrown if the type is a collection.</exception>
-        private void ThrowIfCollection<T>([CallerMemberName] string action = null)
+        private static void ThrowIfCollection<T>([CallerMemberName] string action = null)
         {
-            var type = typeof(T);
-            if (type.IsCollection())
+            if (CollectionTypeCache<T>.IsCollection)
             {
-                throw new IncorrectUsageOfCollectionException(action, type);
+                throw new IncorrectUsageOfCollectionException(action, typeof(T));
             }
         }
 
