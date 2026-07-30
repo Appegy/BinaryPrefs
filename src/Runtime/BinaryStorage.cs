@@ -315,22 +315,6 @@ namespace Appegy.Storage
             return new DisposableScope(DecreaseCounter);
         }
 
-        private readonly struct ChangeScope : IDisposable
-        {
-            private readonly BinaryStorage _storage;
-
-            public ChangeScope(BinaryStorage storage)
-            {
-                _storage = storage;
-                _storage._changeScopeCounter++;
-            }
-
-            public void Dispose()
-            {
-                _storage.DecreaseCounter();
-            }
-        }
-
         #region Collections
 
         /// <summary> Determines whether the storage supports lists of the specified type. </summary>
