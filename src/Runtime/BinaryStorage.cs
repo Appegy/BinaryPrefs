@@ -170,7 +170,7 @@ namespace Appegy.Storage
         {
             ThrowIfDisposed();
             ThrowIfCollection<T>();
-            return _supportedTypes.Any(c => c is TypedBinarySection<T>);
+            return IndexOfSection<T>() != -1;
         }
 
         /// <summary> Gets the value associated with the specified key. </summary>
@@ -388,7 +388,7 @@ namespace Appegy.Storage
         private bool SupportsCollectionOf<T, TCollection>() where TCollection : IReactiveCollection
         {
             ThrowIfDisposed();
-            return _supportedTypes.Any(c => c is TypedBinarySection<TCollection>);
+            return IndexOfSection<TCollection>() != -1;
         }
 
         /// <summary> Gets the collection associated with the specified key. </summary>
@@ -425,7 +425,7 @@ namespace Appegy.Storage
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         private Record<T> AddRecord<T>(string key, T value)
         {
-            var typeIndex = _supportedTypes.FindIndex(static c => c is TypedBinarySection<T>);
+            var typeIndex = IndexOfSection<T>();
             if (typeIndex == -1)
             {
                 throw new UnregisteredTypeException(typeof(T));
@@ -551,6 +551,21 @@ namespace Appegy.Storage
             return _data.GetValueOrDefault(key);
         }
 
+        /// <summary> Finds the index of the section that handles the specified type. </summary>
+        /// <typeparam name="T">The type handled by the section.</typeparam>
+        /// <returns>The index of the section, or -1 if the type is not registered.</returns>
+        private int IndexOfSection<T>()
+        {
+            for (var i = 0; i < _supportedTypes.Count; i++)
+            {
+                if (_supportedTypes[i] is TypedBinarySection<T>)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         /// <summary>
         /// Decreases the change scope counter and saves data if necessary.
         /// </summary>
@@ -662,7 +677,10 @@ namespace Appegy.Storage
             if (disposing)
             {
                 _data.Clear();
-                _supportedTypes.ForEach(static c => c.Count = 0);
+                for (var i = 0; i < _supportedTypes.Count; i++)
+                {
+                    _supportedTypes[i].Count = 0;
+                }
             }
 
             IsDisposed = true;
