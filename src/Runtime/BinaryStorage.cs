@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using UnityEngine.Pool;
@@ -458,7 +457,8 @@ namespace Appegy.Storage
             var record = new Record<T>(value, typeIndex);
             section.Count++;
             _data.Add(key, record);
-            if (value is IReactiveCollection rc)
+            var rc = record.AsReactiveCollection();
+            if (rc != null)
             {
                 _collections.Add(rc, key);
                 rc.OnChanged += ReactiveCollectionChanged;
@@ -527,7 +527,8 @@ namespace Appegy.Storage
             {
                 return false;
             }
-            if (value.Object is IReactiveCollection rc)
+            var rc = value.AsReactiveCollection();
+            if (rc != null)
             {
                 rc.OnChanged -= ReactiveCollectionChanged;
                 rc.Dispose();
@@ -546,16 +547,21 @@ namespace Appegy.Storage
         {
             using (new ChangeScope(this))
             {
-                foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
+                foreach (var record in _data.Values)
                 {
+                    var rc = record.AsReactiveCollection();
+                    if (rc == null)
+                    {
+                        continue;
+                    }
                     rc.OnChanged -= ReactiveCollectionChanged;
                     rc.Dispose();
                     _collections.Remove(rc);
                 }
                 _data.Clear();
-                foreach (var section in _supportedTypes)
+                for (var i = 0; i < _supportedTypes.Count; i++)
                 {
-                    section.Count = 0;
+                    _supportedTypes[i].Count = 0;
                 }
                 MarkChanged();
             }
@@ -686,8 +692,13 @@ namespace Appegy.Storage
             }
 
             // Always dispose IReactiveCollection instances
-            foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
+            foreach (var record in _data.Values)
             {
+                var rc = record.AsReactiveCollection();
+                if (rc == null)
+                {
+                    continue;
+                }
                 rc.OnChanged -= ReactiveCollectionChanged;
                 rc.Dispose();
                 _collections.Remove(rc);
@@ -725,7 +736,8 @@ namespace Appegy.Storage
             BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
-                if (pair.Value.Object is IReactiveCollection rc)
+                var rc = pair.Value.AsReactiveCollection();
+                if (rc != null)
                 {
                     _collections.Add(rc, pair.Key);
                     rc.OnChanged += ReactiveCollectionChanged;

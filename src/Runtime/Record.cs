@@ -7,14 +7,24 @@ namespace Appegy.Storage
         public abstract Type Type { get; }
         public abstract int TypeIndex { get; }
         public abstract Object Object { get; }
+
+        /// <summary> Gets the stored value as a reactive collection, or null when it is not one. </summary>
+        public abstract IReactiveCollection AsReactiveCollection();
     }
 
     internal class Record<T> : Record
     {
+        private static readonly bool ValueCanBeReactiveCollection = typeof(IReactiveCollection).IsAssignableFrom(typeof(T));
+
         public override Type Type { get; }
         public override int TypeIndex { get; }
         public override Object Object => Value;
         public T Value { get; set; }
+
+        public override IReactiveCollection AsReactiveCollection()
+        {
+            return ValueCanBeReactiveCollection ? (IReactiveCollection)(object)Value : null;
+        }
 
         public Record(T value, int typeIndex)
         {
