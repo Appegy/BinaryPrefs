@@ -125,7 +125,7 @@ namespace Appegy.Storage
             switch (mismatchBehaviour)
             {
                 case TypeMismatchBehaviour.OverrideValueAndType:
-                    using (MultipleChangeScope())
+                    using (new ChangeScope(this))
                     {
                         RemoveRecord(key);
                         AddRawRecord(key, value, valueType);
@@ -233,7 +233,7 @@ namespace Appegy.Storage
             switch (mismatchBehaviour)
             {
                 case TypeMismatchBehaviour.OverrideValueAndType:
-                    using (MultipleChangeScope())
+                    using (new ChangeScope(this))
                     {
                         RemoveRecord(key);
                         AddRecord(key, value);
@@ -268,8 +268,14 @@ namespace Appegy.Storage
         {
             ThrowIfDisposed();
             var keys = ListPool<string>.Get();
-            keys.AddRange(_data.Keys.Where(predicate));
-            using (MultipleChangeScope())
+            foreach (var key in _data.Keys)
+            {
+                if (predicate(key))
+                {
+                    keys.Add(key);
+                }
+            }
+            using (new ChangeScope(this))
             {
                 foreach (var key in keys)
                 {
@@ -308,6 +314,23 @@ namespace Appegy.Storage
             ThrowIfDisposed();
             _changeScopeCounter++;
             return new DisposableScope(DecreaseCounter);
+        }
+
+        /// <summary> Scope for making multiple changes from inside the storage, without allocating. </summary>
+        private readonly struct ChangeScope : IDisposable
+        {
+            private readonly BinaryStorage _storage;
+
+            public ChangeScope(BinaryStorage storage)
+            {
+                _storage = storage;
+                _storage._changeScopeCounter++;
+            }
+
+            public void Dispose()
+            {
+                _storage.DecreaseCounter();
+            }
         }
 
         #region Collections
@@ -521,7 +544,7 @@ namespace Appegy.Storage
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         private void RemoveAllRecords()
         {
-            using (MultipleChangeScope())
+            using (new ChangeScope(this))
             {
                 foreach (var rc in _data.Values.Select(c => c.Object).OfType<IReactiveCollection>())
                 {
