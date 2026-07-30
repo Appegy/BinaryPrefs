@@ -334,6 +334,19 @@ namespace Appegy.Storage
             ShouldNotAllocate("NestedBinaryStorage.Set<int>", () => _boolSink ^= nested.Set("int", 42));
         }
 
+        [Test]
+        public void WhenNestedGetCalledAfterKeyCacheCleanup_ThenNothingAllocated()
+        {
+            using var storage = CreateStorage();
+            var nested = storage.CreateChild("child");
+            nested.Set("int", 42);
+            for (var i = 0; i < 1000; i++)
+            {
+                nested.Has($"missing{i}");
+            }
+            ShouldNotAllocate("NestedBinaryStorage.Get<int> after key cache cleanup", () => _intSink += nested.Get<int>("int"));
+        }
+
         #endregion
     }
 }

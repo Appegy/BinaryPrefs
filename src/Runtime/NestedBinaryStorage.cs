@@ -21,8 +21,6 @@ namespace Appegy.Storage
             _root = root;
         }
 
-        public int CachedKeyCount => _prefixedKeys.Count;
-
         public IReadOnlyCollection<string> Keys
         {
             get

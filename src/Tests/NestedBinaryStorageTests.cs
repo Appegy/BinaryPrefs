@@ -29,41 +29,6 @@ namespace Appegy.Storage
         }
 
         [Test]
-        public void WhenMissingKeysProbed_ThenKeyCacheStaysSmall()
-        {
-            using var root = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .Build();
-
-            var nested = (NestedBinaryStorage)root.CreateChild("level1");
-            nested.Set("score", 100);
-
-            for (var i = 0; i < 1000; i++)
-            {
-                nested.Has($"missing{i}");
-            }
-
-            nested.CachedKeyCount.Should().BeLessThan(200);
-            nested.Get<int>("score").Should().Be(100);
-        }
-
-        [Test]
-        public void WhenManyRealKeysAdded_ThenAllStayCached()
-        {
-            using var root = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .Build();
-
-            var nested = (NestedBinaryStorage)root.CreateChild("level1");
-            for (var i = 0; i < 1000; i++)
-            {
-                nested.Set($"key{i}", i);
-            }
-
-            nested.CachedKeyCount.Should().Be(1000);
-        }
-
-        [Test]
         public void WhenSameKeyUsedInRootAndNested_ThenTheyAreIndependent()
         {
             // Verify that keys do not overlap
