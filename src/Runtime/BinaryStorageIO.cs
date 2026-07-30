@@ -231,7 +231,6 @@ namespace Appegy.Storage
             }
         }
 
-        /// <summary> Finds the section that handles the specified type name, falling back to renamed types. </summary>
         private static BinarySection FindSection(IReadOnlyList<BinarySection> sections, string typeName)
         {
             for (var i = 0; i < sections.Count; i++)
@@ -255,7 +254,6 @@ namespace Appegy.Storage
             return null;
         }
 
-        /// <summary> Finds the index of the specified section, or -1 when it is not in the list. </summary>
         private static int IndexOfSection(IReadOnlyList<BinarySection> sections, BinarySection section)
         {
             for (var i = 0; i < sections.Count; i++)

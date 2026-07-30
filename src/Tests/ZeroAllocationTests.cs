@@ -42,8 +42,7 @@ namespace Appegy.Storage
         private static void ShouldNotAllocate(string api, Action action)
         {
             var bytesPerCall = AllocationProbe.BytesPerCall(action);
-            bytesPerCall.Should().BeLessThan(AllocationProbe.AllowedBytesPerCall,
-                "{0} must not allocate, but measured {1:F1} bytes per call", api, bytesPerCall);
+            bytesPerCall.Should().BeLessThan(AllocationProbe.AllowedBytesPerCall, "{0} must not allocate, but measured {1:F1} bytes per call", api, bytesPerCall);
         }
 
         #region Reads
@@ -80,8 +79,7 @@ namespace Appegy.Storage
         public void WhenGetMissingKeyCalled_ThenNothingAllocated()
         {
             using var storage = CreateStorage();
-            ShouldNotAllocate("Get<int> (missing key)",
-                () => _intSink += storage.Get("missing", 7, MissingKeyBehavior.ReturnDefaultValueOnly));
+            ShouldNotAllocate("Get<int> (missing key)", () => _intSink += storage.Get("missing", 7, MissingKeyBehavior.ReturnDefaultValueOnly));
         }
 
         [Test]

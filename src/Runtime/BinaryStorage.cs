@@ -315,7 +315,6 @@ namespace Appegy.Storage
             return new DisposableScope(DecreaseCounter);
         }
 
-        /// <summary> Scope for making multiple changes from inside the storage, without allocating. </summary>
         private readonly struct ChangeScope : IDisposable
         {
             private readonly BinaryStorage _storage;
@@ -580,9 +579,6 @@ namespace Appegy.Storage
             return _data.GetValueOrDefault(key);
         }
 
-        /// <summary> Finds the index of the section that handles the specified type. </summary>
-        /// <typeparam name="T">The type handled by the section.</typeparam>
-        /// <returns>The index of the section, or -1 if the type is not registered.</returns>
         private int IndexOfSection<T>()
         {
             for (var i = 0; i < _supportedTypes.Count; i++)

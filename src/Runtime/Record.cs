@@ -8,7 +8,6 @@ namespace Appegy.Storage
         public abstract int TypeIndex { get; }
         public abstract Object Object { get; }
 
-        /// <summary> Gets the stored value as a reactive collection, or null when it is not one. </summary>
         public abstract IReactiveCollection AsReactiveCollection();
     }
 
