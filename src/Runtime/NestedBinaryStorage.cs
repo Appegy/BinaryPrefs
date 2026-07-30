@@ -6,8 +6,11 @@ namespace Appegy.Storage
 {
     internal class NestedBinaryStorage : IBinaryStorage
     {
+        private const int MaxCachedKeys = 256;
+
         private readonly IBinaryStorage _root;
         private readonly string _prefix;
+        private readonly Dictionary<string, string> _prefixedKeys = new();
 
         public NestedBinaryStorage(IBinaryStorage root, string prefix)
         {
@@ -28,7 +31,16 @@ namespace Appegy.Storage
 
         private string GetKey(string key)
         {
-            return _prefix + key;
+            if (_prefixedKeys.TryGetValue(key, out var prefixedKey))
+            {
+                return prefixedKey;
+            }
+            prefixedKey = _prefix + key;
+            if (_prefixedKeys.Count < MaxCachedKeys)
+            {
+                _prefixedKeys.Add(key, prefixedKey);
+            }
+            return prefixedKey;
         }
 
         private bool TryExtractKey(string key, out string value)
