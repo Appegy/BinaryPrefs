@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,15 +25,15 @@ namespace Appegy.Storage
             return builder.ToString();
         }
 
-        private static IEnumerable<KeyValuePair<string, object?>> ProjectRoot(IReadOnlyDictionary<string, Record> data)
+        private static IEnumerable<KeyValuePair<string, object>> ProjectRoot(IReadOnlyDictionary<string, Record> data)
         {
             foreach (var pair in data)
             {
-                yield return new KeyValuePair<string, object?>(pair.Key, pair.Value.Object);
+                yield return new KeyValuePair<string, object>(pair.Key, pair.Value.Object);
             }
         }
 
-        private static void WriteValue(StringBuilder builder, object? value, int depth, HashSet<object> visited)
+        private static void WriteValue(StringBuilder builder, object value, int depth, HashSet<object> visited)
         {
             switch (value)
             {
@@ -109,7 +108,7 @@ namespace Appegy.Storage
             WriteReflected(builder, value, depth, visited);
         }
 
-        private static void WriteEntries(StringBuilder builder, IEnumerable<KeyValuePair<string, object?>> entries, int depth, HashSet<object> visited)
+        private static void WriteEntries(StringBuilder builder, IEnumerable<KeyValuePair<string, object>> entries, int depth, HashSet<object> visited)
         {
             builder.Append('{');
             var first = true;
@@ -165,14 +164,14 @@ namespace Appegy.Storage
             }
         }
 
-        private static List<KeyValuePair<string, object?>> CollectMembers(Type type, object value)
+        private static List<KeyValuePair<string, object>> CollectMembers(Type type, object value)
         {
-            var members = new List<KeyValuePair<string, object?>>();
+            var members = new List<KeyValuePair<string, object>>();
             foreach (var field in type.GetFields(MemberFlags))
             {
                 if (TryReadMember(() => field.GetValue(value), out var fieldValue))
                 {
-                    members.Add(new KeyValuePair<string, object?>(field.Name, fieldValue));
+                    members.Add(new KeyValuePair<string, object>(field.Name, fieldValue));
                 }
             }
             foreach (var property in type.GetProperties(MemberFlags))
@@ -183,13 +182,13 @@ namespace Appegy.Storage
                 }
                 if (TryReadMember(() => property.GetValue(value), out var propertyValue))
                 {
-                    members.Add(new KeyValuePair<string, object?>(property.Name, propertyValue));
+                    members.Add(new KeyValuePair<string, object>(property.Name, propertyValue));
                 }
             }
             return members;
         }
 
-        private static bool TryReadMember(Func<object?> getter, out object? result)
+        private static bool TryReadMember(Func<object> getter, out object result)
         {
             try
             {
@@ -203,7 +202,7 @@ namespace Appegy.Storage
             }
         }
 
-        private static bool TryGetDictionaryEntries(object value, out IEnumerable<KeyValuePair<string, object?>> entries)
+        private static bool TryGetDictionaryEntries(object value, out IEnumerable<KeyValuePair<string, object>> entries)
         {
             foreach (var contract in value.GetType().GetInterfaces())
             {
@@ -218,14 +217,14 @@ namespace Appegy.Storage
                     return true;
                 }
             }
-            entries = Array.Empty<KeyValuePair<string, object?>>();
+            entries = Array.Empty<KeyValuePair<string, object>>();
             return false;
         }
 
-        private static IEnumerable<KeyValuePair<string, object?>> EnumerateDictionary(IEnumerable pairs)
+        private static IEnumerable<KeyValuePair<string, object>> EnumerateDictionary(IEnumerable pairs)
         {
-            PropertyInfo? keyProperty = null;
-            PropertyInfo? valueProperty = null;
+            PropertyInfo keyProperty = null;
+            PropertyInfo valueProperty = null;
             foreach (var pair in pairs)
             {
                 if (pair == null)
@@ -240,7 +239,7 @@ namespace Appegy.Storage
                 }
                 var key = keyProperty?.GetValue(pair);
                 var entryValue = valueProperty?.GetValue(pair);
-                yield return new KeyValuePair<string, object?>(key?.ToString() ?? "null", entryValue);
+                yield return new KeyValuePair<string, object>(key?.ToString() ?? "null", entryValue);
             }
         }
 
@@ -256,7 +255,7 @@ namespace Appegy.Storage
             }
         }
 
-        private static void WriteString(StringBuilder builder, string? text)
+        private static void WriteString(StringBuilder builder, string text)
         {
             if (text == null)
             {
@@ -329,12 +328,12 @@ namespace Appegy.Storage
             builder.Append(' ', depth * IndentWidth);
         }
 
-        private static KeyValuePair<string, object?>[] Members(params (string Key, object? Value)[] items)
+        private static KeyValuePair<string, object>[] Members(params (string Key, object Value)[] items)
         {
-            var members = new KeyValuePair<string, object?>[items.Length];
+            var members = new KeyValuePair<string, object>[items.Length];
             for (var i = 0; i < items.Length; i++)
             {
-                members[i] = new KeyValuePair<string, object?>(items[i].Key, items[i].Value);
+                members[i] = new KeyValuePair<string, object>(items[i].Key, items[i].Value);
             }
             return members;
         }
@@ -343,7 +342,7 @@ namespace Appegy.Storage
         {
             public static readonly ReferenceComparer Instance = new();
 
-            public new bool Equals(object? left, object? right) => ReferenceEquals(left, right);
+            public new bool Equals(object left, object right) => ReferenceEquals(left, right);
 
             public int GetHashCode(object value) => RuntimeHelpers.GetHashCode(value);
         }
