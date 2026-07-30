@@ -266,6 +266,29 @@ namespace Appegy.Storage
             return -1;
         }
 
+        /// <summary> Save a human-readable JSON copy of the data next to the binary file. The copy is write-only and never loaded back. </summary>
+        /// <param name="storageFilePath"> Path to the binary storage file </param>
+        /// <param name="data"> Dictionary with the data </param>
+        /// <exception cref="IOException"> An I/O error occurred </exception>
+        internal static void SaveJsonCopyOnDisk(string storageFilePath, IReadOnlyDictionary<string, Record> data)
+        {
+            var jsonFilePath = storageFilePath + ".json";
+
+            if (data.Count == 0)
+            {
+                DeleteFileIfExists(jsonFilePath);
+                return;
+            }
+
+            var directoryName = Path.GetDirectoryName(jsonFilePath);
+            if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
+            {
+                Directory.CreateDirectory(directoryName);
+            }
+
+            File.WriteAllText(jsonFilePath, DebugJsonWriter.ToJson(data), new UTF8Encoding(false));
+        }
+
         private static void DeleteFileIfExists(string filePath)
         {
             if (File.Exists(filePath))

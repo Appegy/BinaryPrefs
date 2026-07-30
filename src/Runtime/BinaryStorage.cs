@@ -19,6 +19,9 @@ namespace Appegy.Storage
         /// <summary> Gets or sets a value indicating whether data should be saved automatically. </summary>
         public bool AutoSave { get; set; }
 
+        /// <summary> Gets or sets a value indicating whether a human-readable JSON copy is written next to the binary file on each save. The copy is write-only and never loaded back. </summary>
+        public bool SaveJsonCopyForDebug { get; set; }
+
         /// <summary> Gets or sets the behavior when a requested key is not found in the storage. </summary>
         public MissingKeyBehavior MissingKeyBehavior { get; set; } = MissingKeyBehavior.ReturnDefaultValueOnly;
 
@@ -733,6 +736,17 @@ namespace Appegy.Storage
             ThrowIfDisposed();
             BinaryStorageIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
             IsDirty = false;
+            if (SaveJsonCopyForDebug)
+            {
+                try
+                {
+                    BinaryStorageIO.SaveJsonCopyOnDisk(_storageFilePath, _data);
+                }
+                catch (Exception exception)
+                {
+                    UnityEngine.Debug.LogWarning($"Failed to save JSON debug copy of '{_storageFilePath}'. Reason: {exception.Message}");
+                }
+            }
         }
 
         #endregion

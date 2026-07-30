@@ -48,6 +48,7 @@ namespace Appegy.Storage
             private readonly string _filePath;
             private readonly List<BinarySection> _serializers = new();
             private bool _autoSave;
+            private bool _saveJsonForDebug;
             private MissingKeyBehavior _missingKeyBehavior = MissingKeyBehavior.InitializeWithDefaultValue;
             private TypeMismatchBehaviour _typeMismatchBehaviour = TypeMismatchBehaviour.ThrowException;
 
@@ -61,6 +62,16 @@ namespace Appegy.Storage
             public Builder EnableAutoSaveOnChange()
             {
                 _autoSave = true;
+                return this;
+            }
+
+            /// <summary> Enables writing a human-readable JSON copy of the storage next to the binary file for debugging. </summary>
+            /// <remarks> The JSON copy is write-only and never loaded back; the binary file remains the only source of truth. Pass a build-type check (for example, a development-build flag) to toggle it without changing the rest of the configuration. </remarks>
+            /// <param name="enabled">Whether the JSON debug copy should be written on each save.</param>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            public Builder SaveJsonCopyForDebug(bool enabled = true)
+            {
+                _saveJsonForDebug = enabled;
                 return this;
             }
 
@@ -230,6 +241,7 @@ namespace Appegy.Storage
             {
                 var storage = new BinaryStorage(_filePath, _serializers);
                 storage.AutoSave = _autoSave;
+                storage.SaveJsonCopyForDebug = _saveJsonForDebug;
                 storage.MissingKeyBehavior = _missingKeyBehavior;
                 storage.TypeMismatchBehaviour = _typeMismatchBehaviour;
                 storage.LoadDataFromDisk(keyLoadFailedBehaviour);
