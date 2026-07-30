@@ -5,11 +5,11 @@ namespace Appegy.Storage
 {
     internal static class AllocationProbe
     {
-        public const double AllowedBytesPerCall = 2d;
+        public const double AllowedBytesPerCall = 1d;
 
         private const int WarmupIterations = 10_000;
         private const int MeasuredIterations = 200_000;
-        private const int Repeats = 2;
+        private const int Repeats = 3;
 
         public static double BytesPerCall(Action action)
         {
@@ -18,7 +18,7 @@ namespace Appegy.Storage
                 action();
             }
 
-            var lowest = double.MaxValue;
+            var highest = 0d;
             for (var repeat = 0; repeat < Repeats; repeat++)
             {
                 GC.Collect();
@@ -32,9 +32,9 @@ namespace Appegy.Storage
                 }
                 var heapAfter = Profiler.GetMonoUsedSizeLong();
 
-                lowest = Math.Min(lowest, (heapAfter - heapBefore) / (double)MeasuredIterations);
+                highest = Math.Max(highest, (heapAfter - heapBefore) / (double)MeasuredIterations);
             }
-            return lowest;
+            return highest;
         }
     }
 }
