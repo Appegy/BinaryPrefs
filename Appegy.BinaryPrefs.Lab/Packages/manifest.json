@@ -2,6 +2,7 @@
   "dependencies": {
     "com.appegy.binary-prefs": "file:../../src",
     "com.boundfoxstudios.fluentassertions": "6.8.0",
+    "com.coplaydev.unity-mcp": "10.1.0",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.ide.rider": "3.0.40",
     "com.unity.mobile.android-logcat": "1.4.7",
@@ -28,7 +29,8 @@
       "scopes": [
         "net.tnrd.nsubstitute",
         "com.boundfoxstudios.fluentassertions",
-        "com.yasirkula.ingamedebugconsole"
+        "com.yasirkula.ingamedebugconsole",
+        "com.coplaydev.unity-mcp"
       ]
     }
   ]
