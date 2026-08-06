@@ -553,20 +553,20 @@ namespace Appegy.Storage
     [TestFixture]
     public class BinaryPrefsEnumTests : BinaryPrefsTestsBase
     {
-        private enum IntBacked
+        public enum IntBacked
         {
             None = 0,
             Second = 2,
             Negative = -5
         }
 
-        private enum ByteBacked : byte
+        public enum ByteBacked : byte
         {
             None = 0,
             Max = byte.MaxValue
         }
 
-        private enum ULongBacked : ulong
+        public enum ULongBacked : ulong
         {
             None = 0,
             Max = ulong.MaxValue
