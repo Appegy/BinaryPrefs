@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Appegy.Storage.Serializers;
 using FluentAssertions;
 using NUnit.Framework;
 using UnityEngine;
@@ -300,6 +302,38 @@ namespace Appegy.Storage
                 using (storage.MultipleChangeScope())
                 {
                 }
+            });
+        }
+
+        #endregion
+
+        #region Serialization
+
+        [Test]
+        public void WhenDataSerializedIntoBuffer_ThenNothingAllocated()
+        {
+            var sections = new List<BinarySection>
+            {
+                new TypedBinarySection<int>(Int32Serializer.Shared),
+                new TypedBinarySection<string>(StringSerializer.Shared)
+            };
+            var data = new Dictionary<string, Record>
+            {
+                { "int", new Record<int>(42, 0) },
+                { "string", new Record<string>("hello", 1) }
+            };
+            sections[0].Count++;
+            sections[1].Count++;
+
+            var warmup = BinaryStorageIO.SerializeToBuffer(sections, data);
+            var sizeHint = (int)warmup.Length;
+            warmup.Release();
+
+            ShouldNotAllocate("BinaryStorageIO.SerializeToBuffer", () =>
+            {
+                var stream = BinaryStorageIO.SerializeToBuffer(sections, data, sizeHint);
+                _intSink += (int)stream.Length;
+                stream.Release();
             });
         }
 

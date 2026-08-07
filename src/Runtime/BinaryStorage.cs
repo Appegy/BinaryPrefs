@@ -15,6 +15,7 @@ namespace Appegy.Storage
         private readonly Dictionary<string, Record> _data = new();
         private readonly Dictionary<IReactiveCollection, string> _collections = new();
         private int _changeScopeCounter;
+        private int _saveBufferSizeHint;
 
         /// <summary> Gets or sets a value indicating whether data should be saved automatically. </summary>
         public bool AutoSave { get; set; }
@@ -716,7 +717,7 @@ namespace Appegy.Storage
         private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
+            _saveBufferSizeHint = BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
                 var rc = pair.Value.AsReactiveCollection();
@@ -734,7 +735,7 @@ namespace Appegy.Storage
         private void SaveDataFromDisk()
         {
             ThrowIfDisposed();
-            BinaryStorageIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
+            _saveBufferSizeHint = BinaryStorageIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data, _saveBufferSizeHint);
             IsDirty = false;
             if (SaveJsonCopyForDebug)
             {
