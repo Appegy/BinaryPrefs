@@ -109,24 +109,26 @@ namespace Appegy.Storage
         }
 
         [Test]
-        public void WhenDataSaved_ThenReturnedLengthMatchesFileSize()
+        public void WhenStorageIsEmpty_ThenFileDeleted()
         {
-            var (sections, data) = CreateSample(64, 512);
+            var sections = new List<BinarySection> { new TypedBinarySection<int>(Int32Serializer.Shared) };
+            File.WriteAllBytes(StoragePath, new byte[] { 1, 2, 3 });
 
-            var length = BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, new Dictionary<string, Record>());
 
-            length.Should().Be((int)new FileInfo(StoragePath).Length);
+            File.Exists(StoragePath).Should().BeFalse();
         }
 
         [Test]
-        public void WhenStorageIsEmpty_ThenSaveReportsZeroLength()
+        public void WhenBigStorageSavedBeforeSmallOne_ThenSmallOneIsStillCorrect()
         {
-            var sections = new List<BinarySection> { new TypedBinarySection<int>(Int32Serializer.Shared) };
+            var (bigSections, bigData) = CreateSample(64, 512);
+            BinaryStorageIO.SaveDataOnDisk(StoragePath, bigSections, bigData);
 
-            var length = BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, new Dictionary<string, Record>());
+            var (sections, data) = CreateSample(1, 8);
+            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
 
-            length.Should().Be(0);
-            File.Exists(StoragePath).Should().BeFalse();
+            File.ReadAllBytes(StoragePath).Should().Equal(SerializeAsBeforeRefactor(sections, data));
         }
 
         private static (List<BinarySection> sections, Dictionary<string, Record> data) CreateSample(int stringKeys, int stringLength)

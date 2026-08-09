@@ -6,9 +6,11 @@ namespace Appegy.Storage
 {
     internal sealed class PooledMemoryStream : Stream
     {
-        private const int MinimumCapacity = 256;
+        private const int MinimumCapacity = 1024;
+        private const int MaximumRememberedCapacity = 1024 * 1024;
 
         private byte[] _buffer = Array.Empty<byte>();
+        private int _rememberedCapacity = MinimumCapacity;
         private int _position;
         private int _length;
 
@@ -16,16 +18,12 @@ namespace Appegy.Storage
 
         public byte[] GetBuffer() => _buffer;
 
-        public void Reset(int capacity)
+        public void Reset()
         {
-            if (capacity < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Capacity can't be negative.");
-            }
-            if (_buffer.Length < capacity)
+            if (_buffer.Length < _rememberedCapacity)
             {
                 Release();
-                _buffer = ArrayPool<byte>.Shared.Rent(Math.Max(capacity, MinimumCapacity));
+                _buffer = ArrayPool<byte>.Shared.Rent(_rememberedCapacity);
             }
             _position = 0;
             _length = 0;
@@ -33,6 +31,7 @@ namespace Appegy.Storage
 
         public void Release()
         {
+            _rememberedCapacity = Math.Clamp(Math.Max(_rememberedCapacity, _length), MinimumCapacity, MaximumRememberedCapacity);
             if (_buffer.Length > 0)
             {
                 ArrayPool<byte>.Shared.Return(_buffer);

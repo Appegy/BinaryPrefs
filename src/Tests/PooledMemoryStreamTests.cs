@@ -12,7 +12,7 @@ namespace Appegy.Storage
         public void WhenWriteFitsIntoCapacity_ThenBufferNotReallocated()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(1024);
+            stream.Reset();
             var buffer = stream.GetBuffer();
             var capacity = stream.Capacity;
 
@@ -27,7 +27,7 @@ namespace Appegy.Storage
         public void WhenWriteExceedsCapacity_ThenBufferGrownAndDataPreserved()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(256);
+            stream.Reset();
             var capacity = stream.Capacity;
             var payload = new byte[capacity + 100];
             for (var i = 0; i < payload.Length; i++)
@@ -45,16 +45,35 @@ namespace Appegy.Storage
         }
 
         [Test]
+        public void WhenBufferGrewOnce_ThenNextResetRentsGrownCapacity()
+        {
+            var stream = new PooledMemoryStream();
+            stream.Reset();
+            var payload = new byte[stream.Capacity + 100];
+            stream.Write(payload, 0, payload.Length);
+            var grownCapacity = stream.Capacity;
+            stream.Release();
+
+            stream.Reset();
+
+            stream.Capacity.Should().Be(grownCapacity);
+            stream.Write(payload, 0, payload.Length);
+            stream.Capacity.Should().Be(grownCapacity);
+            stream.Release();
+        }
+
+        [Test]
         public void WhenReleased_ThenBufferReturnedToPool()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(1024);
+            stream.Reset();
             var buffer = stream.GetBuffer();
+            var capacity = stream.Capacity;
 
             stream.Release();
 
             stream.Capacity.Should().Be(0);
-            var rented = ArrayPool<byte>.Shared.Rent(1024);
+            var rented = ArrayPool<byte>.Shared.Rent(capacity);
             rented.Should().BeSameAs(buffer);
             ArrayPool<byte>.Shared.Return(rented);
         }
@@ -63,7 +82,7 @@ namespace Appegy.Storage
         public void WhenPositionMovedBack_ThenWriteOverwritesWithoutTruncating()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(64);
+            stream.Reset();
             stream.Write(new byte[] { 1, 2, 3, 4 }, 0, 4);
 
             stream.Position = 1;
@@ -80,7 +99,7 @@ namespace Appegy.Storage
         public void WhenPositionSetBeyondLength_ThenThrows()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(64);
+            stream.Reset();
             stream.Write(new byte[] { 1, 2 }, 0, 2);
 
             Action action = () => stream.Position = 3;
@@ -93,7 +112,7 @@ namespace Appegy.Storage
         public void WhenRead_ThenThrows()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(64);
+            stream.Reset();
 
             Action action = () => stream.Read(new byte[4], 0, 4);
 
@@ -105,10 +124,10 @@ namespace Appegy.Storage
         public void WhenReset_ThenPositionAndLengthAreZero()
         {
             var stream = new PooledMemoryStream();
-            stream.Reset(64);
+            stream.Reset();
             stream.Write(new byte[] { 1, 2, 3 }, 0, 3);
 
-            stream.Reset(64);
+            stream.Reset();
 
             stream.Length.Should().Be(0);
             stream.Position.Should().Be(0);

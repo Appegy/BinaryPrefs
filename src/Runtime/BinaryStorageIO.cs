@@ -8,8 +8,6 @@ namespace Appegy.Storage
 {
     internal static class BinaryStorageIO
     {
-        private const int DefaultBufferSize = 1024;
-
         [ThreadStatic] private static PooledMemoryStream _serializationStream;
         [ThreadStatic] private static BinaryWriter _serializationWriter;
 
@@ -17,10 +15,8 @@ namespace Appegy.Storage
         /// <param name="storageFilePath"> Path to the storage file </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
-        /// <param name="bufferSizeHint"> Expected size of the file in bytes, used as initial capacity of the serialization buffer </param>
-        /// <returns> Amount of bytes written, or 0 when the storage was empty and the file was deleted </returns>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        internal static int SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, int bufferSizeHint = 0)
+        internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
             // make sure there is no temp file from previous (most likely failed) save try
             var storageFilePathTmp = storageFilePath + ".tmp";
@@ -30,7 +26,7 @@ namespace Appegy.Storage
             if (data.Count == 0)
             {
                 DeleteFileIfExists(storageFilePath);
-                return 0;
+                return;
             }
 
             // prepare directory for save
@@ -40,13 +36,11 @@ namespace Appegy.Storage
                 Directory.CreateDirectory(directoryName);
             }
 
-            int length;
-            var buffer = SerializeToBuffer(sections, data, bufferSizeHint);
+            var buffer = SerializeToBuffer(sections, data);
             try
             {
-                length = (int)buffer.Length;
                 using var stream = new FileStream(storageFilePathTmp, FileMode.Create);
-                stream.Write(buffer.GetBuffer(), 0, length);
+                stream.Write(buffer.GetBuffer(), 0, (int)buffer.Length);
             }
             finally
             {
@@ -58,21 +52,19 @@ namespace Appegy.Storage
                 File.Delete(storageFilePath);
             }
             File.Move(storageFilePathTmp, storageFilePath);
-            return length;
         }
 
         /// <summary> Serialize data into a pooled in-memory buffer. Caller owns the returned stream and must call <see cref="PooledMemoryStream.Release"/>. </summary>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
-        /// <param name="bufferSizeHint"> Expected size of the file in bytes, used as initial capacity of the buffer </param>
         /// <returns> Stream holding the serialized bytes </returns>
-        internal static PooledMemoryStream SerializeToBuffer(IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, int bufferSizeHint = 0)
+        internal static PooledMemoryStream SerializeToBuffer(IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
             _serializationStream ??= new PooledMemoryStream();
             _serializationWriter ??= new BinaryWriter(_serializationStream, Encoding.UTF8);
 
             var stream = _serializationStream;
-            stream.Reset(Math.Max(bufferSizeHint, DefaultBufferSize));
+            stream.Reset();
             try
             {
                 WriteData(_serializationWriter, sections, data);
@@ -134,11 +126,10 @@ namespace Appegy.Storage
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
-        /// <returns> Size of the loaded file in bytes, or 0 when there was no file </returns>
         /// <exception cref="IOException"> An I/O error occurred </exception>
         /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
-        internal static int LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             data.Clear();
             foreach (var section in sections)
@@ -147,7 +138,7 @@ namespace Appegy.Storage
             }
             if (!File.Exists(storageFilePath))
             {
-                return 0;
+                return;
             }
             using var stream = new FileStream(storageFilePath, FileMode.Open);
             using var reader = new BinaryReader(stream, Encoding.UTF8);
@@ -274,8 +265,6 @@ namespace Appegy.Storage
                     }
                 }
             }
-
-            return (int)Math.Min(stream.Length, int.MaxValue);
         }
 
         private static BinarySection FindSection(IReadOnlyList<BinarySection> sections, string typeName)

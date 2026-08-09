@@ -325,13 +325,9 @@ namespace Appegy.Storage
             sections[0].Count++;
             sections[1].Count++;
 
-            var warmup = BinaryStorageIO.SerializeToBuffer(sections, data);
-            var sizeHint = (int)warmup.Length;
-            warmup.Release();
-
             ShouldNotAllocate("BinaryStorageIO.SerializeToBuffer", () =>
             {
-                var stream = BinaryStorageIO.SerializeToBuffer(sections, data, sizeHint);
+                var stream = BinaryStorageIO.SerializeToBuffer(sections, data);
                 _intSink += (int)stream.Length;
                 stream.Release();
             });
