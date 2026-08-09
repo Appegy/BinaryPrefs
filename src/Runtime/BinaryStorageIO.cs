@@ -135,11 +135,10 @@ namespace Appegy.Storage
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
-        /// <returns> Report describing how the file was read </returns>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, an entry running past the end of the file, or a duplicate key). </exception>
+        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
-        internal static StorageLoadReport LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             data.Clear();
             foreach (var section in sections)
@@ -148,13 +147,10 @@ namespace Appegy.Storage
             }
             if (!File.Exists(storageFilePath))
             {
-                return StorageLoadReport.Empty;
+                return;
             }
             using var stream = new FileStream(storageFilePath, FileMode.Open);
             using var reader = new BinaryReader(stream, Encoding.UTF8);
-
-            var fileLength = stream.Length;
-            var keysFailed = 0;
 
             int serializersCount;
             BinarySection[] orderedSectionsFromFile;
@@ -172,7 +168,7 @@ namespace Appegy.Storage
                 serializersCount = reader.ReadInt32();
                 if (serializersCount < 0 || serializersCount > stream.Length - stream.Position)
                 {
-                    throw Corrupted(StorageCorruptionReason.InvalidSerializerCount, $"count {serializersCount}", -1, 0);
+                    throw new StorageFileCorruptedException(storageFilePath, $"Invalid serializer count {serializersCount}");
                 }
                 orderedSectionsFromFile = new BinarySection[serializersCount];
                 sectionsNames = new string[serializersCount];
@@ -189,12 +185,12 @@ namespace Appegy.Storage
                 count = reader.ReadInt32();
                 if (count < 0)
                 {
-                    throw Corrupted(StorageCorruptionReason.InvalidRecordCount, $"count {count}", -1, 0);
+                    throw new StorageFileCorruptedException(storageFilePath, $"Invalid record count {count}");
                 }
             }
             catch (EndOfStreamException e)
             {
-                throw Corrupted(StorageCorruptionReason.HeaderTruncated, "end of file while reading header", -1, 0, e);
+                throw new StorageFileCorruptedException(storageFilePath, "Unexpected end of file while reading header", e);
             }
 
             for (var i = 0; i < count; i++)
@@ -215,13 +211,13 @@ namespace Appegy.Storage
                 }
                 catch (EndOfStreamException e)
                 {
-                    throw Corrupted(StorageCorruptionReason.RecordHeaderTruncated, $"end of file while reading header of record {i}", count, data.Count, e);
+                    throw new StorageFileCorruptedException(storageFilePath, "Unexpected end of file while reading record header", e);
                 }
                 var position = stream.Position;
 
                 if (entrySize < 0 || position + entrySize > stream.Length)
                 {
-                    throw Corrupted(StorageCorruptionReason.EntrySizeOverflow, $"record '{key}' claims {entrySize}b at byte {position} of a {stream.Length}b file", count, data.Count);
+                    throw new StorageFileCorruptedException(storageFilePath, $"Entry '{key}' of {entrySize}b at {position} runs past the end of a {stream.Length}b file");
                 }
 
                 // #09 <---> Read value from stream
@@ -257,7 +253,7 @@ namespace Appegy.Storage
 
                 if (data.ContainsKey(key))
                 {
-                    throw Corrupted(StorageCorruptionReason.DuplicateKey, $"key '{key}' appears twice", count, data.Count);
+                    throw new StorageFileCorruptedException(storageFilePath, $"Duplicate key '{key}'");
                 }
 
                 section.Count++;
@@ -267,7 +263,6 @@ namespace Appegy.Storage
                 {
                     // move stream position to the next record
                     stream.Position = Math.Min(position + entrySize, stream.Length);
-                    keysFailed++;
 
                     var typeName = typeIndex >= 0 && typeIndex < sectionsNames.Length ? sectionsNames[typeIndex] : "<unknown>";
                     switch (keyLoadFailedBehaviour)
@@ -283,13 +278,6 @@ namespace Appegy.Storage
                             throw new UnexpectedEnumException(typeof(KeyLoadFailedBehaviour), keyLoadFailedBehaviour);
                     }
                 }
-            }
-
-            return new StorageLoadReport(fileLength, count, data.Count, keysFailed);
-
-            StorageFileCorruptedException Corrupted(StorageCorruptionReason reason, string details, int recordsExpected, int recordsRecovered, Exception innerException = null)
-            {
-                return new StorageFileCorruptedException(storageFilePath, reason, details, fileLength, recordsExpected, recordsRecovered, stream.Position, innerException);
             }
         }
 
