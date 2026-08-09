@@ -285,7 +285,7 @@ namespace Appegy.Storage
                 }
             }
 
-            return new StorageLoadReport(StorageCorruptionReason.None, fileLength, count, data.Count, keysFailed);
+            return new StorageLoadReport(fileLength, count, data.Count, keysFailed);
 
             StorageFileCorruptedException Corrupted(StorageCorruptionReason reason, string details, int recordsExpected, int recordsRecovered, Exception innerException = null)
             {
