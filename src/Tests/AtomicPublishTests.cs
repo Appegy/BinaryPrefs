@@ -46,7 +46,7 @@ namespace Appegy.Storage
 
             var sections = CreateSections();
             var loaded = new Dictionary<string, Record>();
-            BinaryStorageIO.LoadDataFromDisk(BackupPath, sections, loaded, KeyLoadFailedBehaviour.ThrowException);
+            BinaryStorageIO.ReadFile(BackupPath, sections, loaded, KeyLoadFailedBehaviour.ThrowException);
 
             loaded.Should().ContainKey("value");
             ((Record<int>)loaded["value"]).Value.Should().Be(1);
@@ -66,7 +66,7 @@ namespace Appegy.Storage
 
             var backupSections = CreateSections();
             var backup = new Dictionary<string, Record>();
-            BinaryStorageIO.LoadDataFromDisk(BackupPath, backupSections, backup, KeyLoadFailedBehaviour.ThrowException);
+            BinaryStorageIO.ReadFile(BackupPath, backupSections, backup, KeyLoadFailedBehaviour.ThrowException);
             ((Record<int>)backup["value"]).Value.Should().Be(4);
         }
 
