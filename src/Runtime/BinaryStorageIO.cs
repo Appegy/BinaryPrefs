@@ -41,6 +41,7 @@ namespace Appegy.Storage
             {
                 using var stream = new FileStream(storageFilePathTmp, FileMode.Create);
                 stream.Write(buffer.GetBuffer(), 0, (int)buffer.Length);
+                stream.Flush(true);
             }
             finally
             {
