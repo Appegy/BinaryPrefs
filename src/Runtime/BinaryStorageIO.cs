@@ -21,15 +21,14 @@ namespace Appegy.Storage
         /// <exception cref="IOException"> An I/O error occurred </exception>
         internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
-            // make sure there is no temp file from previous (most likely failed) save try
             var storageFilePathTmp = storageFilePath + TempFileExtension;
             var storageFilePathBackup = storageFilePath + BackupFileExtension;
-            DeleteFileIfExists(storageFilePathTmp);
 
             // delete storage if it exists when no data
             if (data.Count == 0)
             {
                 DeleteFileIfExists(storageFilePath);
+                DeleteFileIfExists(storageFilePathTmp);
                 DeleteFileIfExists(storageFilePathBackup);
                 return;
             }
