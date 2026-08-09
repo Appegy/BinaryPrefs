@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Appegy.Storage
     {
         internal const string TempFileExtension = ".tmp";
         internal const string BackupFileExtension = ".bak";
+        internal const string CorruptedFileExtension = ".corrupt";
 
         [ThreadStatic] private static PooledMemoryStream _serializationStream;
         [ThreadStatic] private static BinaryWriter _serializationWriter;
@@ -124,25 +126,103 @@ namespace Appegy.Storage
             return stream;
         }
 
-        /// <summary> Load data from disk to memory. </summary>
+        /// <summary>
+        /// Load data from disk to memory. When the storage file cannot be read, the backup written by the previous save is used instead,
+        /// the unreadable file is moved aside with a <see cref="CorruptedFileExtension"/> suffix and the recovered data is written back in its place.
+        /// </summary>
         /// <param name="storageFilePath"> Path to the storage file </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
+        /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup could be read. The storage file is moved aside before this is thrown. </exception>
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
-        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
-            data.Clear();
-            foreach (var section in sections)
-            {
-                section.Count = 0;
-            }
+            var storageFilePathTmp = storageFilePath + TempFileExtension;
+            var storageFilePathBackup = storageFilePath + BackupFileExtension;
+
+            ResetData(sections, data);
+
             if (!File.Exists(storageFilePath))
             {
                 return;
             }
+
+            StorageFileCorruptedException storageFailure;
+            try
+            {
+                ReadFile(storageFilePath, sections, data, keyLoadFailedBehaviour);
+                DeleteFileIfExists(storageFilePathTmp);
+                return;
+            }
+            catch (StorageFileCorruptedException exception)
+            {
+                storageFailure = exception;
+                ResetData(sections, data);
+            }
+
+            if (File.Exists(storageFilePathBackup))
+            {
+                try
+                {
+                    ReadFile(storageFilePathBackup, sections, data, keyLoadFailedBehaviour);
+                    RepublishRecoveredData(storageFilePath, sections, data);
+                    return;
+                }
+                catch (StorageFileCorruptedException)
+                {
+                    ResetData(sections, data);
+                }
+            }
+
+            QuarantineFile(storageFilePath);
+            DeleteFileIfExists(storageFilePathBackup);
+            ExceptionDispatchInfo.Capture(storageFailure).Throw();
+        }
+
+        private static void ResetData(IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data)
+        {
+            data.Clear();
+            for (var i = 0; i < sections.Count; i++)
+            {
+                sections[i].Count = 0;
+            }
+        }
+
+        /// <summary> Quarantine the unreadable file and write the recovered data back in its place. </summary>
+        private static void RepublishRecoveredData(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
+        {
+            var quarantinePath = storageFilePath + CorruptedFileExtension;
+            MoveFile(storageFilePath, quarantinePath);
+            try
+            {
+                SaveDataOnDisk(storageFilePath, sections, data);
+            }
+            catch (Exception exception)
+            {
+                MoveFile(quarantinePath, storageFilePath);
+                Debug.LogWarning($"Failed to rewrite '{storageFilePath}' from its backup. Reason: {exception.Message}");
+            }
+        }
+
+        private static void QuarantineFile(string storageFilePath)
+        {
+            MoveFile(storageFilePath, storageFilePath + CorruptedFileExtension);
+        }
+
+        private static void MoveFile(string sourceFilePath, string destinationFilePath)
+        {
+            if (!File.Exists(sourceFilePath))
+            {
+                return;
+            }
+            DeleteFileIfExists(destinationFilePath);
+            File.Move(sourceFilePath, destinationFilePath);
+        }
+
+        private static void ReadFile(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        {
             using var stream = new FileStream(storageFilePath, FileMode.Open);
             using var reader = new BinaryReader(stream, Encoding.UTF8);
 

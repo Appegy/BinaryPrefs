@@ -39,6 +39,7 @@ namespace Appegy.Storage
             DeleteIfExists(storagePath);
             DeleteIfExists(storagePath + BinaryStorageIO.TempFileExtension);
             DeleteIfExists(storagePath + BinaryStorageIO.BackupFileExtension);
+            DeleteIfExists(storagePath + BinaryStorageIO.CorruptedFileExtension);
         }
 
         private static void DeleteIfExists(string filePath)
