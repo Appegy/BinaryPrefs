@@ -76,7 +76,46 @@ namespace Appegy.Storage
             stream.Reset();
             try
             {
-                WriteData(_serializationWriter, sections, data);
+                // #01 <---> Store package version at the start of the file
+                _serializationWriter.Write(PackageInfo.Version);
+
+                // #02 <---> Reserve 8 bytes for future updates
+                _serializationWriter.Write(0L);
+
+                // #03 <---> Store amount of used serializers
+                _serializationWriter.Write(sections.Count);
+                for (var i = 0; i < sections.Count; i++)
+                {
+                    // #04 <---> Write only name of serializer type
+                    var section = sections[i];
+                    _serializationWriter.Write(section.Count > 0 ? section.TypeName : string.Empty);
+                }
+
+                // #05 <---> Store amount of records in storage
+                _serializationWriter.Write(data.Count);
+                foreach (var entry in data)
+                {
+                    // #06 <---> Write key
+                    _serializationWriter.Write(entry.Key);
+
+                    // #07 <---> Write type index
+                    _serializationWriter.Write(entry.Value.TypeIndex);
+
+                    // #08 <---> Keep space for size (will be calculated later)
+                    var position = _serializationWriter.BaseStream.Position;
+                    _serializationWriter.Write(0L);
+
+                    // #09 <---> Write value itself
+                    var start = _serializationWriter.BaseStream.Position;
+                    var serializer = sections[entry.Value.TypeIndex];
+                    serializer.WriteTo(_serializationWriter, entry.Value);
+                    var entrySize = _serializationWriter.BaseStream.Position - start;
+
+                    // #08 <---> Write real size of entry
+                    (position, _serializationWriter.BaseStream.Position) = (_serializationWriter.BaseStream.Position, position);
+                    _serializationWriter.Write(entrySize);
+                    (_, _serializationWriter.BaseStream.Position) = (_serializationWriter.BaseStream.Position, position);
+                }
             }
             catch
             {
@@ -84,50 +123,6 @@ namespace Appegy.Storage
                 throw;
             }
             return stream;
-        }
-
-        private static void WriteData(BinaryWriter writer, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
-        {
-            // #01 <---> Store package version at the start of the file
-            writer.Write(PackageInfo.Version);
-
-            // #02 <---> Reserve 8 bytes for future updates
-            writer.Write(0L);
-
-            // #03 <---> Store amount of used serializers
-            writer.Write(sections.Count);
-            for (var i = 0; i < sections.Count; i++)
-            {
-                // #04 <---> Write only name of serializer type
-                var section = sections[i];
-                writer.Write(section.Count > 0 ? section.TypeName : string.Empty);
-            }
-
-            // #05 <---> Store amount of records in storage
-            writer.Write(data.Count);
-            foreach (var entry in data)
-            {
-                // #06 <---> Write key
-                writer.Write(entry.Key);
-
-                // #07 <---> Write type index
-                writer.Write(entry.Value.TypeIndex);
-
-                // #08 <---> Keep space for size (will be calculated later)
-                var position = writer.BaseStream.Position;
-                writer.Write(0L);
-
-                // #09 <---> Write value itself
-                var start = writer.BaseStream.Position;
-                var serializer = sections[entry.Value.TypeIndex];
-                serializer.WriteTo(writer, entry.Value);
-                var entrySize = writer.BaseStream.Position - start;
-
-                // #08 <---> Write real size of entry
-                (position, writer.BaseStream.Position) = (writer.BaseStream.Position, position);
-                writer.Write(entrySize);
-                (_, writer.BaseStream.Position) = (writer.BaseStream.Position, position);
-            }
         }
 
         /// <summary> Load data from disk to memory. </summary>
@@ -152,7 +147,6 @@ namespace Appegy.Storage
             using var stream = new FileStream(storageFilePath, FileMode.Open);
             using var reader = new BinaryReader(stream, Encoding.UTF8);
 
-            int serializersCount;
             BinarySection[] orderedSectionsFromFile;
             string[] sectionsNames;
             int count;
@@ -165,7 +159,7 @@ namespace Appegy.Storage
                 reader.ReadInt64();
 
                 // #03 <---> Read used serializers amount
-                serializersCount = reader.ReadInt32();
+                var serializersCount = reader.ReadInt32();
                 if (serializersCount < 0 || serializersCount > stream.Length - stream.Position)
                 {
                     throw new StorageFileCorruptedException(storageFilePath, $"Invalid serializer count {serializersCount}");
