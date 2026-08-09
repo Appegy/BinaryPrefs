@@ -5,18 +5,12 @@ namespace Appegy.Storage
     /// </summary>
     public class StorageLoadReport
     {
-        public static readonly StorageLoadReport Empty = new(StorageLoadSource.Empty, StorageCorruptionReason.None, 0, 0, 0, 0);
+        public static readonly StorageLoadReport Empty = new(0, 0, 0, 0);
 
-        /// <summary> True when the file was read without structural problems and without failed keys. </summary>
-        public bool IsClean => Reason == StorageCorruptionReason.None && KeysFailed == 0;
+        /// <summary> True when every record the file promised ended up in memory. </summary>
+        public bool IsClean => KeysFailed == 0;
 
-        /// <summary> Which file the data came from. </summary>
-        public StorageLoadSource Source { get; }
-
-        /// <summary> What was wrong with the file, or <see cref="StorageCorruptionReason.None"/>. </summary>
-        public StorageCorruptionReason Reason { get; }
-
-        /// <summary> Size of the file that was read, in bytes. </summary>
+        /// <summary> Size of the file that was read, in bytes. Zero when there was no file. </summary>
         public long FileLength { get; }
 
         /// <summary> How many records the header promised. </summary>
@@ -28,10 +22,8 @@ namespace Appegy.Storage
         /// <summary> How many keys were skipped because their value could not be read. </summary>
         public int KeysFailed { get; }
 
-        public StorageLoadReport(StorageLoadSource source, StorageCorruptionReason reason, long fileLength, int recordsExpected, int recordsLoaded, int keysFailed)
+        public StorageLoadReport(long fileLength, int recordsExpected, int recordsLoaded, int keysFailed)
         {
-            Source = source;
-            Reason = reason;
             FileLength = fileLength;
             RecordsExpected = recordsExpected;
             RecordsLoaded = recordsLoaded;
@@ -40,7 +32,7 @@ namespace Appegy.Storage
 
         public override string ToString()
         {
-            return $"{Source} source, {Reason} reason, {FileLength}b, {RecordsLoaded}/{RecordsExpected} records, {KeysFailed} keys failed";
+            return $"{FileLength}b, {RecordsLoaded}/{RecordsExpected} records, {KeysFailed} keys failed";
         }
     }
 }

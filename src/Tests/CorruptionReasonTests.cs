@@ -12,18 +12,12 @@ namespace Appegy.Storage
         [Test]
         public void WhenEnumValuesChecked_ThenNumberingIsStable()
         {
-            ((int)StorageCorruptionReason.None).Should().Be(0);
             ((int)StorageCorruptionReason.HeaderTruncated).Should().Be(1);
             ((int)StorageCorruptionReason.RecordHeaderTruncated).Should().Be(2);
             ((int)StorageCorruptionReason.InvalidSerializerCount).Should().Be(3);
             ((int)StorageCorruptionReason.InvalidRecordCount).Should().Be(4);
             ((int)StorageCorruptionReason.DuplicateKey).Should().Be(5);
             ((int)StorageCorruptionReason.EntrySizeOverflow).Should().Be(6);
-
-            ((int)StorageLoadSource.Main).Should().Be(0);
-            ((int)StorageLoadSource.Backup).Should().Be(1);
-            ((int)StorageLoadSource.Tmp).Should().Be(2);
-            ((int)StorageLoadSource.Empty).Should().Be(3);
         }
 
         [Test]
@@ -149,8 +143,6 @@ namespace Appegy.Storage
             using var reopened = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
 
             reopened.LoadReport.IsClean.Should().BeTrue();
-            reopened.LoadReport.Reason.Should().Be(StorageCorruptionReason.None);
-            reopened.LoadReport.Source.Should().Be(StorageLoadSource.Main);
             reopened.LoadReport.RecordsExpected.Should().Be(2);
             reopened.LoadReport.RecordsLoaded.Should().Be(2);
             reopened.LoadReport.KeysFailed.Should().Be(0);
@@ -158,12 +150,13 @@ namespace Appegy.Storage
         }
 
         [Test]
-        public void WhenNoFileOnDisk_ThenReportSaysEmpty()
+        public void WhenNoFileOnDisk_ThenReportIsCleanAndEmpty()
         {
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
 
-            storage.LoadReport.Source.Should().Be(StorageLoadSource.Empty);
             storage.LoadReport.IsClean.Should().BeTrue();
+            storage.LoadReport.FileLength.Should().Be(0);
+            storage.LoadReport.RecordsExpected.Should().Be(0);
         }
 
         [Test]
@@ -183,7 +176,6 @@ namespace Appegy.Storage
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build(KeyLoadFailedBehaviour.Ignore);
 
             storage.LoadReport.IsClean.Should().BeFalse();
-            storage.LoadReport.Reason.Should().Be(StorageCorruptionReason.None);
             storage.LoadReport.RecordsExpected.Should().Be(2);
             storage.LoadReport.RecordsLoaded.Should().Be(1);
             storage.LoadReport.KeysFailed.Should().Be(1);

@@ -2,13 +2,9 @@ namespace Appegy.Storage
 {
     /// <summary>
     /// Identifies what exactly was wrong with a storage file.
-    /// Values are a telemetry dimension: never renumber them, only append.
     /// </summary>
     public enum StorageCorruptionReason
     {
-        /// <summary> File was read without any structural problem. </summary>
-        None = 0,
-
         /// <summary> File ended while the header was still being read. </summary>
         HeaderTruncated = 1,
 
