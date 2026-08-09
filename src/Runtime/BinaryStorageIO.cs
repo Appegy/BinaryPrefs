@@ -8,6 +8,9 @@ namespace Appegy.Storage
 {
     internal static class BinaryStorageIO
     {
+        internal const string TempFileExtension = ".tmp";
+        internal const string BackupFileExtension = ".bak";
+
         [ThreadStatic] private static PooledMemoryStream _serializationStream;
         [ThreadStatic] private static BinaryWriter _serializationWriter;
 
@@ -19,13 +22,15 @@ namespace Appegy.Storage
         internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
             // make sure there is no temp file from previous (most likely failed) save try
-            var storageFilePathTmp = storageFilePath + ".tmp";
+            var storageFilePathTmp = storageFilePath + TempFileExtension;
+            var storageFilePathBackup = storageFilePath + BackupFileExtension;
             DeleteFileIfExists(storageFilePathTmp);
 
             // delete storage if it exists when no data
             if (data.Count == 0)
             {
                 DeleteFileIfExists(storageFilePath);
+                DeleteFileIfExists(storageFilePathBackup);
                 return;
             }
 
@@ -50,9 +55,12 @@ namespace Appegy.Storage
 
             if (File.Exists(storageFilePath))
             {
-                File.Delete(storageFilePath);
+                File.Replace(storageFilePathTmp, storageFilePath, storageFilePathBackup);
             }
-            File.Move(storageFilePathTmp, storageFilePath);
+            else
+            {
+                File.Move(storageFilePathTmp, storageFilePath);
+            }
         }
 
         /// <summary> Serialize data into a pooled in-memory buffer. Caller owns the returned stream and must call <see cref="PooledMemoryStream.Release"/>. </summary>

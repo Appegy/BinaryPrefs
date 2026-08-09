@@ -36,9 +36,16 @@ namespace Appegy.Storage
         /// <param name="storagePath">The path to the storage file.</param>
         internal static void Delete(string storagePath)
         {
-            if (File.Exists(storagePath))
+            DeleteIfExists(storagePath);
+            DeleteIfExists(storagePath + BinaryStorageIO.TempFileExtension);
+            DeleteIfExists(storagePath + BinaryStorageIO.BackupFileExtension);
+        }
+
+        private static void DeleteIfExists(string filePath)
+        {
+            if (File.Exists(filePath))
             {
-                File.Delete(storagePath);
+                File.Delete(filePath);
             }
         }
 

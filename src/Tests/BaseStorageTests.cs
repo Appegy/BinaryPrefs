@@ -8,12 +8,22 @@ namespace Appegy.Storage
     {
         protected readonly string StoragePath = Path.Combine(Application.temporaryCachePath, "test.bin");
 
+        protected string TempPath => StoragePath + BinaryStorageIO.TempFileExtension;
+        protected string BackupPath => StoragePath + BinaryStorageIO.BackupFileExtension;
+
         [SetUp, TearDown]
         public void CleanStorageBetweenTests()
         {
-            if (File.Exists(StoragePath))
+            DeleteIfExists(StoragePath);
+            DeleteIfExists(TempPath);
+            DeleteIfExists(BackupPath);
+        }
+
+        private static void DeleteIfExists(string filePath)
+        {
+            if (File.Exists(filePath))
             {
-                File.Delete(StoragePath);
+                File.Delete(filePath);
             }
         }
     }
