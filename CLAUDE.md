@@ -11,7 +11,6 @@
 ## Code Style
 
 - Do NOT write comments in code. Code should be self-explanatory through clear naming. Exceptions: existing `// TODO`/migration markers and attributes/pragmas that the compiler or tooling requires.
-- No comments in code. Code self-explanatory via clear naming. Exceptions: existing `// TODO`/migration markers, attributes/pragmas required by compiler or tooling.
 - Editor classes: `internal`, not `public`.
 - Lines are long (max 250, `resharper_csharp_max_line_length = 250`). Don't wrap just to fit narrow width - one long line fine. Wrap only when it truly helps read, and match surrounding code.
 
