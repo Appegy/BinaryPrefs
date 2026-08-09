@@ -11,6 +11,7 @@ namespace Appegy.Storage
     public partial class BinaryStorage : IDisposable, IBinaryStorage
     {
         private readonly string _storageFilePath;
+        private readonly StorageFilePaths _storageFilePaths;
         private readonly IReadOnlyList<BinarySection> _supportedTypes;
         private readonly Dictionary<string, Record> _data = new();
         private readonly Dictionary<IReactiveCollection, string> _collections = new();
@@ -40,6 +41,7 @@ namespace Appegy.Storage
         internal BinaryStorage(string storageFilePath, IReadOnlyList<BinarySection> supportedTypes)
         {
             _storageFilePath = storageFilePath;
+            _storageFilePaths = new StorageFilePaths(storageFilePath);
             _supportedTypes = supportedTypes;
         }
 
@@ -716,7 +718,7 @@ namespace Appegy.Storage
         private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
+            BinaryStorageIO.LoadDataFromDisk(_storageFilePaths, _supportedTypes, _data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
                 var rc = pair.Value.AsReactiveCollection();
@@ -734,7 +736,7 @@ namespace Appegy.Storage
         private void SaveDataFromDisk()
         {
             ThrowIfDisposed();
-            BinaryStorageIO.SaveDataOnDisk(_storageFilePath, _supportedTypes, _data);
+            BinaryStorageIO.SaveDataOnDisk(_storageFilePaths, _supportedTypes, _data);
             IsDirty = false;
             if (SaveJsonCopyForDebug)
             {

@@ -13,6 +13,8 @@ namespace Appegy.Storage
         internal const string BackupFileExtension = ".bak";
 
         private const string UnknownTypeName = "<unknown>";
+        private const int ReadBufferSize = 16 * 1024;
+        private const int MinimumRecordSize = 13;
 
         [ThreadStatic] private static PooledMemoryStream _serializationStream;
         [ThreadStatic] private static BinaryWriter _serializationWriter;
@@ -22,25 +24,22 @@ namespace Appegy.Storage
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        internal static void SaveDataOnDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
+        internal static void SaveDataOnDisk(in StorageFilePaths paths, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
-            var storageFilePathTmp = storageFilePath + TempFileExtension;
-            var storageFilePathBackup = storageFilePath + BackupFileExtension;
-
             if (data.Count == 0)
             {
-                DeleteFileIfExists(storageFilePath);
-                DeleteFileIfExists(storageFilePathTmp);
-                DeleteFileIfExists(storageFilePathBackup);
+                DeleteFileIfExists(paths.Main);
+                DeleteFileIfExists(paths.Temp);
+                DeleteFileIfExists(paths.Backup);
                 return;
             }
 
-            EnsureDirectoryExists(storageFilePathTmp);
+            EnsureDirectoryExists(paths.Temp);
 
             var buffer = SerializeToBuffer(sections, data);
             try
             {
-                using var stream = new FileStream(storageFilePathTmp, FileMode.Create);
+                using var stream = new FileStream(paths.Temp, FileMode.Create);
                 stream.Write(buffer.GetBuffer(), 0, (int)buffer.Length);
                 stream.Flush(true);
             }
@@ -49,13 +48,13 @@ namespace Appegy.Storage
                 buffer.Release();
             }
 
-            if (File.Exists(storageFilePath))
+            if (File.Exists(paths.Main))
             {
-                File.Replace(storageFilePathTmp, storageFilePath, storageFilePathBackup);
+                File.Replace(paths.Temp, paths.Main, paths.Backup);
             }
             else
             {
-                File.Move(storageFilePathTmp, storageFilePath);
+                File.Move(paths.Temp, paths.Main);
             }
         }
 
@@ -148,33 +147,32 @@ namespace Appegy.Storage
         /// <exception cref="IOException"> An I/O error occurred </exception>
         /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup could be read. Both are removed before this is thrown. </exception>
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
-        internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        internal static void LoadDataFromDisk(in StorageFilePaths paths, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ResetData(sections, data);
 
-            if (!File.Exists(storageFilePath))
+            if (!File.Exists(paths.Main))
             {
                 return;
             }
 
-            DeleteFileIfExists(storageFilePath + TempFileExtension);
+            DeleteFileIfExists(paths.Temp);
 
-            if (TryReadFile(storageFilePath, sections, data, keyLoadFailedBehaviour, out var storageFailure))
+            if (TryReadFile(paths.Main, sections, data, keyLoadFailedBehaviour, out var storageFailure))
             {
                 return;
             }
 
-            DeleteFileIfExists(storageFilePath);
+            DeleteFileIfExists(paths.Main);
 
-            var storageFilePathBackup = storageFilePath + BackupFileExtension;
-            if (File.Exists(storageFilePathBackup))
+            if (File.Exists(paths.Backup))
             {
-                File.Move(storageFilePathBackup, storageFilePath);
-                if (TryReadFile(storageFilePath, sections, data, keyLoadFailedBehaviour, out _))
+                File.Move(paths.Backup, paths.Main);
+                if (TryReadFile(paths.Main, sections, data, keyLoadFailedBehaviour, out _))
                 {
                     return;
                 }
-                DeleteFileIfExists(storageFilePath);
+                DeleteFileIfExists(paths.Main);
             }
 
             ExceptionDispatchInfo.Capture(storageFailure).Throw();
@@ -202,11 +200,12 @@ namespace Appegy.Storage
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         internal static void ReadFile(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
-            using var stream = new FileStream(storageFilePath, FileMode.Open);
+            using var stream = new FileStream(storageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, ReadBufferSize);
             using var reader = new BinaryReader(stream, Encoding.UTF8);
 
             var fileSections = ReadHeader(storageFilePath, sections, reader, out var recordCount);
             var fileLength = stream.Length;
+            data.EnsureCapacity((int)Math.Min(recordCount, (fileLength - stream.Position) / MinimumRecordSize));
 
             for (var i = 0; i < recordCount; i++)
             {
