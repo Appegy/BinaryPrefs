@@ -31,6 +31,9 @@ namespace Appegy.Storage
         /// <summary> Gets a value indicating whether there are unsaved changes. </summary>
         public bool IsDirty { get; private set; }
 
+        /// <summary> Gets the report describing how the storage file was read. Never null. </summary>
+        public StorageLoadReport LoadReport { get; private set; } = StorageLoadReport.Empty;
+
         /// <summary> Gets a value indicating whether the storage has been disposed. </summary>
         public bool IsDisposed { get; private set; }
 
@@ -716,7 +719,7 @@ namespace Appegy.Storage
         private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
+            LoadReport = BinaryStorageIO.LoadDataFromDisk(_storageFilePath, _supportedTypes, _data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
                 var rc = pair.Value.AsReactiveCollection();
