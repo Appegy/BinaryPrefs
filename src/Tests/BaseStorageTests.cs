@@ -10,7 +10,6 @@ namespace Appegy.Storage
 
         protected string TempPath => StoragePath + BinaryStorageIO.TempFileExtension;
         protected string BackupPath => StoragePath + BinaryStorageIO.BackupFileExtension;
-        protected string CorruptedPath => StoragePath + BinaryStorageIO.CorruptedFileExtension;
 
         [SetUp, TearDown]
         public void CleanStorageBetweenTests()
@@ -18,7 +17,6 @@ namespace Appegy.Storage
             DeleteIfExists(StoragePath);
             DeleteIfExists(TempPath);
             DeleteIfExists(BackupPath);
-            DeleteIfExists(CorruptedPath);
         }
 
         private static void DeleteIfExists(string filePath)

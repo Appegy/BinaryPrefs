@@ -11,7 +11,6 @@ namespace Appegy.Storage
     {
         internal const string TempFileExtension = ".tmp";
         internal const string BackupFileExtension = ".bak";
-        internal const string CorruptedFileExtension = ".corrupt";
 
         [ThreadStatic] private static PooledMemoryStream _serializationStream;
         [ThreadStatic] private static BinaryWriter _serializationWriter;
@@ -127,15 +126,14 @@ namespace Appegy.Storage
         }
 
         /// <summary>
-        /// Load data from disk to memory. When the storage file cannot be read, the backup written by the previous save is used instead,
-        /// the unreadable file is moved aside with a <see cref="CorruptedFileExtension"/> suffix and the recovered data is written back in its place.
+        /// Load data from disk to memory. When the storage file cannot be read, it is deleted and the backup written by the previous save takes its place.
         /// </summary>
         /// <param name="storageFilePath"> Path to the storage file </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup could be read. The storage file is moved aside before this is thrown. </exception>
+        /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup could be read. Both are removed before this is thrown. </exception>
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         internal static void LoadDataFromDisk(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
@@ -162,22 +160,24 @@ namespace Appegy.Storage
                 ResetData(sections, data);
             }
 
+            DeleteFileIfExists(storageFilePath);
+
             if (File.Exists(storageFilePathBackup))
             {
+                File.Move(storageFilePathBackup, storageFilePath);
                 try
                 {
-                    ReadFile(storageFilePathBackup, sections, data, keyLoadFailedBehaviour);
-                    RepublishRecoveredData(storageFilePath, sections, data);
+                    ReadFile(storageFilePath, sections, data, keyLoadFailedBehaviour);
+                    DeleteFileIfExists(storageFilePathTmp);
                     return;
                 }
                 catch (StorageFileCorruptedException)
                 {
                     ResetData(sections, data);
+                    DeleteFileIfExists(storageFilePath);
                 }
             }
 
-            QuarantineFile(storageFilePath);
-            DeleteFileIfExists(storageFilePathBackup);
             ExceptionDispatchInfo.Capture(storageFailure).Throw();
         }
 
@@ -188,37 +188,6 @@ namespace Appegy.Storage
             {
                 sections[i].Count = 0;
             }
-        }
-
-        /// <summary> Quarantine the unreadable file and write the recovered data back in its place. </summary>
-        private static void RepublishRecoveredData(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
-        {
-            var quarantinePath = storageFilePath + CorruptedFileExtension;
-            MoveFile(storageFilePath, quarantinePath);
-            try
-            {
-                SaveDataOnDisk(storageFilePath, sections, data);
-            }
-            catch (Exception exception)
-            {
-                MoveFile(quarantinePath, storageFilePath);
-                Debug.LogWarning($"Failed to rewrite '{storageFilePath}' from its backup. Reason: {exception.Message}");
-            }
-        }
-
-        private static void QuarantineFile(string storageFilePath)
-        {
-            MoveFile(storageFilePath, storageFilePath + CorruptedFileExtension);
-        }
-
-        private static void MoveFile(string sourceFilePath, string destinationFilePath)
-        {
-            if (!File.Exists(sourceFilePath))
-            {
-                return;
-            }
-            DeleteFileIfExists(destinationFilePath);
-            File.Move(sourceFilePath, destinationFilePath);
         }
 
         private static void ReadFile(string storageFilePath, IReadOnlyList<BinarySection> sections, IDictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)

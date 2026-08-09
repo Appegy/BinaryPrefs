@@ -16,32 +16,30 @@ namespace Appegy.Storage
             using var storage = Open();
 
             storage.Get<int>("generation").Should().Be(1);
-            File.Exists(CorruptedPath).Should().BeTrue();
         }
 
         [Test]
-        public void WhenStorageIsCorrupted_ThenRewrittenFileSurvivesRestart()
+        public void WhenStorageIsCorrupted_ThenBackupTakesItsPlaceOnDisk()
         {
             WriteTwoGenerations();
             File.WriteAllBytes(StoragePath, Array.Empty<byte>());
 
+            Open().Dispose();
+
+            File.Exists(StoragePath).Should().BeTrue();
+            File.Exists(BackupPath).Should().BeFalse();
+        }
+
+        [Test]
+        public void WhenStorageIsCorrupted_ThenRecoveredDataSurvivesRestart()
+        {
+            WriteTwoGenerations();
+            File.WriteAllBytes(StoragePath, Array.Empty<byte>());
             Open().Dispose();
 
             using var reopened = Open();
 
             reopened.Get<int>("generation").Should().Be(1);
-        }
-
-        [Test]
-        public void WhenRecoveredFromBackup_ThenBackupIsNotOverwrittenByCorruptedFile()
-        {
-            WriteTwoGenerations();
-            File.WriteAllBytes(StoragePath, Array.Empty<byte>());
-
-            Open().Dispose();
-
-            File.Exists(BackupPath).Should().BeTrue();
-            ReadGenerationOf(BackupPath).Should().Be(1);
         }
 
         [Test]
@@ -69,7 +67,7 @@ namespace Appegy.Storage
         }
 
         [Test]
-        public void WhenStorageAndBackupAreBothCorrupted_ThenThrowsAndQuarantinesTheFile()
+        public void WhenStorageAndBackupAreBothCorrupted_ThenThrowsAndRemovesBoth()
         {
             WriteTwoGenerations();
             File.WriteAllBytes(StoragePath, Array.Empty<byte>());
@@ -77,13 +75,12 @@ namespace Appegy.Storage
 
             FluentActions.Invoking(() => Open().Dispose()).Should().Throw<StorageFileCorruptedException>();
 
-            File.Exists(CorruptedPath).Should().BeTrue();
             File.Exists(StoragePath).Should().BeFalse();
             File.Exists(BackupPath).Should().BeFalse();
         }
 
         [Test]
-        public void WhenRestartedAfterQuarantine_ThenStartsCleanWithoutThrowing()
+        public void WhenRestartedAfterTotalFailure_ThenStartsCleanWithoutThrowing()
         {
             WriteTwoGenerations();
             File.WriteAllBytes(StoragePath, Array.Empty<byte>());
@@ -106,7 +103,6 @@ namespace Appegy.Storage
             storage.Get<int>("generation").Should().Be(2);
             File.Exists(BackupPath).Should().BeTrue();
             File.Exists(TempPath).Should().BeFalse();
-            File.Exists(CorruptedPath).Should().BeFalse();
         }
 
         private void WriteTwoGenerations()
@@ -116,21 +112,6 @@ namespace Appegy.Storage
             storage.Save();
             storage.Set("generation", 2);
             storage.Save();
-        }
-
-        private int ReadGenerationOf(string filePath)
-        {
-            var probePath = StoragePath + ".probe";
-            File.Copy(filePath, probePath, true);
-            try
-            {
-                using var probe = BinaryStorage.Construct(probePath).AddPrimitiveTypes().Build();
-                return probe.Get<int>("generation");
-            }
-            finally
-            {
-                File.Delete(probePath);
-            }
         }
 
         private BinaryStorage Open()
