@@ -19,6 +19,18 @@ namespace Appegy.Storage
             BinaryStorage.Delete(StoragePath);
         }
 
+        protected BinaryStorage Open(bool autoSave = false, bool saveOnBackgroundThread = true)
+        {
+            var builder = BinaryStorage.Construct(StoragePath)
+                .AddPrimitiveTypes()
+                .SaveOnBackgroundThread(saveOnBackgroundThread);
+            if (autoSave)
+            {
+                builder = builder.EnableAutoSaveOnChange();
+            }
+            return builder.Build();
+        }
+
         /// <summary> Serializes and publishes the given records on the calling thread, the way a storage without a background writer does. </summary>
         internal static void SaveOnDisk(string filePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {

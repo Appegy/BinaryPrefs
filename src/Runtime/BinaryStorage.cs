@@ -600,14 +600,11 @@ namespace Appegy.Storage
                 return;
             }
             _changeScopeCounter--;
-            if (IsDisposed)
+            if (IsDisposed || !_hasUnsavedChanges)
             {
                 return;
             }
-            if (_changeScopeCounter == 0 && _hasUnsavedChanges && AutoSave)
-            {
-                SaveDataOnDisk(false);
-            }
+            MarkChanged();
         }
 
         /// <summary> Reacts to a change in a reactive collection. </summary>
