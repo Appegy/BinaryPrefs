@@ -1,8 +1,6 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Appegy.Storage
 {
@@ -12,8 +10,7 @@ namespace Appegy.Storage
 
         static partial void ThrowIfFilePathLocked(string filePath)
         {
-            filePath = Path.GetFullPath(filePath).TrimEnd('\\');
-            if (_lockedFiles.Any(s => filePath == s))
+            if (_lockedFiles.Contains(StorageFile.Normalize(filePath)))
             {
                 throw new Exception($"Storage already opened by this path. File path: {filePath}");
             }
@@ -21,14 +18,12 @@ namespace Appegy.Storage
 
         static partial void LockFilePathInEditor(string filePath)
         {
-            filePath = Path.GetFullPath(filePath).TrimEnd('\\');
-            _lockedFiles.Add(filePath);
+            _lockedFiles.Add(StorageFile.Normalize(filePath));
         }
 
         static partial void UnlockFilePathInEditor(string filePath)
         {
-            filePath = Path.GetFullPath(filePath).TrimEnd('\\');
-            _lockedFiles.Remove(filePath);
+            _lockedFiles.Remove(StorageFile.Normalize(filePath));
         }
     }
 }

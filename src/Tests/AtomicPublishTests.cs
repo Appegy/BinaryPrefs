@@ -13,7 +13,7 @@ namespace Appegy.Storage
         {
             var (sections, data) = CreateSample(1);
 
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             File.Exists(StoragePath).Should().BeTrue();
             File.Exists(BackupPath).Should().BeFalse();
@@ -24,11 +24,11 @@ namespace Appegy.Storage
         public void WhenSavedOverExistingFile_ThenBackupHoldsPreviousGeneration()
         {
             var (firstSections, firstData) = CreateSample(1);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, firstSections, firstData);
+            SaveOnDisk(StoragePath, firstSections, firstData);
             var firstGeneration = File.ReadAllBytes(StoragePath);
 
             var (secondSections, secondData) = CreateSample(2);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, secondSections, secondData);
+            SaveOnDisk(StoragePath, secondSections, secondData);
 
             File.ReadAllBytes(BackupPath).Should().Equal(firstGeneration);
             File.ReadAllBytes(StoragePath).Should().NotEqual(firstGeneration);
@@ -39,14 +39,14 @@ namespace Appegy.Storage
         public void WhenSavedOverExistingFile_ThenBackupIsLoadable()
         {
             var (firstSections, firstData) = CreateSample(1);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, firstSections, firstData);
+            SaveOnDisk(StoragePath, firstSections, firstData);
 
             var (secondSections, secondData) = CreateSample(2);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, secondSections, secondData);
+            SaveOnDisk(StoragePath, secondSections, secondData);
 
             var sections = CreateSections();
             var loaded = new Dictionary<string, Record>();
-            BinaryStorageIO.ReadFile(BackupPath, sections, loaded, KeyLoadFailedBehaviour.ThrowException);
+            StorageFormat.ReadFile(BackupPath, sections, loaded, KeyLoadFailedBehaviour.ThrowException);
 
             loaded.Should().ContainKey("value");
             ((Record<int>)loaded["value"]).Value.Should().Be(1);
@@ -58,7 +58,7 @@ namespace Appegy.Storage
             for (var generation = 1; generation <= 5; generation++)
             {
                 var (sections, data) = CreateSample(generation);
-                BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+                SaveOnDisk(StoragePath, sections, data);
             }
 
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
@@ -66,7 +66,7 @@ namespace Appegy.Storage
 
             var backupSections = CreateSections();
             var backup = new Dictionary<string, Record>();
-            BinaryStorageIO.ReadFile(BackupPath, backupSections, backup, KeyLoadFailedBehaviour.ThrowException);
+            StorageFormat.ReadFile(BackupPath, backupSections, backup, KeyLoadFailedBehaviour.ThrowException);
             ((Record<int>)backup["value"]).Value.Should().Be(4);
         }
 
@@ -74,14 +74,14 @@ namespace Appegy.Storage
         public void WhenSavedRepeatedly_ThenStorageFileIsNeverMissing()
         {
             var (firstSections, firstData) = CreateSample(1);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, firstSections, firstData);
+            SaveOnDisk(StoragePath, firstSections, firstData);
 
             var observer = new FileExistenceObserver(StoragePath, BackupPath);
             observer.Start();
             for (var generation = 2; generation <= 201; generation++)
             {
                 var (sections, data) = CreateSample(generation);
-                BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+                SaveOnDisk(StoragePath, sections, data);
             }
             observer.Stop();
 
@@ -92,12 +92,12 @@ namespace Appegy.Storage
         public void WhenAllDataRemoved_ThenBackupRemovedToo()
         {
             var (firstSections, firstData) = CreateSample(1);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, firstSections, firstData);
+            SaveOnDisk(StoragePath, firstSections, firstData);
             var (secondSections, secondData) = CreateSample(2);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, secondSections, secondData);
+            SaveOnDisk(StoragePath, secondSections, secondData);
             File.Exists(BackupPath).Should().BeTrue();
 
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, CreateSections(), new Dictionary<string, Record>());
+            SaveOnDisk(StoragePath, CreateSections(), new Dictionary<string, Record>());
 
             File.Exists(StoragePath).Should().BeFalse();
             File.Exists(BackupPath).Should().BeFalse();
@@ -107,9 +107,9 @@ namespace Appegy.Storage
         public void WhenStorageDeleted_ThenBackupAndTempDeletedToo()
         {
             var (firstSections, firstData) = CreateSample(1);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, firstSections, firstData);
+            SaveOnDisk(StoragePath, firstSections, firstData);
             var (secondSections, secondData) = CreateSample(2);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, secondSections, secondData);
+            SaveOnDisk(StoragePath, secondSections, secondData);
             File.WriteAllBytes(TempPath, new byte[] { 1, 2, 3 });
 
             BinaryStorage.Delete(StoragePath);
@@ -123,11 +123,11 @@ namespace Appegy.Storage
         public void WhenStaleTempExists_ThenSaveStillPublishes()
         {
             var (firstSections, firstData) = CreateSample(1);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, firstSections, firstData);
+            SaveOnDisk(StoragePath, firstSections, firstData);
             File.WriteAllBytes(TempPath, new byte[] { 9, 9, 9 });
 
             var (sections, data) = CreateSample(2);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
             storage.Get<int>("value").Should().Be(2);

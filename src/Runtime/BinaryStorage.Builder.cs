@@ -37,7 +37,7 @@ namespace Appegy.Storage
         /// <param name="storagePath">The path to the storage file.</param>
         internal static void Delete(string storagePath)
         {
-            BinaryStorageIO.DeleteStorageFiles(storagePath);
+            StorageFile.Of(storagePath).Remove();
         }
 
         /// <summary> Provides a fluent interface for configuring and building a <see cref="BinaryStorage"/> instance. </summary>
@@ -252,9 +252,8 @@ namespace Appegy.Storage
             /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
             public BinaryStorage Build(KeyLoadFailedBehaviour keyLoadFailedBehaviour = KeyLoadFailedBehaviour.IgnoreWithWarning)
             {
-                var storage = new BinaryStorage(_filePath, _serializers);
+                var storage = new BinaryStorage(_filePath, _serializers, _saveOnBackgroundThread);
                 storage.AutoSave = _autoSave;
-                storage.UseBackgroundWriter(_saveOnBackgroundThread);
                 storage.SaveJsonCopyForDebug = _saveJsonForDebug;
                 storage.MissingKeyBehavior = _missingKeyBehavior;
                 storage.TypeMismatchBehaviour = _typeMismatchBehaviour;

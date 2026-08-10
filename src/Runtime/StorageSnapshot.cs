@@ -1,0 +1,39 @@
+namespace Appegy.Storage
+{
+    /// <summary>
+    /// A serialized storage state on its way to disk. Owns the pooled array holding the bytes: whoever receives a snapshot
+    /// publishes it and then calls <see cref="Release"/> exactly once. An empty snapshot carries no bytes because the storage
+    /// holds no records, and publishing it removes the file instead of writing it.
+    /// </summary>
+    internal readonly struct StorageSnapshot
+    {
+        public readonly long Generation;
+        public readonly byte[] Buffer;
+        public readonly int Length;
+
+        private StorageSnapshot(long generation, byte[] buffer, int length)
+        {
+            Generation = generation;
+            Buffer = buffer;
+            Length = length;
+        }
+
+        public bool IsEmpty => Buffer == null;
+
+        public static StorageSnapshot Empty(long generation)
+        {
+            return new StorageSnapshot(generation, null, 0);
+        }
+
+        public static StorageSnapshot Take(PooledMemoryStream stream, long generation)
+        {
+            var buffer = stream.Detach(out var length);
+            return new StorageSnapshot(generation, buffer, length);
+        }
+
+        public void Release()
+        {
+            PooledMemoryStream.ReturnDetachedBuffer(Buffer);
+        }
+    }
+}

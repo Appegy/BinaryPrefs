@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using JetBrains.Annotations;
 using UnityEngine.Pool;
 
@@ -12,8 +11,7 @@ namespace Appegy.Storage
     public partial class BinaryStorage : IDisposable, IBinaryStorage
     {
         private readonly string _storageFilePath;
-        private readonly StorageFilePaths _storageFilePaths;
-        private StorageWriter _writer;
+        private readonly StoragePersistence _persistence;
         private readonly IReadOnlyList<BinarySection> _supportedTypes;
         private readonly Dictionary<string, Record> _data = new();
         private readonly Dictionary<IReactiveCollection, string> _collections = new();
@@ -23,7 +21,11 @@ namespace Appegy.Storage
         public bool AutoSave { get; set; }
 
         /// <summary> Gets or sets a value indicating whether a human-readable JSON copy is written next to the binary file on each save. The copy is write-only and never loaded back. </summary>
-        public bool SaveJsonCopyForDebug { get; set; }
+        public bool SaveJsonCopyForDebug
+        {
+            get => _persistence.SaveJsonCopyForDebug;
+            set => _persistence.SaveJsonCopyForDebug = value;
+        }
 
         /// <summary> Gets or sets the behavior when a requested key is not found in the storage. </summary>
         public MissingKeyBehavior MissingKeyBehavior { get; set; } = MissingKeyBehavior.ReturnDefaultValueOnly;
@@ -40,11 +42,12 @@ namespace Appegy.Storage
         /// <summary> Initializes a new instance of the <see cref="BinaryStorage"/> class. </summary>
         /// <param name="storageFilePath">The file path for storing data.</param>
         /// <param name="supportedTypes">The list of supported types for storage.</param>
-        internal BinaryStorage(string storageFilePath, IReadOnlyList<BinarySection> supportedTypes)
+        /// <param name="saveOnBackgroundThread">Whether the storage file is written on a background thread.</param>
+        internal BinaryStorage(string storageFilePath, IReadOnlyList<BinarySection> supportedTypes, bool saveOnBackgroundThread)
         {
             _storageFilePath = storageFilePath;
-            _storageFilePaths = new StorageFilePaths(storageFilePath);
             _supportedTypes = supportedTypes;
+            _persistence = new StoragePersistence(storageFilePath, supportedTypes, saveOnBackgroundThread);
         }
 
         #region Events
@@ -673,14 +676,16 @@ namespace Appegy.Storage
                 return;
             }
 
-            if (disposing && AutoSave && IsDirty)
-            {
-                SaveDataOnDisk(true);
-            }
-
             if (disposing)
             {
-                _writer?.Flush(Timeout.Infinite);
+                if (AutoSave && IsDirty)
+                {
+                    SaveDataOnDisk(true);
+                }
+                else
+                {
+                    _persistence.Flush();
+                }
             }
 
             // Always dispose IReactiveCollection instances
@@ -725,7 +730,7 @@ namespace Appegy.Storage
         private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.LoadDataFromDisk(_storageFilePaths, _supportedTypes, _data, keyLoadFailedBehaviour);
+            _persistence.Load(_data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
                 var rc = pair.Value.AsReactiveCollection();
@@ -737,53 +742,15 @@ namespace Appegy.Storage
             }
         }
 
-        /// <summary> Attaches or detaches the background writer. Called by the builder before the storage is handed out. </summary>
-        private void UseBackgroundWriter(bool enabled)
-        {
-            _writer = enabled ? new StorageWriter(_storageFilePaths) : null;
-        }
-
-        /// <summary> Serializes on the calling thread and hands the bytes over to the background writer. </summary>
-        private void HandOverToWriter()
-        {
-            if (_data.Count == 0)
-            {
-                _writer.EnqueueDelete();
-                return;
-            }
-            var buffer = BinaryStorageIO.SerializeToBuffer(_supportedTypes, _data);
-            var bytes = buffer.Detach(out var length);
-            _writer.EnqueueWrite(bytes, length);
-        }
-
-        /// <summary> Saves the data from memory to disk, on the background writer when the storage was built with one. </summary>
+        /// <summary> Saves the data from memory to disk. </summary>
         /// <param name="waitForDisk">Whether to block until the data has actually reached the disk.</param>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IOException"> An I/O error occurred </exception>
         private void SaveDataOnDisk(bool waitForDisk)
         {
             ThrowIfDisposed();
-            if (_writer == null || waitForDisk)
-            {
-                _writer?.DiscardPending();
-                BinaryStorageIO.SaveDataOnDisk(_storageFilePaths, _supportedTypes, _data);
-            }
-            else
-            {
-                HandOverToWriter();
-            }
+            _persistence.Save(_data, waitForDisk);
             IsDirty = false;
-            if (SaveJsonCopyForDebug)
-            {
-                try
-                {
-                    BinaryStorageIO.SaveJsonCopyOnDisk(_storageFilePath, _data);
-                }
-                catch (Exception exception)
-                {
-                    UnityEngine.Debug.LogWarning($"Failed to save JSON debug copy of '{_storageFilePath}'. Reason: {exception.Message}");
-                }
-            }
         }
 
         #endregion

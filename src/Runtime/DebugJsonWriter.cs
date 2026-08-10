@@ -14,7 +14,7 @@ namespace Appegy.Storage
         private const int IndentWidth = 2;
         private const int MaxDepth = 64;
 
-        private static readonly BindingFlags MemberFlags = BindingFlags.Public | BindingFlags.Instance;
+        private static readonly BindingFlags _memberFlags = BindingFlags.Public | BindingFlags.Instance;
 
         public static string ToJson(IReadOnlyDictionary<string, Record> data)
         {
@@ -167,14 +167,14 @@ namespace Appegy.Storage
         private static List<KeyValuePair<string, object>> CollectMembers(Type type, object value)
         {
             var members = new List<KeyValuePair<string, object>>();
-            foreach (var field in type.GetFields(MemberFlags))
+            foreach (var field in type.GetFields(_memberFlags))
             {
                 if (TryReadMember(() => field.GetValue(value), out var fieldValue))
                 {
                     members.Add(new KeyValuePair<string, object>(field.Name, fieldValue));
                 }
             }
-            foreach (var property in type.GetProperties(MemberFlags))
+            foreach (var property in type.GetProperties(_memberFlags))
             {
                 if (!property.CanRead || property.GetIndexParameters().Length > 0)
                 {

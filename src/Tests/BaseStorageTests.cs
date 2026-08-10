@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
@@ -8,23 +9,19 @@ namespace Appegy.Storage
     {
         protected readonly string StoragePath = Path.Combine(Application.temporaryCachePath, "test.bin");
 
-        protected string TempPath => StoragePath + BinaryStorageIO.TempFileExtension;
-        protected string BackupPath => StoragePath + BinaryStorageIO.BackupFileExtension;
+        protected string TempPath => StoragePath + StorageFile.TempFileExtension;
+        protected string BackupPath => StoragePath + StorageFile.BackupFileExtension;
 
         [SetUp, TearDown]
         public void CleanStorageBetweenTests()
         {
-            DeleteIfExists(StoragePath);
-            DeleteIfExists(TempPath);
-            DeleteIfExists(BackupPath);
+            BinaryStorage.Delete(StoragePath);
         }
 
-        private static void DeleteIfExists(string filePath)
+        /// <summary> Serializes and publishes the given records on the calling thread, the way a storage without a background writer does. </summary>
+        internal static void SaveOnDisk(string filePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+            new StoragePersistence(filePath, sections, false).Save(data, true);
         }
     }
 }

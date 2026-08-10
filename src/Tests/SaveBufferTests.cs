@@ -38,7 +38,7 @@ namespace Appegy.Storage
             var (sections, data) = CreateSample(3, 16);
             File.WriteAllBytes(LegacyStoragePath, SerializeAsBeforeRefactor(sections, data));
 
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             File.ReadAllBytes(StoragePath).Should().Equal(File.ReadAllBytes(LegacyStoragePath));
         }
@@ -49,7 +49,7 @@ namespace Appegy.Storage
             var (sections, data) = CreateSample(64, 512);
             File.WriteAllBytes(LegacyStoragePath, SerializeAsBeforeRefactor(sections, data));
 
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             File.ReadAllBytes(StoragePath).Should().Equal(File.ReadAllBytes(LegacyStoragePath));
         }
@@ -59,7 +59,7 @@ namespace Appegy.Storage
         {
             var (sections, data) = CreateSample(64, 512);
 
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
             storage.Get<int>("int").Should().Be(42);
@@ -71,14 +71,12 @@ namespace Appegy.Storage
         public void WhenSerializerThrows_ThenBufferReturnedToPool()
         {
             var (sections, data) = CreateThrowingSample();
+            var serializer = new StorageSerializer(sections);
 
-            var stream = BinaryStorageIO.SerializeToBuffer(new List<BinarySection>(), new Dictionary<string, Record>());
-            stream.Release();
-
-            Action action = () => BinaryStorageIO.SerializeToBuffer(sections, data);
+            Action action = () => serializer.Serialize(data, 1);
 
             action.Should().Throw<InvalidOperationException>();
-            stream.Capacity.Should().Be(0);
+            serializer.BufferCapacity.Should().Be(0);
         }
 
         [Test]
@@ -86,7 +84,7 @@ namespace Appegy.Storage
         {
             var (sections, data) = CreateThrowingSample();
 
-            Action action = () => BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            Action action = () => SaveOnDisk(StoragePath, sections, data);
 
             action.Should().Throw<InvalidOperationException>();
             File.Exists(StoragePath).Should().BeFalse();
@@ -97,11 +95,11 @@ namespace Appegy.Storage
         public void WhenSerializerThrew_ThenNextSaveWritesValidFile()
         {
             var (throwingSections, throwingData) = CreateThrowingSample();
-            Action action = () => BinaryStorageIO.SaveDataOnDisk(StoragePath, throwingSections, throwingData);
+            Action action = () => SaveOnDisk(StoragePath, throwingSections, throwingData);
             action.Should().Throw<InvalidOperationException>();
 
             var (sections, data) = CreateSample(3, 16);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
             storage.Get<int>("int").Should().Be(42);
@@ -114,7 +112,7 @@ namespace Appegy.Storage
             var sections = new List<BinarySection> { new TypedBinarySection<int>(Int32Serializer.Shared) };
             File.WriteAllBytes(StoragePath, new byte[] { 1, 2, 3 });
 
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, new Dictionary<string, Record>());
+            SaveOnDisk(StoragePath, sections, new Dictionary<string, Record>());
 
             File.Exists(StoragePath).Should().BeFalse();
         }
@@ -123,10 +121,10 @@ namespace Appegy.Storage
         public void WhenBigStorageSavedBeforeSmallOne_ThenSmallOneIsStillCorrect()
         {
             var (bigSections, bigData) = CreateSample(64, 512);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, bigSections, bigData);
+            SaveOnDisk(StoragePath, bigSections, bigData);
 
             var (sections, data) = CreateSample(1, 8);
-            BinaryStorageIO.SaveDataOnDisk(StoragePath, sections, data);
+            SaveOnDisk(StoragePath, sections, data);
 
             File.ReadAllBytes(StoragePath).Should().Equal(SerializeAsBeforeRefactor(sections, data));
         }
@@ -160,10 +158,10 @@ namespace Appegy.Storage
 
         private static byte[] SerializeIntoBuffer(IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
-            var stream = BinaryStorageIO.SerializeToBuffer(sections, data);
-            var bytes = new byte[stream.Length];
-            Array.Copy(stream.GetBuffer(), bytes, bytes.Length);
-            stream.Release();
+            var snapshot = new StorageSerializer(sections).Serialize(data, 1);
+            var bytes = new byte[snapshot.Length];
+            Array.Copy(snapshot.Buffer, bytes, bytes.Length);
+            snapshot.Release();
             return bytes;
         }
 

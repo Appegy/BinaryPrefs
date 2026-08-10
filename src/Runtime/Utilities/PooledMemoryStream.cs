@@ -51,14 +51,7 @@ namespace Appegy.Storage
 
         public void Release()
         {
-            RememberCapacity();
-            if (_buffer.Length > 0)
-            {
-                ArrayPool<byte>.Shared.Return(_buffer);
-                _buffer = Array.Empty<byte>();
-            }
-            _position = 0;
-            _length = 0;
+            ReturnDetachedBuffer(Detach(out _));
         }
 
         /// <summary>

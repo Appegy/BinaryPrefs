@@ -15,7 +15,7 @@ Unity's standard `PlayerPrefs` has several limitations:
 
 All of these issues are addressed by BinaryPrefs: a configurable, strongly typed, binary key-value storage with support for Unity types, enums, collections, custom serializers, change events, and scoped sub-storages.
 
-And the feature I like most: **every change is persisted the moment it happens**. As soon as you set a value - or even mutate a stored list, set or dictionary - it is written to disk, with atomic, corruption-safe writes. You never have to remember to call `Save()`, and an unexpected crash or quit can't lose the last change. When you need it, many changes can still be batched into a single write.
+And the feature I like most: **every change is persisted the moment it happens**. As soon as you set a value - or even mutate a stored list, set or dictionary - it goes to disk on a background thread, with atomic, corruption-safe writes. You never have to remember to call `Save()`, and the calling thread never waits for the disk. When you need it, many changes can still be batched into a single write.
 
 <!-- omit from toc -->
 ## Table of content
@@ -96,6 +96,7 @@ using var storage = BinaryStorage.Construct(path)
     .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
     .SetTypeMismatchBehaviour(TypeMismatchBehaviour.OverrideValueAndType)
     .EnableAutoSaveOnChange()
+    .SaveOnBackgroundThread(true)                          // on by default, false writes the file before every change returns
     .Build(KeyLoadFailedBehaviour.IgnoreWithWarning);
 ```
 
@@ -164,16 +165,27 @@ using (storage.MultipleChangeScope())
 
 ## Saving
 
-By default (and with `BinaryStorage.Get`) auto-save is enabled, so **every change is written to disk immediately** - the moment you `Set` a value or mutate a stored collection. There is no "dirty" window where data lives only in memory: forget-to-save bugs and data lost to a crash simply don't happen.
+By default (and with `BinaryStorage.Get`) auto-save is enabled, so **every change goes to disk on its own** - the moment you `Set` a value or mutate a stored collection. Forget-to-save bugs simply don't happen.
 
-Writes are atomic: data is written to a temporary file first and only then swapped in, so an interrupted save can never corrupt your existing file.
+The change is serialized on your thread and handed to a shared background writer, so `Set` returns without waiting for the disk. A newer change replaces an older one that hasn't been written yet, because the file is always written whole and only the last state matters.
+
+Writes are atomic: data is written to a temporary file first and only then swapped in, so an interrupted save can never corrupt your existing file. A process killed in the window between the change and the write keeps the previous state intact and loses only the last change.
 
 Need to apply many changes as a single write? Wrap them in a [change scope](#batch-changes) - auto-save then fires once, when the scope ends.
 
-If you prefer full manual control, skip `EnableAutoSaveOnChange` and persist yourself:
+If you prefer full manual control, skip `EnableAutoSaveOnChange` and persist yourself. `Save()` blocks until the data has actually reached the disk - it writes the file on your thread rather than queueing behind the background writer:
 
 ```csharp
 storage.Save();
+```
+
+Disposing a storage writes out whatever is still pending. To go back to writing the file before every change returns, turn the background writer off:
+
+```csharp
+using var storage = BinaryStorage.Construct(path)
+    .AddPrimitiveTypes()
+    .SaveOnBackgroundThread(false)
+    .Build();
 ```
 
 ## Change events

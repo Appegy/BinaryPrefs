@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using Appegy.Storage.Serializers;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -126,17 +128,10 @@ namespace Appegy.Storage
 
         private static int ReadValueFrom(string filePath)
         {
-            var sections = BinaryStorage.Construct(filePath + ".probe").AddPrimitiveTypes();
-            File.Copy(filePath, filePath + ".probe", true);
-            try
-            {
-                using var probe = sections.Build();
-                return probe.Get<int>("value");
-            }
-            finally
-            {
-                File.Delete(filePath + ".probe");
-            }
+            var sections = new List<BinarySection> { new TypedBinarySection<int>(Int32Serializer.Shared) };
+            var data = new Dictionary<string, Record>();
+            StorageFormat.ReadFile(filePath, sections, data, KeyLoadFailedBehaviour.Ignore);
+            return ((Record<int>)data["value"]).Value;
         }
     }
 }

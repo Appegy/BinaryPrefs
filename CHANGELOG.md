@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0/).
 
 ## [Unreleased]
+### Changed
+- Storage files are now written on a shared background thread. Changes are still serialized on the calling thread, but `Set` and auto-save no longer wait for the disk. `Save()` and `Dispose()` still block until the data has reached the disk.
+
+### Added
+- `SaveOnBackgroundThread(bool)` on the builder. Pass `false` to write the file before every change returns, as before.
+
+### Fixed
+- Two storages opened through paths that differ only in form (`a/save.dat` and `./a/save.dat`) no longer publish the same file without serializing against each other.
 
 ## [1.0.5]
 - Baseline of the changelog. See the GitHub Releases page for earlier history.

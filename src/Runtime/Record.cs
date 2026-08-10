@@ -13,7 +13,7 @@ namespace Appegy.Storage
 
     internal class Record<T> : Record
     {
-        private static readonly bool ValueCanBeReactiveCollection = typeof(IReactiveCollection).IsAssignableFrom(typeof(T));
+        private static readonly bool _valueCanBeReactiveCollection = typeof(IReactiveCollection).IsAssignableFrom(typeof(T));
 
         public override Type Type { get; }
         public override int TypeIndex { get; }
@@ -22,7 +22,7 @@ namespace Appegy.Storage
 
         public override IReactiveCollection AsReactiveCollection()
         {
-            return ValueCanBeReactiveCollection ? (IReactiveCollection)(object)Value : null;
+            return _valueCanBeReactiveCollection ? (IReactiveCollection)(object)Value : null;
         }
 
         public Record(T value, int typeIndex)
