@@ -13,19 +13,13 @@ namespace Appegy.Storage
 
         public bool SaveJsonCopyForDebug { get; set; }
 
-        public Action SaveDeferredChanges
-        {
-            get => _writer.SaveDeferredChanges;
-            set => _writer.SaveDeferredChanges = value;
-        }
-
         internal int SerializeCount => _serializer.SerializeCount;
 
-        public StoragePersistence(string filePath, IReadOnlyList<BinarySection> sections, bool saveOnBackgroundThread)
+        public StoragePersistence(string filePath, IReadOnlyList<BinarySection> sections, bool saveOnBackgroundThread, Action saveDeferredChanges)
         {
             _file = StorageFile.Of(filePath);
             _serializer = new StorageSerializer(sections);
-            _writer = saveOnBackgroundThread ? new BackgroundStorageWriter(_file) : new ImmediateStorageWriter(_file);
+            _writer = saveOnBackgroundThread ? new BackgroundStorageWriter(_file, saveDeferredChanges) : new ImmediateStorageWriter(_file);
         }
 
         public bool TryDeferSave()

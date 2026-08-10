@@ -13,8 +13,10 @@ namespace Appegy.Storage
         private readonly string _storageFilePath;
         private readonly StoragePersistence _persistence;
         private readonly IReadOnlyList<BinarySection> _supportedTypes;
+        private readonly Dictionary<Type, int> _sectionIndexByType;
         private readonly Dictionary<string, Record> _data = new();
         private readonly Dictionary<IReactiveCollection, string> _collections = new();
+        private readonly Action _decreaseCounter;
         private int _changeScopeCounter;
         private bool _hasUnsavedChanges;
 
@@ -47,8 +49,13 @@ namespace Appegy.Storage
         {
             _storageFilePath = storageFilePath;
             _supportedTypes = supportedTypes;
-            _persistence = new StoragePersistence(storageFilePath, supportedTypes, saveOnBackgroundThread);
-            _persistence.SaveDeferredChanges = SaveDeferredChanges;
+            _sectionIndexByType = new Dictionary<Type, int>(supportedTypes.Count);
+            for (var i = 0; i < supportedTypes.Count; i++)
+            {
+                _sectionIndexByType[supportedTypes[i].Type] = i;
+            }
+            _decreaseCounter = DecreaseCounter;
+            _persistence = new StoragePersistence(storageFilePath, supportedTypes, saveOnBackgroundThread, SaveDeferredChanges);
         }
 
         #region Events
@@ -107,7 +114,7 @@ namespace Appegy.Storage
             }
 
             var valueType = value.GetType();
-            if (valueType.IsCollection())
+            if (CollectionTypeCache.IsCollection(valueType))
             {
                 throw new IncorrectUsageOfCollectionException(nameof(SetRaw), valueType);
             }
@@ -131,23 +138,17 @@ namespace Appegy.Storage
                 return true;
             }
 
-            var mismatchBehaviour = overrideTypeMismatchBehaviour ?? TypeMismatchBehaviour;
-            switch (mismatchBehaviour)
+            if (!ShouldReplaceMismatchedRecord(key, record, valueType, overrideTypeMismatchBehaviour))
             {
-                case TypeMismatchBehaviour.OverrideValueAndType:
-                    using (new ChangeScope(this))
-                    {
-                        RemoveRecord(key);
-                        AddRawRecord(key, value, valueType);
-                    }
-                    return true;
-                case TypeMismatchBehaviour.ThrowException:
-                    throw new UnexpectedTypeException(key, nameof(SetRaw), record.Type, valueType);
-                case TypeMismatchBehaviour.Ignore:
-                    return false;
-                default:
-                    throw new UnexpectedEnumException(typeof(TypeMismatchBehaviour), mismatchBehaviour);
+                return false;
             }
+
+            using (new ChangeScope(this))
+            {
+                RemoveRecord(key);
+                AddRawRecord(key, value, valueType);
+            }
+            return true;
         }
 
         /// <summary> Determines whether the specified key exists in the storage. </summary>
@@ -239,23 +240,17 @@ namespace Appegy.Storage
                 return ChangeRecord(key, typedRecord, value);
             }
 
-            var mismatchBehaviour = overrideTypeMismatchBehaviour ?? TypeMismatchBehaviour;
-            switch (mismatchBehaviour)
+            if (!ShouldReplaceMismatchedRecord(key, record, typeof(T), overrideTypeMismatchBehaviour))
             {
-                case TypeMismatchBehaviour.OverrideValueAndType:
-                    using (new ChangeScope(this))
-                    {
-                        RemoveRecord(key);
-                        AddRecord(key, value);
-                    }
-                    return true;
-                case TypeMismatchBehaviour.ThrowException:
-                    throw new UnexpectedTypeException(key, nameof(Set), record.Type, typeof(T));
-                case TypeMismatchBehaviour.Ignore:
-                    return false;
-                default:
-                    throw new UnexpectedEnumException(typeof(TypeMismatchBehaviour), mismatchBehaviour);
+                return false;
             }
+
+            using (new ChangeScope(this))
+            {
+                RemoveRecord(key);
+                AddRecord(key, value);
+            }
+            return true;
         }
 
         /// <summary>
@@ -323,7 +318,7 @@ namespace Appegy.Storage
         {
             ThrowIfDisposed();
             _changeScopeCounter++;
-            return new DisposableScope(DecreaseCounter);
+            return new DisposableScope(_decreaseCounter);
         }
 
         #region Collections
@@ -451,12 +446,7 @@ namespace Appegy.Storage
             var record = new Record<T>(value, typeIndex);
             section.Count++;
             _data.Add(key, record);
-            var rc = record.AsReactiveCollection();
-            if (rc != null)
-            {
-                _collections.Add(rc, key);
-                rc.OnChanged += ReactiveCollectionChanged;
-            }
+            TrackCollectionOf(record, key);
             MarkChanged();
             OnKeyAdded?.Invoke(key);
             return record;
@@ -469,15 +459,7 @@ namespace Appegy.Storage
         /// <exception cref="UnregisteredTypeException">Thrown if the type is not registered.</exception>
         private void AddRawRecord(string key, object value, Type valueType)
         {
-            var typeIndex = -1;
-            for (var i = 0; i < _supportedTypes.Count; i++)
-            {
-                if (_supportedTypes[i].Type == valueType)
-                {
-                    typeIndex = i;
-                    break;
-                }
-            }
+            var typeIndex = IndexOfSection(valueType);
             if (typeIndex == -1)
             {
                 throw new UnregisteredTypeException(valueType);
@@ -521,13 +503,7 @@ namespace Appegy.Storage
             {
                 return false;
             }
-            var rc = value.AsReactiveCollection();
-            if (rc != null)
-            {
-                rc.OnChanged -= ReactiveCollectionChanged;
-                rc.Dispose();
-                _collections.Remove(rc);
-            }
+            UntrackCollectionOf(value);
             _supportedTypes[value.TypeIndex].Count--;
             _data.Remove(key);
             MarkChanged();
@@ -543,14 +519,7 @@ namespace Appegy.Storage
             {
                 foreach (var record in _data.Values)
                 {
-                    var rc = record.AsReactiveCollection();
-                    if (rc == null)
-                    {
-                        continue;
-                    }
-                    rc.OnChanged -= ReactiveCollectionChanged;
-                    rc.Dispose();
-                    _collections.Remove(rc);
+                    UntrackCollectionOf(record);
                 }
                 _data.Clear();
                 for (var i = 0; i < _supportedTypes.Count; i++)
@@ -576,14 +545,50 @@ namespace Appegy.Storage
 
         private int IndexOfSection<T>()
         {
-            for (var i = 0; i < _supportedTypes.Count; i++)
+            return IndexOfSection(typeof(T));
+        }
+
+        private int IndexOfSection(Type type)
+        {
+            return _sectionIndexByType.TryGetValue(type, out var index) ? index : -1;
+        }
+
+        /// <summary> Decides whether a record whose stored type differs from the type being written has to be replaced. </summary>
+        /// <returns>True if the record has to be replaced; false if the write has to be ignored.</returns>
+        /// <exception cref="UnexpectedTypeException">Thrown if the mismatch behavior is to throw.</exception>
+        private bool ShouldReplaceMismatchedRecord(string key, Record record, Type valueType, TypeMismatchBehaviour? overrideTypeMismatchBehaviour, [CallerMemberName] string action = null)
+        {
+            var mismatchBehaviour = overrideTypeMismatchBehaviour ?? TypeMismatchBehaviour;
+            return mismatchBehaviour switch
             {
-                if (_supportedTypes[i] is TypedBinarySection<T>)
-                {
-                    return i;
-                }
+                TypeMismatchBehaviour.OverrideValueAndType => true,
+                TypeMismatchBehaviour.Ignore => false,
+                TypeMismatchBehaviour.ThrowException => throw new UnexpectedTypeException(key, action, record.Type, valueType),
+                _ => throw new UnexpectedEnumException(typeof(TypeMismatchBehaviour), mismatchBehaviour)
+            };
+        }
+
+        private void TrackCollectionOf(Record record, string key)
+        {
+            var collection = record.AsReactiveCollection();
+            if (collection == null)
+            {
+                return;
             }
-            return -1;
+            _collections.Add(collection, key);
+            collection.OnChanged += ReactiveCollectionChanged;
+        }
+
+        private void UntrackCollectionOf(Record record)
+        {
+            var collection = record.AsReactiveCollection();
+            if (collection == null)
+            {
+                return;
+            }
+            collection.OnChanged -= ReactiveCollectionChanged;
+            collection.Dispose();
+            _collections.Remove(collection);
         }
 
         /// <summary>
@@ -692,14 +697,7 @@ namespace Appegy.Storage
             // Always dispose IReactiveCollection instances
             foreach (var record in _data.Values)
             {
-                var rc = record.AsReactiveCollection();
-                if (rc == null)
-                {
-                    continue;
-                }
-                rc.OnChanged -= ReactiveCollectionChanged;
-                rc.Dispose();
-                _collections.Remove(rc);
+                UntrackCollectionOf(record);
             }
 
             OnKeyAdded = null;
@@ -734,12 +732,7 @@ namespace Appegy.Storage
             _persistence.Load(_data, keyLoadFailedBehaviour);
             foreach (var pair in _data)
             {
-                var rc = pair.Value.AsReactiveCollection();
-                if (rc != null)
-                {
-                    _collections.Add(rc, pair.Key);
-                    rc.OnChanged += ReactiveCollectionChanged;
-                }
+                TrackCollectionOf(pair.Value, pair.Key);
             }
         }
 

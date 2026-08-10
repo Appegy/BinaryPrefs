@@ -23,7 +23,7 @@ namespace Appegy.Storage
         /// <summary> Serializes and publishes the given records on the calling thread, the way a storage without a background writer does. </summary>
         internal static void SaveOnDisk(string filePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
-            new StoragePersistence(filePath, sections, false).Save(data, true);
+            new StoragePersistence(filePath, sections, false, () => { }).Save(data, true);
         }
 
         protected int ReadValueFromDisk()

@@ -1,12 +1,8 @@
-using System;
-
 namespace Appegy.Storage
 {
     internal sealed class ImmediateStorageWriter : IStorageWriter
     {
         private readonly StorageFile _file;
-
-        public Action SaveDeferredChanges { get; set; }
 
         public ImmediateStorageWriter(StorageFile file)
         {

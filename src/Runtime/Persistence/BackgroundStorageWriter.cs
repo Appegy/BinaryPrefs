@@ -23,13 +23,11 @@ namespace Appegy.Storage
         private bool _isPublishing;
         private bool _isSaveDeferred;
 
-        public Action SaveDeferredChanges { get; set; }
-
-        public BackgroundStorageWriter(StorageFile file)
+        public BackgroundStorageWriter(StorageFile file, Action saveDeferredChanges)
         {
             _file = file;
             _context = SynchronizationContext.Current;
-            _saveDeferredChanges = _ => SaveDeferredChanges?.Invoke();
+            _saveDeferredChanges = _ => saveDeferredChanges();
         }
 
         public bool TryDeferSave()
