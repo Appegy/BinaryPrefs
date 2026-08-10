@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.IO;
 
 namespace Appegy.Storage
 {
@@ -20,7 +19,7 @@ namespace Appegy.Storage
             Main = mainFilePath;
             Temp = mainFilePath + BinaryStorageIO.TempFileExtension;
             Backup = mainFilePath + BinaryStorageIO.BackupFileExtension;
-            PublishLock = PublishLocks.GetOrAdd(Path.GetFullPath(mainFilePath), _ => new object());
+            PublishLock = PublishLocks.GetOrAdd(mainFilePath, _ => new object());
         }
 
         public static implicit operator StorageFilePaths(string mainFilePath)

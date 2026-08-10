@@ -46,6 +46,24 @@ namespace Appegy.Storage
             Enqueue(null, 0, true);
         }
 
+        /// <summary>
+        /// Drop whatever is waiting to be written, because the caller is about to write a newer state itself.
+        /// Everything requested so far counts as published, so <see cref="Flush"/> no longer waits for it.
+        /// </summary>
+        public void DiscardPending()
+        {
+            byte[] dropped;
+            lock (_lock)
+            {
+                dropped = _pendingBuffer;
+                _pendingBuffer = null;
+                _hasPending = false;
+                _publishedGeneration = _requestedGeneration;
+                Monitor.PulseAll(_lock);
+            }
+            PooledMemoryStream.ReturnDetachedBuffer(dropped);
+        }
+
         /// <summary> Block until everything enqueued so far has reached the disk. </summary>
         /// <param name="timeoutMilliseconds"> How long to wait, or <see cref="Timeout.Infinite"/> to wait as long as it takes </param>
         /// <returns> True when the disk caught up, false when the timeout expired first </returns>
@@ -141,7 +159,7 @@ namespace Appegy.Storage
                 PooledMemoryStream.ReturnDetachedBuffer(buffer);
                 lock (_lock)
                 {
-                    _publishedGeneration = generation;
+                    _publishedGeneration = Math.Max(_publishedGeneration, generation);
                     Monitor.PulseAll(_lock);
                 }
             }

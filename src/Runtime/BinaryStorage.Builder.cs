@@ -33,20 +33,11 @@ namespace Appegy.Storage
         }
 
         /// <summary> Deletes the storage file at the specified path. </summary>
+        /// <remarks> Meant for a path no storage is open on. A storage still alive on this path may write it back from memory afterwards. </remarks>
         /// <param name="storagePath">The path to the storage file.</param>
         internal static void Delete(string storagePath)
         {
-            DeleteIfExists(storagePath);
-            DeleteIfExists(storagePath + BinaryStorageIO.TempFileExtension);
-            DeleteIfExists(storagePath + BinaryStorageIO.BackupFileExtension);
-        }
-
-        private static void DeleteIfExists(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+            BinaryStorageIO.DeleteStorageFiles(storagePath);
         }
 
         /// <summary> Provides a fluent interface for configuring and building a <see cref="BinaryStorage"/> instance. </summary>

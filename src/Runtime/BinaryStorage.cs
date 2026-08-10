@@ -763,17 +763,14 @@ namespace Appegy.Storage
         private void SaveDataOnDisk(bool waitForDisk)
         {
             ThrowIfDisposed();
-            if (_writer == null)
+            if (_writer == null || waitForDisk)
             {
+                _writer?.DiscardPending();
                 BinaryStorageIO.SaveDataOnDisk(_storageFilePaths, _supportedTypes, _data);
             }
             else
             {
                 HandOverToWriter();
-                if (waitForDisk)
-                {
-                    _writer.Flush(Timeout.Infinite);
-                }
             }
             IsDirty = false;
             if (SaveJsonCopyForDebug)
