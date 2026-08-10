@@ -80,6 +80,7 @@ namespace Appegy.Storage
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value associated with the key, or null if the key does not exist.</returns>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
+        [CanBeNull]
         public virtual object GetRaw(string key)
         {
             ThrowIfDisposed();
