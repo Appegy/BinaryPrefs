@@ -1,41 +1,15 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace Appegy.Storage
 {
-    internal class ReactiveDictionary<TKey, TValue> : IReactiveCollection, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    internal class ReactiveDictionary<TKey, TValue> : ReactiveCollection, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     {
         private readonly Dictionary<TKey, TValue> _dictionary = new();
 
-        public bool IsDisposed { get; private set; }
-
-        public event Action<IReactiveCollection> OnChanged;
-
-        private void SetDirty()
-        {
-            OnChanged?.Invoke(this);
-        }
-
-        private void ThrowIfDisposed()
-        {
-            if (IsDisposed)
-            {
-                throw new ObjectDisposedException(nameof(ReactiveDictionary<TKey, TValue>));
-            }
-        }
+        protected override string ObjectName => nameof(ReactiveDictionary<TKey, TValue>);
 
         #region Mutable functionallity
-
-        public void Dispose()
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
-            Clear();
-            IsDisposed = true;
-        }
 
         public TValue this[TKey key]
         {
@@ -59,7 +33,7 @@ namespace Appegy.Storage
             SetDirty();
         }
 
-        public void Clear()
+        public override void Clear()
         {
             ThrowIfDisposed();
             _dictionary.Clear();

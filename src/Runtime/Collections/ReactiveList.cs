@@ -1,41 +1,15 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Appegy.Storage
 {
-    internal class ReactiveList<T> : IReactiveCollection, IList<T>, IReadOnlyList<T>
+    internal class ReactiveList<T> : ReactiveCollection, IList<T>, IReadOnlyList<T>
     {
         private readonly List<T> _list = new();
 
-        public bool IsDisposed { get; private set; }
-
-        public event Action<IReactiveCollection> OnChanged;
-
-        private void SetDirty()
-        {
-            OnChanged?.Invoke(this);
-        }
-
-        private void ThrowIfDisposed()
-        {
-            if (IsDisposed)
-            {
-                throw new ObjectDisposedException(nameof(ReactiveList<T>));
-            }
-        }
+        protected override string ObjectName => nameof(ReactiveList<T>);
 
         #region Mutable functionallity
-
-        public void Dispose()
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
-            Clear();
-            IsDisposed = true;
-        }
 
         public T this[int index]
         {
@@ -59,7 +33,7 @@ namespace Appegy.Storage
             SetDirty();
         }
 
-        public void Clear()
+        public override void Clear()
         {
             ThrowIfDisposed();
             if (_list.Count > 0)
