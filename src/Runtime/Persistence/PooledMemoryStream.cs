@@ -7,7 +7,6 @@ namespace Appegy.Storage
     internal sealed class PooledMemoryStream : Stream
     {
         private const int MinimumCapacity = 1024;
-        private const int MaximumRememberedCapacity = 1024 * 1024;
 
         private byte[] _buffer = Array.Empty<byte>();
         private int _rememberedCapacity = MinimumCapacity;
@@ -81,7 +80,7 @@ namespace Appegy.Storage
 
         private void RememberCapacity()
         {
-            _rememberedCapacity = Math.Clamp(Math.Max(_rememberedCapacity, _length), MinimumCapacity, MaximumRememberedCapacity);
+            _rememberedCapacity = Math.Max(_length, MinimumCapacity);
         }
 
         public override void Flush()

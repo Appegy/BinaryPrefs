@@ -9,16 +9,16 @@ namespace Appegy.Storage
         [Test]
         public void WhenNestedScopes_ThenAutoSaveDeferredUntilOutermostCloses()
         {
-            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().EnableAutoSaveOnChange().Build();
+            using var storage = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().EnableAutoSaveOnChange().SaveOnBackgroundThread(false).Build();
             var outer = storage.MultipleChangeScope();
             var inner = storage.MultipleChangeScope();
 
             storage.Set("a", 1);
             inner.Dispose();
-            storage.IsDirty.Should().BeTrue();
+            File.Exists(StoragePath).Should().BeFalse();
 
             outer.Dispose();
-            storage.IsDirty.Should().BeFalse();
+            File.Exists(StoragePath).Should().BeTrue();
         }
 
         [Test]

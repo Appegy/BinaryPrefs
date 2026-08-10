@@ -329,7 +329,7 @@ namespace Appegy.Storage
 
             ShouldNotAllocate("StorageSerializer.Serialize", () =>
             {
-                var snapshot = serializer.Serialize(data, 1);
+                var snapshot = serializer.Serialize(data);
                 _intSink += snapshot.Length;
                 snapshot.Release();
             });

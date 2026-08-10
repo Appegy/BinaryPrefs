@@ -9,29 +9,18 @@ namespace Appegy.Storage
     /// </summary>
     internal readonly struct StorageSnapshot
     {
-        public readonly long Generation;
         public readonly byte[] Buffer;
         public readonly int Length;
 
-        private StorageSnapshot(long generation, byte[] buffer, int length)
+        public StorageSnapshot(byte[] buffer, int length)
         {
-            Generation = generation;
             Buffer = buffer;
             Length = length;
         }
 
+        public static StorageSnapshot Empty => default;
+
         public bool IsEmpty => Buffer == null;
-
-        public static StorageSnapshot Empty(long generation)
-        {
-            return new StorageSnapshot(generation, null, 0);
-        }
-
-        public static StorageSnapshot Take(PooledMemoryStream stream, long generation)
-        {
-            var buffer = stream.Detach(out var length);
-            return new StorageSnapshot(generation, buffer, length);
-        }
 
         public void Release()
         {

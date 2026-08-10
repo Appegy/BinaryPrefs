@@ -1,16 +1,13 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Threading;
 
 namespace Appegy.Storage
 {
     /// <summary>
     /// The storage file on disk together with the companion files kept next to it. One instance per path, shared by every
-    /// storage and every writer aiming at that path, so that publishing and loading are serialized across threads and a
-    /// snapshot can never overwrite a newer one that already reached the disk.
+    /// storage and every writer aiming at that path, so that publishing and loading are serialized across threads.
     /// </summary>
     internal sealed class StorageFile
     {
@@ -23,14 +20,15 @@ namespace Appegy.Storage
         private static readonly ConcurrentDictionary<string, StorageFile> _files = new();
         private static readonly UTF8Encoding _debugJsonEncoding = new(false);
 
+        /// <summary> Reads one candidate file into memory, reporting a corrupted structure instead of throwing it. </summary>
+        internal delegate bool ReadAttempt(string filePath, out StorageFileCorruptedException failure);
+
         public readonly string Main;
         public readonly string Temp;
         public readonly string Backup;
         public readonly string DebugJson;
 
         private readonly object _publishGate = new();
-        private long _requestedGeneration;
-        private long _publishedGeneration;
 
         private StorageFile(string mainFilePath)
         {
@@ -51,16 +49,7 @@ namespace Appegy.Storage
             return Path.GetFullPath(filePath).TrimEnd(Path.DirectorySeparatorChar);
         }
 
-        /// <summary> Stamp the next state of this file. Generations are monotonic per file, so a snapshot always knows whether it is newer than what is on disk. </summary>
-        public long NextGeneration()
-        {
-            return Interlocked.Increment(ref _requestedGeneration);
-        }
-
-        /// <summary>
-        /// Publish a snapshot as the storage file, atomically and durably, and release it. An empty snapshot removes the
-        /// file instead, and a snapshot older than the published one is dropped.
-        /// </summary>
+        /// <summary> Publish a snapshot as the storage file, atomically and durably, and release it. An empty snapshot removes the file instead. </summary>
         /// <exception cref="IOException"> An I/O error occurred </exception>
         public void Publish(StorageSnapshot snapshot)
         {
@@ -68,29 +57,21 @@ namespace Appegy.Storage
             {
                 lock (_publishGate)
                 {
-                    if (snapshot.Generation <= _publishedGeneration)
-                    {
-                        return;
-                    }
                     if (snapshot.IsEmpty)
                     {
-                        DeleteFileIfExists(Main);
-                        DeleteFileIfExists(Temp);
-                        DeleteFileIfExists(Backup);
+                        RemoveFiles();
+                        return;
+                    }
+
+                    WriteTemp(snapshot);
+                    if (File.Exists(Main))
+                    {
+                        File.Replace(Temp, Main, Backup);
                     }
                     else
                     {
-                        WriteTemp(snapshot);
-                        if (File.Exists(Main))
-                        {
-                            File.Replace(Temp, Main, Backup);
-                        }
-                        else
-                        {
-                            File.Move(Temp, Main);
-                        }
+                        File.Move(Temp, Main);
                     }
-                    _publishedGeneration = snapshot.Generation;
                 }
             }
             finally
@@ -99,19 +80,14 @@ namespace Appegy.Storage
             }
         }
 
-        private void WriteTemp(StorageSnapshot snapshot)
-        {
-            EnsureDirectoryExists();
-            using var stream = new FileStream(Temp, FileMode.Create, FileAccess.Write, FileShare.None, NoBuffering);
-            stream.Write(snapshot.Buffer, 0, snapshot.Length);
-            stream.Flush(true);
-        }
-
-        /// <summary> Remove the storage file together with its companion files, and keep an older snapshot still in flight from bringing it back. </summary>
+        /// <summary> Remove the storage file together with its companion files. </summary>
         /// <exception cref="IOException"> An I/O error occurred </exception>
         public void Remove()
         {
-            Publish(StorageSnapshot.Empty(NextGeneration()));
+            lock (_publishGate)
+            {
+                RemoveFiles();
+            }
         }
 
         /// <summary> Write or remove the human-readable JSON copy kept next to the storage file. The copy is write-only and never loaded back. </summary>
@@ -128,16 +104,16 @@ namespace Appegy.Storage
             File.WriteAllText(DebugJson, json, _debugJsonEncoding);
         }
 
-        /// <summary> Load the storage file into memory. When it cannot be read, it is removed and the backup written by the previous publish takes its place. </summary>
+        /// <summary>
+        /// Hand the storage file to <paramref name="tryRead"/>, and when it cannot be read, remove it and hand over the backup
+        /// written by the previous publish in its place.
+        /// </summary>
         /// <exception cref="IOException"> An I/O error occurred </exception>
         /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup could be read. Both are removed before this is thrown. </exception>
-        /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
-        public void Load(IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        public void Load(ReadAttempt tryRead)
         {
             lock (_publishGate)
             {
-                ResetData(sections, data);
-
                 if (!File.Exists(Main))
                 {
                     return;
@@ -145,7 +121,7 @@ namespace Appegy.Storage
 
                 DeleteFileIfExists(Temp);
 
-                if (TryReadFile(Main, sections, data, keyLoadFailedBehaviour, out var failure))
+                if (tryRead(Main, out var failure))
                 {
                     return;
                 }
@@ -155,7 +131,7 @@ namespace Appegy.Storage
                 if (File.Exists(Backup))
                 {
                     File.Move(Backup, Main);
-                    if (TryReadFile(Main, sections, data, keyLoadFailedBehaviour, out _))
+                    if (tryRead(Main, out _))
                     {
                         return;
                     }
@@ -166,29 +142,19 @@ namespace Appegy.Storage
             }
         }
 
-        private static bool TryReadFile(string filePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour, out StorageFileCorruptedException failure)
+        private void WriteTemp(StorageSnapshot snapshot)
         {
-            try
-            {
-                StorageFormat.ReadFile(filePath, sections, data, keyLoadFailedBehaviour);
-                failure = null;
-                return true;
-            }
-            catch (StorageFileCorruptedException exception)
-            {
-                ResetData(sections, data);
-                failure = exception;
-                return false;
-            }
+            EnsureDirectoryExists();
+            using var stream = new FileStream(Temp, FileMode.Create, FileAccess.Write, FileShare.None, NoBuffering);
+            stream.Write(snapshot.Buffer, 0, snapshot.Length);
+            stream.Flush(true);
         }
 
-        private static void ResetData(IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
+        private void RemoveFiles()
         {
-            data.Clear();
-            for (var i = 0; i < sections.Count; i++)
-            {
-                sections[i].Count = 0;
-            }
+            DeleteFileIfExists(Main);
+            DeleteFileIfExists(Temp);
+            DeleteFileIfExists(Backup);
         }
 
         private void EnsureDirectoryExists()

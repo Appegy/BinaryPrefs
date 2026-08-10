@@ -9,7 +9,6 @@ namespace Appegy.Storage
     internal sealed class StoragePersistence
     {
         private readonly StorageFile _file;
-        private readonly IReadOnlyList<BinarySection> _sections;
         private readonly StorageSerializer _serializer;
         private readonly IStorageWriter _writer;
 
@@ -19,7 +18,6 @@ namespace Appegy.Storage
         public StoragePersistence(string filePath, IReadOnlyList<BinarySection> sections, bool saveOnBackgroundThread)
         {
             _file = StorageFile.Of(filePath);
-            _sections = sections;
             _serializer = new StorageSerializer(sections);
             _writer = saveOnBackgroundThread ? new BackgroundStorageWriter(_file) : new ImmediateStorageWriter(_file);
         }
@@ -30,7 +28,8 @@ namespace Appegy.Storage
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         public void Load(Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
-            _file.Load(_sections, data, keyLoadFailedBehaviour);
+            _serializer.Clear(data);
+            _file.Load((string filePath, out StorageFileCorruptedException failure) => _serializer.TryDeserialize(filePath, data, keyLoadFailedBehaviour, out failure));
         }
 
         /// <summary> Serialize <paramref name="data"/> on the calling thread and hand it to the writer. </summary>
@@ -39,7 +38,7 @@ namespace Appegy.Storage
         /// <exception cref="IOException"> An I/O error occurred while <paramref name="waitForDisk"/> was requested </exception>
         public void Save(Dictionary<string, Record> data, bool waitForDisk)
         {
-            _writer.Write(_serializer.Serialize(data, _file.NextGeneration()), waitForDisk);
+            _writer.Write(_serializer.Serialize(data), waitForDisk);
             if (SaveJsonCopyForDebug)
             {
                 SaveJsonCopy(data);

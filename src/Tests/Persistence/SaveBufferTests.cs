@@ -73,7 +73,7 @@ namespace Appegy.Storage
             var (sections, data) = CreateThrowingSample();
             var serializer = new StorageSerializer(sections);
 
-            Action action = () => serializer.Serialize(data, 1);
+            Action action = () => serializer.Serialize(data);
 
             action.Should().Throw<InvalidOperationException>();
             serializer.BufferCapacity.Should().Be(0);
@@ -158,7 +158,7 @@ namespace Appegy.Storage
 
         private static byte[] SerializeIntoBuffer(IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
-            var snapshot = new StorageSerializer(sections).Serialize(data, 1);
+            var snapshot = new StorageSerializer(sections).Serialize(data);
             var bytes = new byte[snapshot.Length];
             Array.Copy(snapshot.Buffer, bytes, bytes.Length);
             snapshot.Release();

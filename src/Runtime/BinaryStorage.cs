@@ -16,6 +16,7 @@ namespace Appegy.Storage
         private readonly Dictionary<string, Record> _data = new();
         private readonly Dictionary<IReactiveCollection, string> _collections = new();
         private int _changeScopeCounter;
+        private bool _hasUnsavedChanges;
 
         /// <summary> Gets or sets a value indicating whether data should be saved automatically. </summary>
         public bool AutoSave { get; set; }
@@ -32,9 +33,6 @@ namespace Appegy.Storage
 
         /// <summary> Gets or sets the behavior when the type of value associated with a key does not match the expected type. </summary>
         public TypeMismatchBehaviour TypeMismatchBehaviour { get; set; } = TypeMismatchBehaviour.OverrideValueAndType;
-
-        /// <summary> Gets a value indicating whether there are unsaved changes. </summary>
-        public bool IsDirty { get; private set; }
 
         /// <summary> Gets a value indicating whether the storage has been disposed. </summary>
         public bool IsDisposed { get; private set; }
@@ -600,7 +598,7 @@ namespace Appegy.Storage
             {
                 return;
             }
-            if (_changeScopeCounter == 0 && IsDirty && AutoSave)
+            if (_changeScopeCounter == 0 && _hasUnsavedChanges && AutoSave)
             {
                 SaveDataOnDisk(false);
             }
@@ -623,7 +621,7 @@ namespace Appegy.Storage
         {
             if (!AutoSave || _changeScopeCounter > 0)
             {
-                IsDirty = true;
+                _hasUnsavedChanges = true;
                 return;
             }
             SaveDataOnDisk(false);
@@ -678,7 +676,7 @@ namespace Appegy.Storage
 
             if (disposing)
             {
-                if (AutoSave && IsDirty)
+                if (AutoSave && _hasUnsavedChanges)
                 {
                     SaveDataOnDisk(true);
                 }
@@ -750,7 +748,7 @@ namespace Appegy.Storage
         {
             ThrowIfDisposed();
             _persistence.Save(_data, waitForDisk);
-            IsDirty = false;
+            _hasUnsavedChanges = false;
         }
 
         #endregion
