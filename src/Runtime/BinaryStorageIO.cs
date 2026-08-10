@@ -19,6 +19,8 @@ namespace Appegy.Storage
         [ThreadStatic] private static PooledMemoryStream _serializationStream;
         [ThreadStatic] private static BinaryWriter _serializationWriter;
 
+        #region Save
+
         /// <summary> Save data from memory to disk. </summary>
         /// <param name="paths"> Storage file and its companion files </param>
         /// <param name="sections"> List of sections </param>
@@ -136,6 +138,10 @@ namespace Appegy.Storage
             EnsureDirectoryExists(jsonFilePath);
             File.WriteAllText(jsonFilePath, DebugJsonWriter.ToJson(data), new UTF8Encoding(false));
         }
+
+        #endregion
+
+        #region Load
 
         /// <summary>
         /// Load data from disk to memory. When the storage file cannot be read, it is deleted and the backup written by the previous save takes its place.
@@ -390,23 +396,6 @@ namespace Appegy.Storage
             return -1;
         }
 
-        private static void EnsureDirectoryExists(string filePath)
-        {
-            var directoryName = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
-            {
-                Directory.CreateDirectory(directoryName);
-            }
-        }
-
-        private static void DeleteFileIfExists(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-        }
-
         private readonly struct FileSection
         {
             public readonly string TypeName;
@@ -434,6 +423,25 @@ namespace Appegy.Storage
                 TypeIndex = typeIndex;
                 Size = size;
                 ValuePosition = valuePosition;
+            }
+        }
+
+        #endregion
+
+        private static void EnsureDirectoryExists(string filePath)
+        {
+            var directoryName = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
+            {
+                Directory.CreateDirectory(directoryName);
+            }
+        }
+
+        private static void DeleteFileIfExists(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
             }
         }
     }
