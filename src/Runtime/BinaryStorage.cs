@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using JetBrains.Annotations;
 using UnityEngine.Pool;
 
@@ -12,6 +13,7 @@ namespace Appegy.Storage
     {
         private readonly string _storageFilePath;
         private readonly StorageFilePaths _storageFilePaths;
+        private StorageWriter _writer;
         private readonly IReadOnlyList<BinarySection> _supportedTypes;
         private readonly Dictionary<string, Record> _data = new();
         private readonly Dictionary<IReactiveCollection, string> _collections = new();
@@ -303,11 +305,11 @@ namespace Appegy.Storage
             return count;
         }
 
-        /// <summary> Saves the current data to disk. </summary>
+        /// <summary> Saves the current data to disk and waits until it is there. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         public virtual void Save()
         {
-            SaveDataFromDisk();
+            SaveDataOnDisk(true);
         }
 
         /// <summary> Begins a scope for making multiple changes. </summary>
@@ -597,7 +599,7 @@ namespace Appegy.Storage
             }
             if (_changeScopeCounter == 0 && IsDirty && AutoSave)
             {
-                SaveDataFromDisk();
+                SaveDataOnDisk(false);
             }
         }
 
@@ -621,7 +623,7 @@ namespace Appegy.Storage
                 IsDirty = true;
                 return;
             }
-            SaveDataFromDisk();
+            SaveDataOnDisk(false);
         }
 
         /// <summary> Throws an exception if the storage has been disposed. </summary>
@@ -673,7 +675,12 @@ namespace Appegy.Storage
 
             if (disposing && AutoSave && IsDirty)
             {
-                SaveDataFromDisk();
+                SaveDataOnDisk(true);
+            }
+
+            if (disposing)
+            {
+                _writer?.Flush(Timeout.Infinite);
             }
 
             // Always dispose IReactiveCollection instances
@@ -730,13 +737,44 @@ namespace Appegy.Storage
             }
         }
 
-        /// <summary> Saves the data from memory to disk. </summary>
+        /// <summary> Attaches or detaches the background writer. Called by the builder before the storage is handed out. </summary>
+        private void UseBackgroundWriter(bool enabled)
+        {
+            _writer = enabled ? new StorageWriter(_storageFilePaths) : null;
+        }
+
+        /// <summary> Serializes on the calling thread and hands the bytes over to the background writer. </summary>
+        private void HandOverToWriter()
+        {
+            if (_data.Count == 0)
+            {
+                _writer.EnqueueDelete();
+                return;
+            }
+            var buffer = BinaryStorageIO.SerializeToBuffer(_supportedTypes, _data);
+            var bytes = buffer.Detach(out var length);
+            _writer.EnqueueWrite(bytes, length);
+        }
+
+        /// <summary> Saves the data from memory to disk, on the background writer when the storage was built with one. </summary>
+        /// <param name="waitForDisk">Whether to block until the data has actually reached the disk.</param>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        private void SaveDataFromDisk()
+        private void SaveDataOnDisk(bool waitForDisk)
         {
             ThrowIfDisposed();
-            BinaryStorageIO.SaveDataOnDisk(_storageFilePaths, _supportedTypes, _data);
+            if (_writer == null)
+            {
+                BinaryStorageIO.SaveDataOnDisk(_storageFilePaths, _supportedTypes, _data);
+            }
+            else
+            {
+                HandOverToWriter();
+                if (waitForDisk)
+                {
+                    _writer.Flush(Timeout.Infinite);
+                }
+            }
             IsDirty = false;
             if (SaveJsonCopyForDebug)
             {

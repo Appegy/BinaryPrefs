@@ -30,33 +30,59 @@ namespace Appegy.Storage
         {
             if (data.Count == 0)
             {
-                DeleteFileIfExists(paths.Main);
-                DeleteFileIfExists(paths.Temp);
-                DeleteFileIfExists(paths.Backup);
+                DeleteStorageFiles(paths);
                 return;
             }
-
-            EnsureDirectoryExists(paths.Temp);
 
             var buffer = SerializeToBuffer(sections, data);
             try
             {
-                using var stream = new FileStream(paths.Temp, FileMode.Create);
-                stream.Write(buffer.GetBuffer(), 0, (int)buffer.Length);
-                stream.Flush(true);
+                WriteBufferOnDisk(paths, buffer.GetBuffer(), (int)buffer.Length);
             }
             finally
             {
                 buffer.Release();
             }
+        }
 
-            if (File.Exists(paths.Main))
+        /// <summary> Publish already serialized bytes as the storage file, atomically and durably. </summary>
+        /// <param name="paths"> Storage file and its companion files </param>
+        /// <param name="buffer"> Array holding the serialized bytes </param>
+        /// <param name="length"> Amount of bytes to write from <paramref name="buffer"/> </param>
+        /// <exception cref="IOException"> An I/O error occurred </exception>
+        internal static void WriteBufferOnDisk(in StorageFilePaths paths, byte[] buffer, int length)
+        {
+            lock (paths.PublishLock)
             {
-                File.Replace(paths.Temp, paths.Main, paths.Backup);
+                EnsureDirectoryExists(paths.Temp);
+
+                using (var stream = new FileStream(paths.Temp, FileMode.Create))
+                {
+                    stream.Write(buffer, 0, length);
+                    stream.Flush(true);
+                }
+
+                if (File.Exists(paths.Main))
+                {
+                    File.Replace(paths.Temp, paths.Main, paths.Backup);
+                }
+                else
+                {
+                    File.Move(paths.Temp, paths.Main);
+                }
             }
-            else
+        }
+
+        /// <summary> Remove the storage file together with its companion files. </summary>
+        /// <param name="paths"> Storage file and its companion files </param>
+        /// <exception cref="IOException"> An I/O error occurred </exception>
+        internal static void DeleteStorageFiles(in StorageFilePaths paths)
+        {
+            lock (paths.PublishLock)
             {
-                File.Move(paths.Temp, paths.Main);
+                DeleteFileIfExists(paths.Main);
+                DeleteFileIfExists(paths.Temp);
+                DeleteFileIfExists(paths.Backup);
             }
         }
 
@@ -155,30 +181,34 @@ namespace Appegy.Storage
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         internal static void LoadDataFromDisk(in StorageFilePaths paths, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
-            ResetData(sections, data);
-
-            if (!File.Exists(paths.Main))
+            StorageFileCorruptedException storageFailure;
+            lock (paths.PublishLock)
             {
-                return;
-            }
+                ResetData(sections, data);
 
-            DeleteFileIfExists(paths.Temp);
-
-            if (TryReadFile(paths.Main, sections, data, keyLoadFailedBehaviour, out var storageFailure))
-            {
-                return;
-            }
-
-            DeleteFileIfExists(paths.Main);
-
-            if (File.Exists(paths.Backup))
-            {
-                File.Move(paths.Backup, paths.Main);
-                if (TryReadFile(paths.Main, sections, data, keyLoadFailedBehaviour, out _))
+                if (!File.Exists(paths.Main))
                 {
                     return;
                 }
+
+                DeleteFileIfExists(paths.Temp);
+
+                if (TryReadFile(paths.Main, sections, data, keyLoadFailedBehaviour, out storageFailure))
+                {
+                    return;
+                }
+
                 DeleteFileIfExists(paths.Main);
+
+                if (File.Exists(paths.Backup))
+                {
+                    File.Move(paths.Backup, paths.Main);
+                    if (TryReadFile(paths.Main, sections, data, keyLoadFailedBehaviour, out _))
+                    {
+                        return;
+                    }
+                    DeleteFileIfExists(paths.Main);
+                }
             }
 
             ExceptionDispatchInfo.Capture(storageFailure).Throw();

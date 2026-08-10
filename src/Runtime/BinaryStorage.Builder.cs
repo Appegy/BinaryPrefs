@@ -55,6 +55,7 @@ namespace Appegy.Storage
             private readonly string _filePath;
             private readonly List<BinarySection> _serializers = new();
             private bool _autoSave;
+            private bool _saveOnBackgroundThread = true;
             private bool _saveJsonForDebug;
             private MissingKeyBehavior _missingKeyBehavior = MissingKeyBehavior.InitializeWithDefaultValue;
             private TypeMismatchBehaviour _typeMismatchBehaviour = TypeMismatchBehaviour.ThrowException;
@@ -69,6 +70,20 @@ namespace Appegy.Storage
             public Builder EnableAutoSaveOnChange()
             {
                 _autoSave = true;
+                return this;
+            }
+
+            /// <summary> Controls whether saving happens on a background thread. </summary>
+            /// <remarks>
+            /// Enabled by default. Changes are serialized on the calling thread and the file is written on a shared background thread,
+            /// so a change no longer blocks the caller until the data is on disk. <see cref="Save"/> stays blocking in both modes.
+            /// Disable it to get the previous behaviour, where every change writes the file before returning.
+            /// </remarks>
+            /// <param name="enabled">Whether the storage file should be written on a background thread.</param>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            public Builder SaveOnBackgroundThread(bool enabled = true)
+            {
+                _saveOnBackgroundThread = enabled;
                 return this;
             }
 
@@ -248,6 +263,7 @@ namespace Appegy.Storage
             {
                 var storage = new BinaryStorage(_filePath, _serializers);
                 storage.AutoSave = _autoSave;
+                storage.UseBackgroundWriter(_saveOnBackgroundThread);
                 storage.SaveJsonCopyForDebug = _saveJsonForDebug;
                 storage.MissingKeyBehavior = _missingKeyBehavior;
                 storage.TypeMismatchBehaviour = _typeMismatchBehaviour;

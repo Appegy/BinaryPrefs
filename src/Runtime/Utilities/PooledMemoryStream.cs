@@ -14,9 +14,29 @@ namespace Appegy.Storage
         private int _position;
         private int _length;
 
+        public override bool CanRead => false;
+        public override bool CanSeek => true;
+        public override bool CanWrite => true;
+        public override long Length => _length;
         public int Capacity => _buffer.Length;
 
-        public byte[] GetBuffer() => _buffer;
+        public override long Position
+        {
+            get => _position;
+            set
+            {
+                if (value < 0 || value > _length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, $"Position must be within [0, {_length}].");
+                }
+                _position = (int)value;
+            }
+        }
+
+        public byte[] GetBuffer()
+        {
+            return _buffer;
+        }
 
         public void Reset()
         {
@@ -31,7 +51,7 @@ namespace Appegy.Storage
 
         public void Release()
         {
-            _rememberedCapacity = Math.Clamp(Math.Max(_rememberedCapacity, _length), MinimumCapacity, MaximumRememberedCapacity);
+            RememberCapacity();
             if (_buffer.Length > 0)
             {
                 ArrayPool<byte>.Shared.Return(_buffer);
@@ -41,22 +61,35 @@ namespace Appegy.Storage
             _length = 0;
         }
 
-        public override bool CanRead => false;
-        public override bool CanSeek => true;
-        public override bool CanWrite => true;
-        public override long Length => _length;
-
-        public override long Position
+        /// <summary>
+        /// Hand the written bytes over to the caller and forget about them. The caller owns the array from now on
+        /// and must pass it to <see cref="ReturnDetachedBuffer"/> once it is done with it.
+        /// </summary>
+        /// <param name="length"> Amount of bytes written into the returned array </param>
+        /// <returns> The array holding the written bytes, rented from the shared pool </returns>
+        public byte[] Detach(out int length)
         {
-            get => _position;
-            set
+            RememberCapacity();
+            var detached = _buffer;
+            length = _length;
+            _buffer = Array.Empty<byte>();
+            _position = 0;
+            _length = 0;
+            return detached;
+        }
+
+        /// <summary> Return a buffer taken by <see cref="Detach"/> to the shared pool. </summary>
+        public static void ReturnDetachedBuffer(byte[] buffer)
+        {
+            if (buffer is { Length: > 0 })
             {
-                if (value < 0 || value > _length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, $"Position must be within [0, {_length}].");
-                }
-                _position = (int)value;
+                ArrayPool<byte>.Shared.Return(buffer);
             }
+        }
+
+        private void RememberCapacity()
+        {
+            _rememberedCapacity = Math.Clamp(Math.Max(_rememberedCapacity, _length), MinimumCapacity, MaximumRememberedCapacity);
         }
 
         public override void Flush()
