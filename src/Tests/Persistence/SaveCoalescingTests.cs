@@ -18,7 +18,7 @@ namespace Appegy.Storage
         [Test]
         public void WhenWriterIsIdle_ThenChangeIsSerializedRightAway()
         {
-            using var storage = Open();
+            using var storage = Open(autoSave: true);
 
             storage.Set("value", 1);
 
@@ -28,12 +28,9 @@ namespace Appegy.Storage
         [Test]
         public void WhenPreviousSnapshotIsStillOnItsWay_ThenChangesAreCoalesced()
         {
-            using var storage = Open();
+            using var storage = Open(autoSave: true);
 
-            for (var i = 1; i <= BurstSize; i++)
-            {
-                storage.Set("value", i);
-            }
+            Burst(storage);
 
             storage.SerializeCount.Should().BeLessThan(BurstSize);
         }
@@ -41,12 +38,9 @@ namespace Appegy.Storage
         [Test]
         public void WhenBurstCoalesced_ThenExplicitSavePutsTheLastStateOnDisk()
         {
-            using var storage = Open();
+            using var storage = Open(autoSave: true);
 
-            for (var i = 1; i <= BurstSize; i++)
-            {
-                storage.Set("value", i);
-            }
+            Burst(storage);
             storage.Save();
 
             ReadValueFromDisk().Should().Be(BurstSize);
@@ -57,10 +51,7 @@ namespace Appegy.Storage
         {
             var context = new PumpableSynchronizationContext();
             using var storage = OpenWith(context);
-            for (var i = 1; i <= BurstSize; i++)
-            {
-                storage.Set("value", i);
-            }
+            Burst(storage);
             var serializedDuringBurst = storage.SerializeCount;
 
             PumpUntil(context, () => storage.SerializeCount > serializedDuringBurst, "deferred changes were never serialized again");
@@ -72,12 +63,9 @@ namespace Appegy.Storage
         [Test]
         public void WhenDeferredChangesAreStillThereOnDispose_ThenTheyReachDisk()
         {
-            using (var storage = Open())
+            using (var storage = Open(autoSave: true))
             {
-                for (var i = 1; i <= BurstSize; i++)
-                {
-                    storage.Set("value", i);
-                }
+                Burst(storage);
             }
 
             ReadValueFromDisk().Should().Be(BurstSize);
@@ -122,11 +110,7 @@ namespace Appegy.Storage
         [Test]
         public void WhenBackgroundWriterDisabled_ThenNothingIsDeferred()
         {
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .EnableAutoSaveOnChange()
-                .SaveOnBackgroundThread(false)
-                .Build();
+            using var storage = Open(autoSave: true, saveOnBackgroundThread: false);
 
             for (var i = 1; i <= 5; i++)
             {
@@ -137,22 +121,25 @@ namespace Appegy.Storage
             ReadValueFromDisk().Should().Be(5);
         }
 
-        private BinaryStorage Open()
-        {
-            return BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().EnableAutoSaveOnChange().Build();
-        }
-
         private BinaryStorage OpenWith(SynchronizationContext context)
         {
             var previous = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(context);
             try
             {
-                return Open();
+                return Open(autoSave: true);
             }
             finally
             {
                 SynchronizationContext.SetSynchronizationContext(previous);
+            }
+        }
+
+        private static void Burst(BinaryStorage storage)
+        {
+            for (var i = 1; i <= BurstSize; i++)
+            {
+                storage.Set("value", i);
             }
         }
 

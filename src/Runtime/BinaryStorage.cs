@@ -602,14 +602,7 @@ namespace Appegy.Storage
                 return;
             }
             _changeScopeCounter--;
-            if (IsDisposed)
-            {
-                return;
-            }
-            if (_changeScopeCounter == 0 && _hasUnsavedChanges && AutoSave)
-            {
-                SaveDataOnDisk(false);
-            }
+            SaveDeferredChanges();
         }
 
         /// <summary> Reacts to a change in a reactive collection. </summary>
@@ -754,11 +747,11 @@ namespace Appegy.Storage
 
         private void SaveDeferredChanges()
         {
-            if (IsDisposed || !AutoSave || !_hasUnsavedChanges || _changeScopeCounter > 0)
+            if (IsDisposed || !_hasUnsavedChanges)
             {
                 return;
             }
-            SaveDataOnDisk(false);
+            MarkChanged();
         }
 
         #endregion

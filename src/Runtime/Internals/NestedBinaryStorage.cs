@@ -10,6 +10,7 @@ namespace Appegy.Storage
 
         private readonly IBinaryStorage _root;
         private readonly string _prefix;
+        private readonly Func<string, bool> _hasPrefix;
         private readonly Dictionary<string, string> _prefixedKeys = new();
         private int _keysAddedSinceCleanup;
         private int _keysAllowedBeforeCleanup = MinKeysAddedBetweenCleanups;
@@ -18,14 +19,16 @@ namespace Appegy.Storage
         {
             _prefix = $"__{prefix}->";
             _root = root;
+            _hasPrefix = HasPrefix;
         }
 
         public IReadOnlyCollection<string> Keys
         {
             get
             {
-                var keys = new List<string>();
-                foreach (var key in _root.Keys)
+                var rootKeys = _root.Keys;
+                var keys = new List<string>(rootKeys.Count);
+                foreach (var key in rootKeys)
                 {
                     if (TryExtractKey(key, out var extracted))
                     {
@@ -135,7 +138,7 @@ namespace Appegy.Storage
 
         public int RemoveAll()
         {
-            return _root.Remove(HasPrefix);
+            return _root.Remove(_hasPrefix);
         }
 
         public void Save()

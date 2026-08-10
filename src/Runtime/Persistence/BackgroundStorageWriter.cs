@@ -11,12 +11,13 @@ namespace Appegy.Storage
 
         private static readonly BlockingCollection<BackgroundStorageWriter> _scheduled = new();
         private static readonly object _threadLock = new();
+        private static readonly SendOrPostCallback _invokeAction = state => ((Action)state)();
         private static Thread _thread;
 
         private readonly StorageFile _file;
         private readonly object _lock = new();
         private readonly SynchronizationContext _context;
-        private readonly SendOrPostCallback _saveDeferredChanges;
+        private readonly Action _saveDeferredChanges;
 
         private StorageSnapshot? _pending;
         private bool _isScheduled;
@@ -27,7 +28,7 @@ namespace Appegy.Storage
         {
             _file = file;
             _context = SynchronizationContext.Current;
-            _saveDeferredChanges = _ => saveDeferredChanges();
+            _saveDeferredChanges = saveDeferredChanges;
         }
 
         public bool TryDeferSave()
@@ -136,7 +137,7 @@ namespace Appegy.Storage
                 }
                 if (saveDeferredChanges)
                 {
-                    _context.Post(_saveDeferredChanges, null);
+                    _context.Post(_invokeAction, _saveDeferredChanges);
                 }
             }
         }

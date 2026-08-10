@@ -68,11 +68,7 @@ namespace Appegy.Storage
         [Test]
         public void WhenBackgroundWriterDisabled_ThenAutoSaveWritesBeforeSetReturns()
         {
-            using var storage = BinaryStorage.Construct(StoragePath)
-                .AddPrimitiveTypes()
-                .EnableAutoSaveOnChange()
-                .SaveOnBackgroundThread(false)
-                .Build();
+            using var storage = Open(autoSave: true, saveOnBackgroundThread: false);
 
             storage.Set("value", 11);
 
@@ -107,16 +103,6 @@ namespace Appegy.Storage
 
             reopened.Get<int>("value").Should().Be(99);
             reopened.Get<string>("text").Should().Be("kept");
-        }
-
-        private BinaryStorage Open(bool autoSave = false)
-        {
-            var builder = BinaryStorage.Construct(StoragePath).AddPrimitiveTypes();
-            if (autoSave)
-            {
-                builder = builder.EnableAutoSaveOnChange();
-            }
-            return builder.Build();
         }
     }
 }
