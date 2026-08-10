@@ -5,12 +5,6 @@ using Debug = UnityEngine.Debug;
 
 namespace Appegy.Storage
 {
-    /// <summary>
-    /// Publishes on a background thread shared by every storage, so a change does not block the caller on the disk. Holds a
-    /// single slot: a newer snapshot replaces an unwritten older one, because the file is always written whole and only the
-    /// last state matters. A write that has to wait for the disk is published on the calling thread instead of being queued,
-    /// so it never lines up behind another storage.
-    /// </summary>
     internal sealed class BackgroundStorageWriter : IStorageWriter
     {
         private const string ThreadName = "BinaryPrefs.Writer";
@@ -68,7 +62,6 @@ namespace Appegy.Storage
             replaced?.Release();
         }
 
-        /// <summary> Take the slot over, after waiting out a publish that is already under way, so the caller can publish a newer state itself. </summary>
         private StorageSnapshot? TakePending()
         {
             lock (_lock)

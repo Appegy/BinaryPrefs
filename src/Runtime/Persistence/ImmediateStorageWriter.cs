@@ -1,6 +1,5 @@
 namespace Appegy.Storage
 {
-    /// <summary> Publishes on the calling thread, so every change is on disk before it returns and an I/O failure always reaches the caller. </summary>
     internal sealed class ImmediateStorageWriter : IStorageWriter
     {
         private readonly StorageFile _file;

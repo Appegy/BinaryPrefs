@@ -2,11 +2,6 @@ using System.Buffers;
 
 namespace Appegy.Storage
 {
-    /// <summary>
-    /// A serialized storage state on its way to disk. Owns the pooled array holding the bytes: whoever receives a snapshot
-    /// publishes it and then calls <see cref="Release"/> exactly once. An empty snapshot carries no bytes because the storage
-    /// holds no records, and publishing it removes the file instead of writing it.
-    /// </summary>
     internal readonly struct StorageSnapshot
     {
         public readonly byte[] Buffer;

@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Appegy.Storage
 {
-    /// <summary> The byte layout of a storage file. Reading and writing live side by side here so they cannot drift apart. </summary>
     internal static class StorageFormat
     {
         private const string UnknownTypeName = "<unknown>";
@@ -15,10 +14,6 @@ namespace Appegy.Storage
 
         #region Write
 
-        /// <summary> Write the whole storage through <paramref name="writer"/>, whose stream must be positioned at its start. </summary>
-        /// <param name="writer"> Writer over the stream to fill </param>
-        /// <param name="sections"> List of sections </param>
-        /// <param name="data"> Dictionary with the data </param>
         internal static void Write(BinaryWriter writer, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
             var stream = writer.BaseStream;
@@ -68,10 +63,6 @@ namespace Appegy.Storage
 
         #region Read
 
-        /// <summary> Read a single storage file into memory. Never touches any other file. </summary>
-        /// <exception cref="IOException"> An I/O error occurred </exception>
-        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
-        /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
         internal static void ReadFile(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
             using var stream = new FileStream(storageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, ReadBufferSize);

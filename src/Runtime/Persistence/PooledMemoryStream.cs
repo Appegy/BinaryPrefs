@@ -43,7 +43,6 @@ namespace Appegy.Storage
             _length = 0;
         }
 
-        /// <summary> Give the rented buffer back to the pool and start over from nothing. </summary>
         public void Release()
         {
             RememberCapacity();
@@ -52,12 +51,6 @@ namespace Appegy.Storage
             _length = 0;
         }
 
-        /// <summary>
-        /// Hand the written bytes over to the caller and forget about them. The array is owned by the returned
-        /// <see cref="StorageSnapshot"/> from then on, and released with it.
-        /// </summary>
-        /// <param name="length"> Amount of bytes written into the returned array </param>
-        /// <returns> The array holding the written bytes, rented from the shared pool </returns>
         public byte[] Detach(out int length)
         {
             RememberCapacity();

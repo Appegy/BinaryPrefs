@@ -5,10 +5,6 @@ using System.Text;
 
 namespace Appegy.Storage
 {
-    /// <summary>
-    /// The storage file on disk together with the companion files kept next to it. One instance per path, shared by every
-    /// storage and every writer aiming at that path, so that publishing and loading are serialized across threads.
-    /// </summary>
     internal sealed class StorageFile
     {
         internal const string TempFileExtension = ".tmp";
@@ -20,7 +16,6 @@ namespace Appegy.Storage
         private static readonly ConcurrentDictionary<string, StorageFile> _files = new();
         private static readonly UTF8Encoding _debugJsonEncoding = new(false);
 
-        /// <summary> Reads one candidate file into memory, reporting a corrupted structure instead of throwing it. </summary>
         internal delegate bool ReadAttempt(string filePath, out StorageFileCorruptedException failure);
 
         public readonly string Main;
@@ -43,14 +38,11 @@ namespace Appegy.Storage
             return _files.GetOrAdd(Normalize(filePath), path => new StorageFile(path));
         }
 
-        /// <summary> The identity of a storage file: any two paths pointing at the same file normalize to the same string. </summary>
         public static string Normalize(string filePath)
         {
             return Path.GetFullPath(filePath).TrimEnd(Path.DirectorySeparatorChar);
         }
 
-        /// <summary> Publish a snapshot as the storage file, atomically and durably, and release it. An empty snapshot removes the file instead. </summary>
-        /// <exception cref="IOException"> An I/O error occurred </exception>
         public void Publish(StorageSnapshot snapshot)
         {
             try
@@ -80,8 +72,6 @@ namespace Appegy.Storage
             }
         }
 
-        /// <summary> Remove the storage file together with its companion files. </summary>
-        /// <exception cref="IOException"> An I/O error occurred </exception>
         public void Remove()
         {
             lock (_publishGate)
@@ -90,26 +80,17 @@ namespace Appegy.Storage
             }
         }
 
-        /// <summary> Write or remove the human-readable JSON copy kept next to the storage file. The copy is write-only and never loaded back. </summary>
-        /// <param name="json"> The JSON to write, or null to remove the copy </param>
-        /// <exception cref="IOException"> An I/O error occurred </exception>
         public void WriteDebugJson(string json)
         {
-            if (json == null)
-            {
-                DeleteFileIfExists(DebugJson);
-                return;
-            }
             EnsureDirectoryExists();
             File.WriteAllText(DebugJson, json, _debugJsonEncoding);
         }
 
-        /// <summary>
-        /// Hand the storage file to <paramref name="tryRead"/>, and when it cannot be read, remove it and hand over the backup
-        /// written by the previous publish in its place.
-        /// </summary>
-        /// <exception cref="IOException"> An I/O error occurred </exception>
-        /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup could be read. Both are removed before this is thrown. </exception>
+        public void RemoveDebugJson()
+        {
+            DeleteFileIfExists(DebugJson);
+        }
+
         public void Load(ReadAttempt tryRead)
         {
             lock (_publishGate)
