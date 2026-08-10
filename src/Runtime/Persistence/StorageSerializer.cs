@@ -18,8 +18,11 @@ namespace Appegy.Storage
 
         internal int BufferCapacity => _stream.Capacity;
 
+        internal int SerializeCount { get; private set; }
+
         public StorageSnapshot Serialize(Dictionary<string, Record> data)
         {
+            SerializeCount++;
             if (data.Count == 0)
             {
                 return StorageSnapshot.Empty;

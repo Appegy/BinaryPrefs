@@ -37,6 +37,8 @@ namespace Appegy.Storage
         /// <summary> Gets a value indicating whether the storage has been disposed. </summary>
         public bool IsDisposed { get; private set; }
 
+        internal int SerializeCount => _persistence.SerializeCount;
+
         /// <summary> Initializes a new instance of the <see cref="BinaryStorage"/> class. </summary>
         /// <param name="storageFilePath">The file path for storing data.</param>
         /// <param name="supportedTypes">The list of supported types for storage.</param>
@@ -46,6 +48,7 @@ namespace Appegy.Storage
             _storageFilePath = storageFilePath;
             _supportedTypes = supportedTypes;
             _persistence = new StoragePersistence(storageFilePath, supportedTypes, saveOnBackgroundThread);
+            _persistence.SaveDeferredChanges = SaveDeferredChanges;
         }
 
         #region Events
@@ -747,8 +750,22 @@ namespace Appegy.Storage
         private void SaveDataOnDisk(bool waitForDisk)
         {
             ThrowIfDisposed();
+            if (!waitForDisk && _persistence.TryDeferSave())
+            {
+                _hasUnsavedChanges = true;
+                return;
+            }
             _persistence.Save(_data, waitForDisk);
             _hasUnsavedChanges = false;
+        }
+
+        private void SaveDeferredChanges()
+        {
+            if (IsDisposed || !AutoSave || !_hasUnsavedChanges || _changeScopeCounter > 0)
+            {
+                return;
+            }
+            SaveDataOnDisk(false);
         }
 
         #endregion

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Appegy.Storage.Serializers;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -23,6 +24,19 @@ namespace Appegy.Storage
         internal static void SaveOnDisk(string filePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
             new StoragePersistence(filePath, sections, false).Save(data, true);
+        }
+
+        protected int ReadValueFromDisk()
+        {
+            return ReadValueFrom(StoragePath);
+        }
+
+        protected static int ReadValueFrom(string filePath)
+        {
+            var sections = new List<BinarySection> { new TypedBinarySection<int>(Int32Serializer.Shared) };
+            var data = new Dictionary<string, Record>();
+            StorageFormat.ReadFile(filePath, sections, data, KeyLoadFailedBehaviour.Ignore);
+            return ((Record<int>)data["value"]).Value;
         }
     }
 }

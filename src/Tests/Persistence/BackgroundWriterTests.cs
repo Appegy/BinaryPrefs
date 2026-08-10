@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using Appegy.Storage.Serializers;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -119,19 +117,6 @@ namespace Appegy.Storage
                 builder = builder.EnableAutoSaveOnChange();
             }
             return builder.Build();
-        }
-
-        private int ReadValueFromDisk()
-        {
-            return ReadValueFrom(StoragePath);
-        }
-
-        private static int ReadValueFrom(string filePath)
-        {
-            var sections = new List<BinarySection> { new TypedBinarySection<int>(Int32Serializer.Shared) };
-            var data = new Dictionary<string, Record>();
-            StorageFormat.ReadFile(filePath, sections, data, KeyLoadFailedBehaviour.Ignore);
-            return ((Record<int>)data["value"]).Value;
         }
     }
 }

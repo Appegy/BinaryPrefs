@@ -15,14 +15,38 @@ namespace Appegy.Storage
 
         private readonly StorageFile _file;
         private readonly object _lock = new();
+        private readonly SynchronizationContext _context;
+        private readonly SendOrPostCallback _saveDeferredChanges;
 
         private StorageSnapshot? _pending;
         private bool _isScheduled;
         private bool _isPublishing;
+        private bool _isSaveDeferred;
+
+        public Action SaveDeferredChanges { get; set; }
 
         public BackgroundStorageWriter(StorageFile file)
         {
             _file = file;
+            _context = SynchronizationContext.Current;
+            _saveDeferredChanges = _ => SaveDeferredChanges?.Invoke();
+        }
+
+        public bool TryDeferSave()
+        {
+            if (_context == null)
+            {
+                return false;
+            }
+            lock (_lock)
+            {
+                if (_pending == null && !_isPublishing)
+                {
+                    return false;
+                }
+                _isSaveDeferred = true;
+                return true;
+            }
         }
 
         public void Write(StorageSnapshot snapshot, bool waitForDisk)
@@ -70,6 +94,7 @@ namespace Appegy.Storage
                 {
                     Monitor.Wait(_lock);
                 }
+                _isSaveDeferred = false;
                 var pending = _pending;
                 _pending = null;
                 return pending;
@@ -91,9 +116,11 @@ namespace Appegy.Storage
                 _isPublishing = true;
             }
 
+            var published = false;
             try
             {
                 _file.Publish(snapshot);
+                published = true;
             }
             catch (Exception exception)
             {
@@ -101,10 +128,17 @@ namespace Appegy.Storage
             }
             finally
             {
+                bool saveDeferredChanges;
                 lock (_lock)
                 {
                     _isPublishing = false;
+                    saveDeferredChanges = _isSaveDeferred && published;
+                    _isSaveDeferred = false;
                     Monitor.PulseAll(_lock);
+                }
+                if (saveDeferredChanges)
+                {
+                    _context.Post(_saveDeferredChanges, null);
                 }
             }
         }

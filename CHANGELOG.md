@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Storage files are now written on a shared background thread. Changes are still serialized on the calling thread, but `Set` and auto-save no longer wait for the disk. `Save()` and `Dispose()` still block until the data has reached the disk.
+- Auto-save no longer serializes the whole storage on every change. While the previous snapshot is still on its way to the disk, a change only marks the storage as changed; the storage is serialized once more when the writer becomes free, on the thread that built it. A burst of 200 `Set` calls now costs one serialization instead of 200. A storage built on a thread without a `SynchronizationContext` keeps serializing on every change, as before.
 
 ### Added
 - `SaveOnBackgroundThread(bool)` on the builder. Pass `false` to write the file before every change returns, as before.

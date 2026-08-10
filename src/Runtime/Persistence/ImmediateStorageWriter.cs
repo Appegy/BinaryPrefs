@@ -1,12 +1,21 @@
+using System;
+
 namespace Appegy.Storage
 {
     internal sealed class ImmediateStorageWriter : IStorageWriter
     {
         private readonly StorageFile _file;
 
+        public Action SaveDeferredChanges { get; set; }
+
         public ImmediateStorageWriter(StorageFile file)
         {
             _file = file;
+        }
+
+        public bool TryDeferSave()
+        {
+            return false;
         }
 
         public void Write(StorageSnapshot snapshot, bool waitForDisk)
