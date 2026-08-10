@@ -33,30 +33,29 @@ namespace Appegy.Storage
             }
         }
 
-        public byte[] GetBuffer()
-        {
-            return _buffer;
-        }
-
         public void Reset()
         {
             if (_buffer.Length < _rememberedCapacity)
             {
-                Release();
+                ReturnBuffer();
                 _buffer = ArrayPool<byte>.Shared.Rent(_rememberedCapacity);
             }
             _position = 0;
             _length = 0;
         }
 
+        /// <summary> Give the rented buffer back to the pool and start over from nothing. </summary>
         public void Release()
         {
-            ReturnDetachedBuffer(Detach(out _));
+            RememberCapacity();
+            ReturnBuffer();
+            _position = 0;
+            _length = 0;
         }
 
         /// <summary>
-        /// Hand the written bytes over to the caller and forget about them. The caller owns the array from now on
-        /// and must pass it to <see cref="ReturnDetachedBuffer"/> once it is done with it.
+        /// Hand the written bytes over to the caller and forget about them. The array is owned by the returned
+        /// <see cref="StorageSnapshot"/> from then on, and released with it.
         /// </summary>
         /// <param name="length"> Amount of bytes written into the returned array </param>
         /// <returns> The array holding the written bytes, rented from the shared pool </returns>
@@ -71,12 +70,12 @@ namespace Appegy.Storage
             return detached;
         }
 
-        /// <summary> Return a buffer taken by <see cref="Detach"/> to the shared pool. </summary>
-        public static void ReturnDetachedBuffer(byte[] buffer)
+        private void ReturnBuffer()
         {
-            if (buffer is { Length: > 0 })
+            if (_buffer.Length > 0)
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+                ArrayPool<byte>.Shared.Return(_buffer);
+                _buffer = Array.Empty<byte>();
             }
         }
 
@@ -151,10 +150,7 @@ namespace Appegy.Storage
             var doubled = (int)Math.Min((long)_buffer.Length * 2, int.MaxValue);
             var grown = ArrayPool<byte>.Shared.Rent(Math.Max(Math.Max(required, doubled), MinimumCapacity));
             Array.Copy(_buffer, grown, _length);
-            if (_buffer.Length > 0)
-            {
-                ArrayPool<byte>.Shared.Return(_buffer);
-            }
+            ReturnBuffer();
             _buffer = grown;
         }
 

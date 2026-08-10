@@ -39,7 +39,7 @@ namespace Appegy.Storage
                 return;
             }
             TakePending()?.Release();
-            Publish(snapshot);
+            _file.Publish(snapshot);
         }
 
         public void Flush()
@@ -47,7 +47,7 @@ namespace Appegy.Storage
             var pending = TakePending();
             if (pending != null)
             {
-                Publish(pending.Value);
+                _file.Publish(pending.Value);
             }
         }
 
@@ -83,18 +83,6 @@ namespace Appegy.Storage
             }
         }
 
-        private void Publish(StorageSnapshot snapshot)
-        {
-            try
-            {
-                _file.Publish(snapshot);
-            }
-            finally
-            {
-                snapshot.Release();
-            }
-        }
-
         private void PublishScheduled()
         {
             StorageSnapshot snapshot;
@@ -112,7 +100,7 @@ namespace Appegy.Storage
 
             try
             {
-                Publish(snapshot);
+                _file.Publish(snapshot);
             }
             catch (Exception exception)
             {

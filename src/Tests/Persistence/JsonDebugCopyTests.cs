@@ -7,8 +7,6 @@ namespace Appegy.Storage
 {
     public class JsonDebugCopyTests : BaseStorageTests
     {
-        private string JsonPath => StoragePath + ".json";
-
         [SetUp, TearDown]
         public void CleanJsonBetweenTests()
         {

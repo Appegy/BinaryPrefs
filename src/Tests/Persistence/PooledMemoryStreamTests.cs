@@ -13,12 +13,10 @@ namespace Appegy.Storage
         {
             var stream = new PooledMemoryStream();
             stream.Reset();
-            var buffer = stream.GetBuffer();
             var capacity = stream.Capacity;
 
             stream.Write(new byte[capacity], 0, capacity);
 
-            stream.GetBuffer().Should().BeSameAs(buffer);
             stream.Capacity.Should().Be(capacity);
             stream.Release();
         }
@@ -40,8 +38,9 @@ namespace Appegy.Storage
 
             stream.Capacity.Should().BeGreaterThan(capacity);
             stream.Length.Should().Be(payload.Length);
-            stream.GetBuffer().AsSpan(0, payload.Length).ToArray().Should().Equal(payload);
-            stream.Release();
+            var detached = stream.Detach(out var length);
+            detached.AsSpan(0, length).ToArray().Should().Equal(payload);
+            ArrayPool<byte>.Shared.Return(detached);
         }
 
         [Test]
@@ -67,8 +66,11 @@ namespace Appegy.Storage
         {
             var stream = new PooledMemoryStream();
             stream.Reset();
-            var buffer = stream.GetBuffer();
             var capacity = stream.Capacity;
+            var buffer = stream.Detach(out _);
+            ArrayPool<byte>.Shared.Return(buffer);
+            stream.Reset();
+            stream.Capacity.Should().Be(capacity);
 
             stream.Release();
 
@@ -91,8 +93,9 @@ namespace Appegy.Storage
 
             stream.Length.Should().Be(4);
             stream.Position.Should().Be(4);
-            stream.GetBuffer().AsSpan(0, 4).ToArray().Should().Equal(new byte[] { 1, 9, 3, 4 });
-            stream.Release();
+            var detached = stream.Detach(out _);
+            detached.AsSpan(0, 4).ToArray().Should().Equal(new byte[] { 1, 9, 3, 4 });
+            ArrayPool<byte>.Shared.Return(detached);
         }
 
         [Test]

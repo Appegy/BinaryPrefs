@@ -12,14 +12,7 @@ namespace Appegy.Storage
 
         public void Write(StorageSnapshot snapshot, bool waitForDisk)
         {
-            try
-            {
-                _file.Publish(snapshot);
-            }
-            finally
-            {
-                snapshot.Release();
-            }
+            _file.Publish(snapshot);
         }
 
         public void Flush()

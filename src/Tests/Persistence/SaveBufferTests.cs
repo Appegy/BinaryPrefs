@@ -88,7 +88,7 @@ namespace Appegy.Storage
 
             action.Should().Throw<InvalidOperationException>();
             File.Exists(StoragePath).Should().BeFalse();
-            File.Exists(StoragePath + ".tmp").Should().BeFalse();
+            File.Exists(TempPath).Should().BeFalse();
         }
 
         [Test]

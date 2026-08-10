@@ -15,13 +15,14 @@ namespace Appegy.Storage
 
         #region Write
 
-        /// <summary> Write the whole storage into <paramref name="stream"/>. </summary>
-        /// <param name="stream"> Stream to write into, positioned at its start </param>
-        /// <param name="writer"> Writer over <paramref name="stream"/> </param>
+        /// <summary> Write the whole storage through <paramref name="writer"/>, whose stream must be positioned at its start. </summary>
+        /// <param name="writer"> Writer over the stream to fill </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary with the data </param>
-        internal static void Write(PooledMemoryStream stream, BinaryWriter writer, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
+        internal static void Write(BinaryWriter writer, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data)
         {
+            var stream = writer.BaseStream;
+
             // #01 <---> Store package version at the start of the file
             writer.Write(PackageInfo.Version);
 
@@ -113,8 +114,8 @@ namespace Appegy.Storage
                 {
                     // #04 <---> Read name of type in serializer
                     var typeName = reader.ReadString();
-                    var section = FindSection(sections, typeName);
-                    fileSections[i] = new FileSection(typeName, section, IndexOfSection(sections, section));
+                    var sectionIndex = IndexOfSection(sections, typeName);
+                    fileSections[i] = new FileSection(typeName, sectionIndex == -1 ? null : sections[sectionIndex], sectionIndex);
                 }
 
                 // #05 <---> Read amount of records in storage
@@ -219,13 +220,13 @@ namespace Appegy.Storage
             }
         }
 
-        private static BinarySection FindSection(IReadOnlyList<BinarySection> sections, string typeName)
+        private static int IndexOfSection(IReadOnlyList<BinarySection> sections, string typeName)
         {
             for (var i = 0; i < sections.Count; i++)
             {
                 if (sections[i].TypeName == typeName)
                 {
-                    return sections[i];
+                    return i;
                 }
             }
             for (var i = 0; i < sections.Count; i++)
@@ -235,20 +236,8 @@ namespace Appegy.Storage
                 {
                     if (fallbackNames[j] == typeName)
                     {
-                        return sections[i];
+                        return i;
                     }
-                }
-            }
-            return null;
-        }
-
-        private static int IndexOfSection(IReadOnlyList<BinarySection> sections, BinarySection section)
-        {
-            for (var i = 0; i < sections.Count; i++)
-            {
-                if (sections[i] == section)
-                {
-                    return i;
                 }
             }
             return -1;

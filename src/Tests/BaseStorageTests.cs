@@ -11,6 +11,7 @@ namespace Appegy.Storage
 
         protected string TempPath => StoragePath + StorageFile.TempFileExtension;
         protected string BackupPath => StoragePath + StorageFile.BackupFileExtension;
+        protected string JsonPath => StoragePath + StorageFile.DebugJsonFileExtension;
 
         [SetUp, TearDown]
         public void CleanStorageBetweenTests()

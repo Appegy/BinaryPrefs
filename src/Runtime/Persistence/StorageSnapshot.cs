@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace Appegy.Storage
 {
     /// <summary>
@@ -33,7 +35,10 @@ namespace Appegy.Storage
 
         public void Release()
         {
-            PooledMemoryStream.ReturnDetachedBuffer(Buffer);
+            if (Buffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(Buffer);
+            }
         }
     }
 }

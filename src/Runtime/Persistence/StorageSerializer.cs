@@ -29,7 +29,7 @@ namespace Appegy.Storage
             _stream.Reset();
             try
             {
-                StorageFormat.Write(_stream, _writer, _sections, data);
+                StorageFormat.Write(_writer, _sections, data);
             }
             catch
             {
