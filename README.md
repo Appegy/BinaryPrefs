@@ -22,6 +22,7 @@ And the feature I like most: **every change is persisted the moment it happens**
 
 - [Package installation](#package-installation)
 - [Quick start](#quick-start)
+- [Replacing PlayerPrefs](#replacing-playerprefs)
 - [Configuring storage](#configuring-storage)
 - [Reading and writing](#reading-and-writing)
 - [Collections](#collections)
@@ -81,6 +82,58 @@ string name = storage.Get("player_name", "Unknown");
 ```
 
 > `BinaryStorage` implements `IDisposable`. Dispose it (e.g. with `using`) to flush and release the file. In the Editor the file path is locked while a storage instance is open, preventing accidental concurrent access to the same file.
+
+## Replacing PlayerPrefs
+
+If you already use `PlayerPrefs` and just want a better one, `BinaryPrefs` is a static drop-in replacement. Rename the type and you are done - no path, no builder, no lifetime to manage.
+
+```csharp
+using Appegy.Storage;
+
+// PlayerPrefs.SetInt("player_score", 100);
+BinaryPrefs.SetInt("player_score", 100);
+
+int score = BinaryPrefs.GetInt("player_score", 0);
+```
+
+It keeps the whole `PlayerPrefs` surface - `SetInt`/`GetInt`, `SetFloat`/`GetFloat`, `SetString`/`GetString`, `HasKey`, `DeleteKey`, `DeleteAll`, `Save` - and adds the types `PlayerPrefs` never had:
+
+```csharp
+BinaryPrefs.SetBool("music_enabled", false);
+BinaryPrefs.SetLong("total_xp", 12_000_000_000L);
+BinaryPrefs.SetDouble("precise_balance", 1234.5678d);
+BinaryPrefs.SetDateTime("last_login", DateTime.UtcNow);
+BinaryPrefs.SetTimeSpan("play_time", TimeSpan.FromHours(3));
+BinaryPrefs.SetVector3("last_position", transform.position);
+BinaryPrefs.SetQuaternion("last_rotation", transform.rotation);
+BinaryPrefs.SetEnum("difficulty", Difficulty.Hard);
+
+BinaryPrefs.Set("custom_key", 42.5d);         // any type registered by AddPrimitiveTypes
+double value = BinaryPrefs.Get("custom_key", 0d);
+Type stored = BinaryPrefs.TypeOf("custom_key");
+```
+
+Enums are stored as their underlying integral value, so they work through `SetEnum`/`GetEnum` without any registration. The generic `Set<T>`/`Get<T>` accepts every type registered by `AddPrimitiveTypes` and throws `UnregisteredTypeException` for anything else.
+
+<!-- omit from toc -->
+### Migration from PlayerPrefs
+
+Existing data is migrated lazily, one key at a time. When a key is missing from the binary file, `BinaryPrefs` looks it up in `PlayerPrefs`; if it is there with a matching type, the value is written to the binary storage and only then removed from `PlayerPrefs`. Every key therefore converges to a single source of truth, and nothing is deleted before it has been persisted.
+
+`bool` values are migrated from the conventional `PlayerPrefs` int representation, where a non-zero value means `true`.
+
+A key stored in `PlayerPrefs` under a different type is left untouched - reading `GetInt` for a key that `PlayerPrefs` holds as a string returns the default value and does not destroy the string.
+
+<!-- omit from toc -->
+### Differences from PlayerPrefs
+
+- Reads are type-safe but never throw. `SetInt("k", 1)` followed by `GetString("k")` returns the default value instead of garbage.
+- `HasKey` returns `true` for keys that still live in `PlayerPrefs` and have not been migrated yet.
+- `DeleteKey` removes the key from both storages, so a deleted key cannot come back from `PlayerPrefs`.
+- `DeleteAll` mirrors `PlayerPrefs.DeleteAll` and wipes every key of the application, including keys written by Unity itself and by third-party packages.
+- Every change is written to disk immediately, so calling `Save` is optional.
+
+The file lives at `Application.persistentDataPath/com.appegy.binary-prefs/player_prefs.bin`. When you need a different path, several files or scoped sub-storages, use `BinaryStorage` directly.
 
 ## Configuring storage
 
