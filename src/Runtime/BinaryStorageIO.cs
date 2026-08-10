@@ -20,7 +20,7 @@ namespace Appegy.Storage
         [ThreadStatic] private static BinaryWriter _serializationWriter;
 
         /// <summary> Save data from memory to disk. </summary>
-        /// <param name="storageFilePath"> Path to the storage file </param>
+        /// <param name="paths"> Storage file and its companion files </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <exception cref="IOException"> An I/O error occurred </exception>
@@ -140,7 +140,7 @@ namespace Appegy.Storage
         /// <summary>
         /// Load data from disk to memory. When the storage file cannot be read, it is deleted and the backup written by the previous save takes its place.
         /// </summary>
-        /// <param name="storageFilePath"> Path to the storage file </param>
+        /// <param name="paths"> Storage file and its companion files </param>
         /// <param name="sections"> List of sections </param>
         /// <param name="data"> Dictionary to store data </param>
         /// <param name="keyLoadFailedBehaviour">Specify behaviour for broken keys</param>
