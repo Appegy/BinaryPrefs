@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - `IsDirty`. With auto-save on it was almost always `false`, and with the background writer it meant "no change is waiting to be handed over", not "everything is on disk". Use `Save()` when you need the data on disk.
+- The `BinaryStorage` finalizer. It held no unmanaged resources to release, it never saved anything, and the only thing it did was release the editor-side path lock from the finalizer thread while the main thread could be reading the same set. A storage that is never disposed now keeps that lock until the domain reloads, so dispose your storages, as before.
 
 ### Fixed
 - Two storages opened through paths that differ only in form (`a/save.dat` and `./a/save.dat`) no longer publish the same file without serializing against each other.
