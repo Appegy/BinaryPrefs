@@ -47,6 +47,20 @@ namespace Appegy.Storage
         }
 
         [Test]
+        public void WhenManyChangesQueuedAndDisposedWithoutSave_ThenDiskHoldsTheLastState()
+        {
+            using (var storage = Open(autoSave: true))
+            {
+                for (var i = 1; i <= 200; i++)
+                {
+                    storage.Set("value", i);
+                }
+            }
+
+            ReadValueFromDisk().Should().Be(200);
+        }
+
+        [Test]
         public void WhenStorageEmptied_ThenFilesAreRemoved()
         {
             using (var storage = Open(autoSave: true))
