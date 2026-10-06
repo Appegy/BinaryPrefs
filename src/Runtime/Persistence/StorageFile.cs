@@ -133,9 +133,9 @@ namespace Appegy.Storage
 
         private void RemoveFiles()
         {
+            DeleteFileIfExists(Backup);
             DeleteFileIfExists(Main);
             DeleteFileIfExists(Temp);
-            DeleteFileIfExists(Backup);
         }
 
         private void EnsureDirectoryExists()
