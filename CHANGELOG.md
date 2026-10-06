@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Two storages opened through paths that differ only in form (`a/save.dat` and `./a/save.dat`) no longer publish the same file without serializing against each other.
 - A storage larger than 1 MB no longer re-grows its serialization buffer from 1 MB on every save.
 - A save stopped between the two steps of `File.Replace` on Windows no longer loses the data: the next load reads the new file, or the backup if the new file cannot be read.
+- A failed write no longer loses the change: the next change, `Save()` or `Dispose()` writes the data again.
 
 ## [1.0.5]
 - Baseline of the changelog. See the GitHub Releases page for earlier history.

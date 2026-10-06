@@ -663,11 +663,11 @@ namespace Appegy.Storage
                 return;
             }
 
-            if (AutoSave && _hasUnsavedChanges)
+            if (AutoSave && (_hasUnsavedChanges || !_persistence.Flush()))
             {
                 SaveDataOnDisk(true);
             }
-            else
+            else if (!AutoSave)
             {
                 _persistence.Flush();
             }
@@ -717,7 +717,15 @@ namespace Appegy.Storage
         private void SaveDataOnDisk(bool waitForDisk)
         {
             ThrowIfDisposed();
-            _persistence.Save(_data, waitForDisk);
+            try
+            {
+                _persistence.Save(_data, waitForDisk);
+            }
+            catch
+            {
+                _hasUnsavedChanges = true;
+                throw;
+            }
             _hasUnsavedChanges = false;
         }
 

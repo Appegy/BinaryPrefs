@@ -35,9 +35,9 @@ namespace Appegy.Storage
             }
         }
 
-        public void Flush()
+        public bool Flush()
         {
-            _writer.Flush();
+            return _writer.Flush();
         }
 
         private void SaveJsonCopy(IReadOnlyDictionary<string, Record> data)
