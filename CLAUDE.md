@@ -18,12 +18,8 @@
 
 - **Never break existing save files.** Used in production builds; lost progress is catastrophic. Every change keeps old saves loading. If breaking on-disk compatibility is unavoidable, do NOT decide alone. ALWAYS ask the user; user decides.
 
-## Unity MCP
-
-Use whatever Unity MCP the session exposes (Unity Assistant, Copilot bridge, etc.); tool names differ between them, so check what's available.
+## Unity Editor
 
 **After EVERY C# change (create, edit, move, delete)**: recompile/refresh, then read the console. Fix your errors and warnings before anything else.
-
-At start: read the console once to confirm MCP is connected. If not, tell the user once, keep trying each change.
 
 **Zero-warnings policy**: keep zero compiler warnings; fix all, introduced and pre-existing. The Unity console misses some C# nullable warnings; for nullable work, also check Rider or `dotnet build`.
