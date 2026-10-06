@@ -15,7 +15,7 @@ Unity's standard `PlayerPrefs` has several limitations:
 
 All of these issues are addressed by BinaryPrefs: a configurable, strongly typed, binary key-value storage with support for Unity types, enums, collections, custom serializers, change events, and scoped sub-storages.
 
-And the feature I like most: **every change is persisted the moment it happens**. As soon as you set a value - or even mutate a stored list, set or dictionary - it goes to disk on a background thread, with atomic, corruption-safe writes. You never have to remember to call `Save()`, and the calling thread never waits for the disk. When you need it, many changes can still be batched into a single write.
+And the feature I like most: **every change is saved on its own**. As soon as you set a value - or even mutate a stored list, set or dictionary - it is written to disk a moment later on a background thread, with atomic writes. You never have to remember to call `Save()`, and the calling thread never waits for the disk. When you need it, many changes can still be batched into a single write.
 
 <!-- omit from toc -->
 ## Table of content
@@ -170,7 +170,9 @@ By default (and with `BinaryStorage.Get`) auto-save is enabled, so **every chang
 
 The change is serialized on your thread and handed to a shared background writer, so `Set` returns without waiting for the disk. A newer change replaces an older one that hasn't been written yet, because the file is always written whole and only the last state matters.
 
-Writes are atomic: data is written to a temporary file first and only then swapped in, so an interrupted save can never corrupt your existing file. A process killed in the window between the change and the write keeps the previous state intact and loses only the last change.
+Writes are atomic: the data goes to a `.tmp` file first, is flushed to the disk, and only then replaces the storage file. The previous save stays next to it as a `.bak` file. A process killed in the window between the change and the write loses only the last change.
+
+On load, if the storage file cannot be read, the storage takes the `.bak` file instead, and if a save was stopped while the files were being swapped, it takes the `.tmp` file. When nothing can be read, [CorruptedFileBehaviour](#corruptedfilebehaviour) decides what happens.
 
 Need to apply many changes as a single write? Wrap them in a [change scope](#batch-changes) - auto-save then fires once, when the scope ends.
 
