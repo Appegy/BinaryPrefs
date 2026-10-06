@@ -653,43 +653,25 @@ namespace Appegy.Storage
 
         #endregion
 
-        #region Dispose Pattern
+        #region Dispose
 
-        /// <summary> Finalizer </summary>
-        ~BinaryStorage()
-        {
-            Dispose(false);
-        }
-
-        /// <summary> Disposes the resources used by the storage. </summary>
+        /// <summary> Writes any unsaved data to disk, disposes the stored collections and releases the storage. </summary>
         public virtual void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary> Disposes the resources used by the storage. </summary>
-        /// <param name="disposing">Whether managed resources should be disposed.</param>
-        private void Dispose(bool disposing)
         {
             if (IsDisposed)
             {
                 return;
             }
 
-            if (disposing)
+            if (AutoSave && _hasUnsavedChanges)
             {
-                if (AutoSave && _hasUnsavedChanges)
-                {
-                    SaveDataOnDisk(true);
-                }
-                else
-                {
-                    _persistence.Flush();
-                }
+                SaveDataOnDisk(true);
+            }
+            else
+            {
+                _persistence.Flush();
             }
 
-            // Always dispose IReactiveCollection instances
             foreach (var record in _data.Values)
             {
                 UntrackCollectionOf(record);
@@ -699,13 +681,10 @@ namespace Appegy.Storage
             OnKeyChanged = null;
             OnKeyRemoved = null;
 
-            if (disposing)
+            _data.Clear();
+            for (var i = 0; i < _supportedTypes.Count; i++)
             {
-                _data.Clear();
-                for (var i = 0; i < _supportedTypes.Count; i++)
-                {
-                    _supportedTypes[i].Count = 0;
-                }
+                _supportedTypes[i].Count = 0;
             }
 
             IsDisposed = true;
