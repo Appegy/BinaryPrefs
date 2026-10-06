@@ -32,12 +32,15 @@ namespace Appegy.Storage
             return new Builder(filePath);
         }
 
-        /// <summary> Deletes the storage file at the specified path. </summary>
-        /// <remarks> Meant for a path no storage is open on. A storage still alive on this path may write it back from memory afterwards. </remarks>
-        /// <param name="storagePath">The path to the storage file.</param>
-        internal static void Delete(string storagePath)
+        /// <summary> Deletes every file of the storage at the specified path: the storage file, its <c>.bak</c> and <c>.tmp</c> files and the debug JSON copy. </summary>
+        /// <param name="filePath">The file path for the storage.</param>
+        /// <exception cref="Exception">Thrown in the Editor if a storage is still open on this path.</exception>
+        public static void Delete(string filePath)
         {
-            StorageFile.Of(storagePath).Remove();
+            ThrowIfFilePathLocked(filePath);
+            var file = StorageFile.Of(filePath);
+            file.Remove();
+            file.RemoveDebugJson();
         }
 
         /// <summary> Provides a fluent interface for configuring and building a <see cref="BinaryStorage"/> instance. </summary>

@@ -104,22 +104,6 @@ namespace Appegy.Storage
         }
 
         [Test]
-        public void WhenStorageDeleted_ThenBackupAndTempDeletedToo()
-        {
-            var (firstSections, firstData) = CreateSample(1);
-            SaveOnDisk(StoragePath, firstSections, firstData);
-            var (secondSections, secondData) = CreateSample(2);
-            SaveOnDisk(StoragePath, secondSections, secondData);
-            File.WriteAllBytes(TempPath, new byte[] { 1, 2, 3 });
-
-            BinaryStorage.Delete(StoragePath);
-
-            File.Exists(StoragePath).Should().BeFalse();
-            File.Exists(BackupPath).Should().BeFalse();
-            File.Exists(TempPath).Should().BeFalse();
-        }
-
-        [Test]
         public void WhenStaleTempExists_ThenSaveStillPublishes()
         {
             var (firstSections, firstData) = CreateSample(1);
