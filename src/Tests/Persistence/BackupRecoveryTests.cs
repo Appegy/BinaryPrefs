@@ -168,7 +168,7 @@ namespace Appegy.Storage
             var generations = WriteGenerations(2);
             PutFiles(Array.Empty<byte>(), null, Cut(generations[0]));
 
-            FluentActions.Invoking(() => Open().Dispose()).Should().Throw<StorageFileCorruptedException>();
+            FluentActions.Invoking(() => Open(corruptedFileBehaviour: CorruptedFileBehaviour.ThrowException).Dispose()).Should().Throw<StorageFileCorruptedException>();
 
             File.Exists(StoragePath).Should().BeFalse();
             File.Exists(BackupPath).Should().BeFalse();
@@ -179,7 +179,7 @@ namespace Appegy.Storage
         {
             PutFiles(Array.Empty<byte>(), new byte[] { 1, 2, 3 }, Array.Empty<byte>());
 
-            FluentActions.Invoking(() => Open().Dispose()).Should().Throw<StorageFileCorruptedException>();
+            FluentActions.Invoking(() => Open(corruptedFileBehaviour: CorruptedFileBehaviour.ThrowException).Dispose()).Should().Throw<StorageFileCorruptedException>();
 
             File.Exists(TempPath).Should().BeTrue();
         }
@@ -191,7 +191,7 @@ namespace Appegy.Storage
             File.WriteAllBytes(StoragePath, Array.Empty<byte>());
             File.WriteAllBytes(BackupPath, Array.Empty<byte>());
 
-            FluentActions.Invoking(() => Open().Dispose()).Should().Throw<StorageFileCorruptedException>();
+            FluentActions.Invoking(() => Open(corruptedFileBehaviour: CorruptedFileBehaviour.ThrowException).Dispose()).Should().Throw<StorageFileCorruptedException>();
 
             File.Exists(StoragePath).Should().BeFalse();
             File.Exists(BackupPath).Should().BeFalse();
@@ -203,7 +203,7 @@ namespace Appegy.Storage
             WriteTwoGenerations();
             File.WriteAllBytes(StoragePath, Array.Empty<byte>());
             File.WriteAllBytes(BackupPath, Array.Empty<byte>());
-            FluentActions.Invoking(() => Open().Dispose()).Should().Throw<StorageFileCorruptedException>();
+            FluentActions.Invoking(() => Open(corruptedFileBehaviour: CorruptedFileBehaviour.ThrowException).Dispose()).Should().Throw<StorageFileCorruptedException>();
 
             using var storage = Open();
 

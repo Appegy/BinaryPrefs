@@ -72,7 +72,7 @@ namespace Appegy.Storage
 
         private Action Load()
         {
-            return () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build(KeyLoadFailedBehaviour.Ignore).Dispose();
+            return () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().SetCorruptedFileBehaviour(CorruptedFileBehaviour.ThrowException).Build(KeyLoadFailedBehaviour.Ignore).Dispose();
         }
 
         private void WriteFile(Action<BinaryWriter> write)

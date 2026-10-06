@@ -145,7 +145,7 @@ namespace Appegy.Storage
                 writer.Write(-1);
             }
 
-            Action action = () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build(KeyLoadFailedBehaviour.Ignore);
+            Action action = () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().SetCorruptedFileBehaviour(CorruptedFileBehaviour.ThrowException).Build(KeyLoadFailedBehaviour.Ignore);
 
             action.Should().Throw<StorageFileCorruptedException>();
         }
@@ -159,7 +159,7 @@ namespace Appegy.Storage
                 writer.Write("1.0.0");
             }
 
-            Action action = () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build(KeyLoadFailedBehaviour.Ignore);
+            Action action = () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().SetCorruptedFileBehaviour(CorruptedFileBehaviour.ThrowException).Build(KeyLoadFailedBehaviour.Ignore);
 
             action.Should().Throw<StorageFileCorruptedException>();
         }
@@ -175,7 +175,7 @@ namespace Appegy.Storage
 
             DuplicateFirstRecord(StoragePath);
 
-            Action action = () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build(KeyLoadFailedBehaviour.Ignore);
+            Action action = () => BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().SetCorruptedFileBehaviour(CorruptedFileBehaviour.ThrowException).Build(KeyLoadFailedBehaviour.Ignore);
 
             action.Should().Throw<StorageFileCorruptedException>();
         }

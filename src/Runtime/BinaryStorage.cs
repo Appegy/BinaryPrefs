@@ -698,12 +698,12 @@ namespace Appegy.Storage
         /// <summary> Loads the data from disk into memory. </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
         /// <exception cref="IOException"> An I/O error occurred </exception>
-        /// <exception cref="StorageFileCorruptedException"> The file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
+        /// <exception cref="StorageFileCorruptedException"> Neither the file nor its backup can be read and <paramref name="corruptedFileBehaviour"/> is <see cref="CorruptedFileBehaviour.ThrowException"/>. </exception>
         /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
-        private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        private void LoadDataFromDisk(KeyLoadFailedBehaviour keyLoadFailedBehaviour, CorruptedFileBehaviour corruptedFileBehaviour)
         {
             ThrowIfDisposed();
-            _persistence.Load(_data, keyLoadFailedBehaviour);
+            _persistence.Load(_data, keyLoadFailedBehaviour, corruptedFileBehaviour);
             foreach (var pair in _data)
             {
                 TrackCollectionOf(pair.Value, pair.Key);

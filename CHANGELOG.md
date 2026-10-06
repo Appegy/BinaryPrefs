@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Storage files are now written on a shared background thread. Changes are still serialized on the calling thread, but `Set` and auto-save no longer wait for the disk. `Save()` and `Dispose()` still block until the data has reached the disk.
+- `Build()` no longer throws when neither the storage file nor its backup can be read: the storage starts empty and logs the `StorageFileCorruptedException`. Every read error in the file now counts as a corrupted file, while an error on opening it still reaches the caller.
 
 ### Added
 - `SaveOnBackgroundThread(bool)` on the builder. Pass `false` to write the file before every change returns, as before.
+- `SetCorruptedFileBehaviour(CorruptedFileBehaviour)` on the builder. Pass `ThrowException` to get the exception from `Build()`, or `ResetToEmpty` to start empty without a log.
 
 ### Removed
 - `IsDirty`. With auto-save on it was almost always `false`, and with the background writer it meant "no change is waiting to be handed over", not "everything is on disk". Use `Save()` when you need the data on disk.
