@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-06
+
+### Added
+- `BinaryStorage.Delete(string)` is public: it deletes the storage file, its `.bak` and `.tmp` files and the debug JSON copy. In the Editor it throws while a storage is open on the path.
+
 ## [1.2.0] - 2026-10-06
 Storage files are now written on a background thread: a change reaches the disk a moment after `Set` returns, and a process killed in that moment loses only the last change. Pass `SaveOnBackgroundThread(false)` to the builder to write the file before every change returns, as before.
 
