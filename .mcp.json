@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "UnityMCP": {
+      "command": "uv",
+      "args": [
+        "run", "--no-project", "python",
+        "-c", "import os,runpy; runpy.run_path(os.environ['CLAUDE_PROJECT_DIR']+'/tools/unity-mcp.py', run_name='__main__')",
+        "lab"
+      ]
+    }
+  }
+}
