@@ -97,28 +97,30 @@ namespace Appegy.Storage
             {
                 if (!File.Exists(Main))
                 {
-                    return;
-                }
-
-                DeleteFileIfExists(Temp);
-
-                if (tryRead(Main, out var failure))
-                {
-                    return;
-                }
-
-                DeleteFileIfExists(Main);
-
-                if (File.Exists(Backup))
-                {
-                    File.Move(Backup, Main);
-                    if (tryRead(Main, out _))
+                    if (!File.Exists(Temp) || !File.Exists(Backup))
                     {
                         return;
                     }
-                    DeleteFileIfExists(Main);
+                    File.Move(Temp, Main);
                 }
 
+                if (tryRead(Main, out var failure))
+                {
+                    DeleteFileIfExists(Temp);
+                    return;
+                }
+
+                if (File.Exists(Backup))
+                {
+                    File.Replace(Backup, Main, null);
+                    if (tryRead(Main, out _))
+                    {
+                        DeleteFileIfExists(Temp);
+                        return;
+                    }
+                }
+
+                DeleteFileIfExists(Main);
                 ExceptionDispatchInfo.Capture(failure).Throw();
             }
         }
@@ -133,9 +135,9 @@ namespace Appegy.Storage
 
         private void RemoveFiles()
         {
+            DeleteFileIfExists(Backup);
             DeleteFileIfExists(Main);
             DeleteFileIfExists(Temp);
-            DeleteFileIfExists(Backup);
         }
 
         private void EnsureDirectoryExists()
