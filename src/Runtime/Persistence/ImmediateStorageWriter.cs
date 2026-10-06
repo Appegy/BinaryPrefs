@@ -14,8 +14,9 @@ namespace Appegy.Storage
             _file.Publish(snapshot);
         }
 
-        public void Flush()
+        public bool Flush()
         {
+            return true;
         }
     }
 }

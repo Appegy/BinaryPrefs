@@ -4,6 +4,6 @@ namespace Appegy.Storage
     {
         void Write(StorageSnapshot snapshot, bool waitForDisk);
 
-        void Flush();
+        bool Flush();
     }
 }

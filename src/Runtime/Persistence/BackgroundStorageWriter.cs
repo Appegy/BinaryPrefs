@@ -19,6 +19,7 @@ namespace Appegy.Storage
         private StorageSnapshot? _pending;
         private bool _isScheduled;
         private bool _isPublishing;
+        private bool _lastWriteFailed;
 
         public BackgroundStorageWriter(StorageFile file)
         {
@@ -32,17 +33,19 @@ namespace Appegy.Storage
                 Schedule(snapshot);
                 return;
             }
-            TakePending()?.Release();
+            TakePending(out _)?.Release();
             _file.Publish(snapshot);
         }
 
-        public void Flush()
+        public bool Flush()
         {
-            var pending = TakePending();
-            if (pending != null)
+            var pending = TakePending(out var lastWriteFailed);
+            if (pending == null)
             {
-                _file.Publish(pending.Value);
+                return !lastWriteFailed;
             }
+            _file.Publish(pending.Value);
+            return true;
         }
 
         private void Schedule(StorageSnapshot snapshot)
@@ -62,7 +65,7 @@ namespace Appegy.Storage
             replaced?.Release();
         }
 
-        private StorageSnapshot? TakePending()
+        private StorageSnapshot? TakePending(out bool lastWriteFailed)
         {
             lock (_lock)
             {
@@ -70,6 +73,8 @@ namespace Appegy.Storage
                 {
                     Monitor.Wait(_lock);
                 }
+                lastWriteFailed = _lastWriteFailed;
+                _lastWriteFailed = false;
                 var pending = _pending;
                 _pending = null;
                 return pending;
@@ -91,18 +96,21 @@ namespace Appegy.Storage
                 _isPublishing = true;
             }
 
+            var failed = false;
             try
             {
                 _file.Publish(snapshot);
             }
             catch (Exception exception)
             {
+                failed = true;
                 Debug.LogError($"Failed to save storage '{_file.Main}'. Reason: {exception.Message}");
             }
             finally
             {
                 lock (_lock)
                 {
+                    _lastWriteFailed = failed;
                     _isPublishing = false;
                     Monitor.PulseAll(_lock);
                 }
