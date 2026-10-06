@@ -15,7 +15,7 @@ namespace Appegy.Storage
     {
         private static readonly bool _valueCanBeReactiveCollection = typeof(IReactiveCollection).IsAssignableFrom(typeof(T));
 
-        public override Type Type { get; }
+        public override Type Type => typeof(T);
         public override int TypeIndex { get; }
         public override Object Object => Value;
         public T Value { get; set; }
@@ -27,7 +27,6 @@ namespace Appegy.Storage
 
         public Record(T value, int typeIndex)
         {
-            Type = typeof(T);
             TypeIndex = typeIndex;
             Value = value;
         }

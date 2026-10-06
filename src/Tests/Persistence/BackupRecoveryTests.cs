@@ -113,10 +113,5 @@ namespace Appegy.Storage
             storage.Set("generation", 2);
             storage.Save();
         }
-
-        private BinaryStorage Open()
-        {
-            return BinaryStorage.Construct(StoragePath).AddPrimitiveTypes().Build();
-        }
     }
 }

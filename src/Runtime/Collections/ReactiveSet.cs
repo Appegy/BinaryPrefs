@@ -1,42 +1,16 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Appegy.Storage
 {
-    internal class ReactiveSet<T> : IReactiveCollection, ISet<T>, IReadOnlyCollection<T>
+    internal class ReactiveSet<T> : ReactiveCollection, ISet<T>, IReadOnlyCollection<T>
     {
         private readonly HashSet<T> _set = new();
 
-        public bool IsDisposed { get; private set; }
-
-        public event Action<IReactiveCollection> OnChanged;
-
-        private void SetDirty()
-        {
-            OnChanged?.Invoke(this);
-        }
-
-        private void ThrowIfDisposed()
-        {
-            if (IsDisposed)
-            {
-                throw new ObjectDisposedException(nameof(ReactiveSet<T>));
-            }
-        }
+        protected override string ObjectName => nameof(ReactiveSet<T>);
 
         #region Mutable functionallity
-
-        public void Dispose()
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
-            Clear();
-            IsDisposed = true;
-        }
 
         public void ExceptWith(IEnumerable<T> other)
         {
@@ -95,7 +69,7 @@ namespace Appegy.Storage
             return added;
         }
 
-        public void Clear()
+        public override void Clear()
         {
             ThrowIfDisposed();
             var count = Count;

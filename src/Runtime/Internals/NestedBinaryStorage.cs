@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Pool;
 
 namespace Appegy.Storage
@@ -25,10 +24,16 @@ namespace Appegy.Storage
         {
             get
             {
-                return _root.Keys
-                    .Where(k => k.StartsWith(_prefix, StringComparison.Ordinal))
-                    .Select(k => k.Substring(_prefix.Length))
-                    .ToArray();
+                var rootKeys = _root.Keys;
+                var keys = new List<string>(rootKeys.Count);
+                foreach (var key in rootKeys)
+                {
+                    if (TryExtractKey(key, out var extracted))
+                    {
+                        keys.Add(extracted);
+                    }
+                }
+                return keys;
             }
         }
 
@@ -68,9 +73,14 @@ namespace Appegy.Storage
             _keysAllowedBeforeCleanup = Math.Max(MinKeysAddedBetweenCleanups, _prefixedKeys.Count);
         }
 
+        private bool HasPrefix(string key)
+        {
+            return key.StartsWith(_prefix, StringComparison.Ordinal);
+        }
+
         private bool TryExtractKey(string key, out string value)
         {
-            if (key.StartsWith(_prefix, StringComparison.Ordinal))
+            if (HasPrefix(key))
             {
                 value = key.Substring(_prefix.Length);
                 return true;
@@ -126,7 +136,7 @@ namespace Appegy.Storage
 
         public int RemoveAll()
         {
-            return _root.Remove(key => key.StartsWith(_prefix, StringComparison.Ordinal));
+            return _root.Remove(HasPrefix);
         }
 
         public void Save()
