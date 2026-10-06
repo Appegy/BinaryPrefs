@@ -19,11 +19,12 @@ namespace Appegy.Storage
             BinaryStorage.Delete(StoragePath);
         }
 
-        protected BinaryStorage Open(bool autoSave = false, bool saveOnBackgroundThread = true)
+        protected BinaryStorage Open(bool autoSave = false, bool saveOnBackgroundThread = true, CorruptedFileBehaviour corruptedFileBehaviour = CorruptedFileBehaviour.ResetToEmptyWithError)
         {
             var builder = BinaryStorage.Construct(StoragePath)
                 .AddPrimitiveTypes()
-                .SaveOnBackgroundThread(saveOnBackgroundThread);
+                .SaveOnBackgroundThread(saveOnBackgroundThread)
+                .SetCorruptedFileBehaviour(corruptedFileBehaviour);
             if (autoSave)
             {
                 builder = builder.EnableAutoSaveOnChange();

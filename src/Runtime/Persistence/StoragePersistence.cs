@@ -20,10 +20,28 @@ namespace Appegy.Storage
             _writer = saveOnBackgroundThread ? new BackgroundStorageWriter(_file) : new ImmediateStorageWriter(_file);
         }
 
-        public void Load(Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        public void Load(Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour, CorruptedFileBehaviour corruptedFileBehaviour)
         {
             _serializer.Clear(data);
-            _file.Load((string filePath, out StorageFileCorruptedException failure) => _serializer.TryDeserialize(filePath, data, keyLoadFailedBehaviour, out failure));
+            try
+            {
+                _file.Load((string filePath, out StorageFileCorruptedException failure) => _serializer.TryDeserialize(filePath, data, keyLoadFailedBehaviour, out failure));
+            }
+            catch (StorageFileCorruptedException exception)
+            {
+                switch (corruptedFileBehaviour)
+                {
+                    case CorruptedFileBehaviour.ThrowException:
+                        throw;
+                    case CorruptedFileBehaviour.ResetToEmpty:
+                        break;
+                    case CorruptedFileBehaviour.ResetToEmptyWithError:
+                        Debug.LogException(exception);
+                        break;
+                    default:
+                        throw new UnexpectedEnumException(typeof(CorruptedFileBehaviour), corruptedFileBehaviour);
+                }
+            }
         }
 
         public void Save(Dictionary<string, Record> data, bool waitForDisk)

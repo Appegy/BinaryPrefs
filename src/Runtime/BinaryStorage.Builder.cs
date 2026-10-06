@@ -50,6 +50,7 @@ namespace Appegy.Storage
             private bool _saveJsonForDebug;
             private MissingKeyBehavior _missingKeyBehavior = MissingKeyBehavior.InitializeWithDefaultValue;
             private TypeMismatchBehaviour _typeMismatchBehaviour = TypeMismatchBehaviour.ThrowException;
+            private CorruptedFileBehaviour _corruptedFileBehaviour = CorruptedFileBehaviour.ResetToEmptyWithError;
 
             internal Builder(string filePath)
             {
@@ -102,6 +103,16 @@ namespace Appegy.Storage
             public Builder SetTypeMismatchBehaviour(TypeMismatchBehaviour behavior)
             {
                 _typeMismatchBehaviour = behavior;
+                return this;
+            }
+
+            /// <summary> Specifies the behavior when neither the storage file nor its backup can be read on load. </summary>
+            /// <remarks> In every mode the unreadable files are removed, so the next load starts clean. An error while the file is opened is not a corrupted file: it always reaches the caller and leaves the files untouched. </remarks>
+            /// <param name="behavior">The corrupted file behavior.</param>
+            /// <returns>The current <see cref="Builder"/> instance for method chaining.</returns>
+            public Builder SetCorruptedFileBehaviour(CorruptedFileBehaviour behavior)
+            {
+                _corruptedFileBehaviour = behavior;
                 return this;
             }
 
@@ -248,7 +259,7 @@ namespace Appegy.Storage
             /// <returns>The configured <see cref="BinaryStorage"/> instance.</returns>
             /// <exception cref="ObjectDisposedException">Thrown if the storage is disposed.</exception>
             /// <exception cref="IOException"> An I/O error occurred </exception>
-            /// <exception cref="StorageFileCorruptedException"> The storage file structure is corrupted (bad header, truncated framing, or a duplicate key). </exception>
+            /// <exception cref="StorageFileCorruptedException"> Neither the storage file nor its backup can be read and the corrupted file behavior is <see cref="CorruptedFileBehaviour.ThrowException"/>. </exception>
             /// <exception cref="KeyLoadFailedException"> A key failed to load and <paramref name="keyLoadFailedBehaviour"/> is <see cref="KeyLoadFailedBehaviour.ThrowException"/>. </exception>
             public BinaryStorage Build(KeyLoadFailedBehaviour keyLoadFailedBehaviour = KeyLoadFailedBehaviour.IgnoreWithWarning)
             {
@@ -257,7 +268,7 @@ namespace Appegy.Storage
                 storage.SaveJsonCopyForDebug = _saveJsonForDebug;
                 storage.MissingKeyBehavior = _missingKeyBehavior;
                 storage.TypeMismatchBehaviour = _typeMismatchBehaviour;
-                storage.LoadDataFromDisk(keyLoadFailedBehaviour);
+                storage.LoadDataFromDisk(keyLoadFailedBehaviour, _corruptedFileBehaviour);
                 LockFilePathInEditor(_filePath);
                 return storage;
             }

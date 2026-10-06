@@ -95,6 +95,7 @@ using var storage = BinaryStorage.Construct(path)
     .SupportDictionariesOf<string, int>()                 // dictionary of supported types
     .SetMissingKeyBehaviour(MissingKeyBehavior.ReturnDefaultValueOnly)
     .SetTypeMismatchBehaviour(TypeMismatchBehaviour.OverrideValueAndType)
+    .SetCorruptedFileBehaviour(CorruptedFileBehaviour.ResetToEmptyWithError)
     .EnableAutoSaveOnChange()
     .SaveOnBackgroundThread(true)                          // on by default, false writes the file before every change returns
     .Build(KeyLoadFailedBehaviour.IgnoreWithWarning);
@@ -226,6 +227,13 @@ Passed to `Build`; controls what happens when a key fails to deserialize on load
 - `ThrowException` - abort loading with an exception.
 - `Ignore` - skip the bad key silently.
 - `IgnoreWithWarning` - skip the bad key and log a warning (default).
+
+<!-- omit from toc -->
+### CorruptedFileBehaviour
+Controls what `Build` does when neither the storage file nor its backup can be read. In every mode the unreadable files are removed, so the next start is clean. An error on opening the file (no access, the file is locked) is not a corrupted file: it always reaches the caller and the files stay.
+- `ThrowException` - throw a `StorageFileCorruptedException`.
+- `ResetToEmpty` - start with an empty storage.
+- `ResetToEmptyWithError` - start with an empty storage and log the exception (default).
 
 Per-call overrides are available too: `Get<T>(key, default, overrideMissingKeyBehavior)` and `Set<T>(key, value, overrideTypeMismatchBehaviour)`.
 

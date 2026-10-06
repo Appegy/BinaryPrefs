@@ -65,8 +65,18 @@ namespace Appegy.Storage
 
         internal static void ReadFile(string storageFilePath, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
         {
-            using var stream = new FileStream(storageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, ReadBufferSize);
-            using var reader = new BinaryReader(stream, Encoding.UTF8);
+            using var stream = OpenFile(storageFilePath);
+            Read(storageFilePath, stream, sections, data, keyLoadFailedBehaviour);
+        }
+
+        internal static FileStream OpenFile(string storageFilePath)
+        {
+            return new FileStream(storageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, ReadBufferSize);
+        }
+
+        internal static void Read(string storageFilePath, FileStream stream, IReadOnlyList<BinarySection> sections, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour)
+        {
+            using var reader = new BinaryReader(stream, Encoding.UTF8, true);
 
             var fileSections = ReadHeader(storageFilePath, sections, reader, out var recordCount);
             var fileLength = stream.Length;

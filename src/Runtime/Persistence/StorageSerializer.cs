@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -41,16 +42,17 @@ namespace Appegy.Storage
 
         public bool TryDeserialize(string filePath, Dictionary<string, Record> data, KeyLoadFailedBehaviour keyLoadFailedBehaviour, out StorageFileCorruptedException failure)
         {
+            using var stream = StorageFormat.OpenFile(filePath);
             try
             {
-                StorageFormat.ReadFile(filePath, _sections, data, keyLoadFailedBehaviour);
+                StorageFormat.Read(filePath, stream, _sections, data, keyLoadFailedBehaviour);
                 failure = null;
                 return true;
             }
-            catch (StorageFileCorruptedException exception)
+            catch (Exception exception) when (exception is not KeyLoadFailedException)
             {
                 Clear(data);
-                failure = exception;
+                failure = exception as StorageFileCorruptedException ?? new StorageFileCorruptedException(filePath, exception.Message, exception);
                 return false;
             }
         }
