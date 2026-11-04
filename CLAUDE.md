@@ -6,8 +6,6 @@
 
 **PRs**: Title `<type>: short description`, same as commits. Body: empty, or at most 2-4 sentences. No test plan.
 
-**Change size**: small, focused commits. Commit messages and PR text describe the change itself, never the tools used to write it.
-
 **PR #82** stays as it is: no commits, comments, reviews or state changes.
 
 **Jira tasks**: Fetch issue → branch from `origin/main` (never checkout main) → implement → commit → push → PR.
@@ -17,11 +15,6 @@
 - Do NOT write comments in code. Code should be self-explanatory through clear naming. Exceptions: existing `// TODO`/migration markers and attributes/pragmas that the compiler or tooling requires.
 - Editor classes: `internal`, not `public`.
 - Lines are long (max 250, `resharper_csharp_max_line_length = 250`). Don't wrap just to fit narrow width - one long line fine. Wrap only when it truly helps read, and match surrounding code.
-
-## Tests
-
-- Assert a throw with the FluentAssertions invoking form: `storage.Invoking(s => s.Has("key")).Should().Throw<T>()` on a subject, `FluentActions.Invoking(() => ...)` for a static or helper call. Never through an `Action action = () => ...` local: it captures a disposed `using` variable.
-- Prefer `Should().HaveCount(n)` over `Count.Should().Be(n)`, `Should().BeEquivalentTo(...)` for collection contents, and `Should().BeTrue()` / `BeFalse()` for bools.
 
 ## Pitfalls
 
